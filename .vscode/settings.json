@@ -1,0 +1,18 @@
+{
+	"[javascript]": {
+		"editor.defaultFormatter": "dbaeumer.vscode-eslint"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "dbaeumer.vscode-eslint"
+	},
+	"eslint.format.enable": true,
+	"eslint.ignoreUntitled": true,
+	"eslint.options": {
+		"ignorePatterns": [
+			"dist",
+			"node_modules",
+		]
+	},
+	"eslint.useFlatConfig": true,
+	"files.eol": "\n"
+}

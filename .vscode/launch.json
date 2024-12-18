@@ -1,0 +1,45 @@
+{
+	// 使用 IntelliSense 了解相关属性。 
+	// 悬停以查看现有属性的描述。
+	// 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "app launch",
+			"type": "node",
+			"request": "launch",
+			"program": "${workspaceFolder}/bin/www.ts",
+			"internalConsoleOptions": "openOnSessionStart",
+			"sourceMaps": true,
+			"outputCapture": "std",
+			"env": {
+				"NODE_ENV": "development"
+			},
+			"runtimeArgs": [
+				"--enable-source-maps",
+				"--loader=ts-node/esm",
+			],
+			"skipFiles": [
+				"<node_internals>/**"
+			]
+		},
+		{
+			"name": "mocha test",
+			"type": "node",
+			"request": "launch",
+			"internalConsoleOptions": "openOnSessionStart",
+			"sourceMaps": true,
+			"runtimeExecutable": "npm",
+			"env": {
+				"NODE_ENV": "test"
+			},
+			"runtimeArgs": [
+				"run",
+				"test"
+			],
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+		}
+	]
+}

@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Set GITHUB ENV
+        run: echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Aliyun Login
+        uses: docker/login-action@v2
+        with:
+          registry: registry.cn-shenzhen.aliyuncs.com
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: |
+            registry.cn-shenzhen.aliyuncs.com/logedx/chatot:latest
+            registry.cn-shenzhen.aliyuncs.com/logedx/chatot:v${{ env.VERSION }}
