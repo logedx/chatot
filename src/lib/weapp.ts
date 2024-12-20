@@ -27,6 +27,7 @@ function is_wxopen_api_error_result(v: unknown): v is WxopenAPIErrorResult {
 	return detective.is_object(v)
 		&& detective.is_number(v.errcode)
 		&& detective.is_string(v.errmsg)
+		&& v.errcode > 0
 
 }
 
@@ -38,7 +39,11 @@ wxopen_api.interceptors.response.use(
 		if (is_wxopen_api_error_result(data) === true
 
 		) {
-			throw new reply.BadRequest(`${data.errmsg} . ${data.errcode}`)
+			let e = new reply.BadRequest('wxopen api request failed')
+
+			e.push('data', data)
+
+			throw e
 
 		}
 

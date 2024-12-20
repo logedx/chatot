@@ -201,6 +201,11 @@ export class Exhibit<T extends object> {
 		}
 
 		catch (e) {
+			if (e instanceof reply.Exception) {
+				throw e
+
+			}
+
 			if (detective.is_error(e)
 
 			) {
@@ -208,7 +213,7 @@ export class Exhibit<T extends object> {
 
 			}
 
-			throw e
+			throw new reply.BadRequest('infer fail')
 
 		}
 
@@ -388,6 +393,8 @@ export class Chain<T = unknown, K extends undefined | detective.Key = undefined>
 	}
 
 	async verify(value: unknown): Promise<T> {
+		let error = new reply.BadRequest(this.message)
+
 		try {
 			if (detective.is_exist(this.#linker)
 
@@ -407,13 +414,32 @@ export class Chain<T = unknown, K extends undefined | detective.Key = undefined>
 
 		}
 
-		catch {
-			// 
+		catch (e) {
+			if (detective.is_error(e)
+
+			) {
+				let stack = e.stack ?? ''
+
+				error.push('message', e.message)
+				error.push(
+					'stack', stack.split('\n'),
+
+				)
+
+			}
+
+			if (e instanceof reply.Exception) {
+				for (let [k, v] of e.data) {
+					error.push(k, v)
+
+				}
+
+			}
 
 		}
 
+		throw error
 
-		throw new Error(this.message)
 
 	}
 
