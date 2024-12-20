@@ -75,10 +75,10 @@ router.get(
 	retrieve_router.survive_token,
 
 	function retrieve(req, res) {
-		let { expire, scope } = req.survive_token!
+		let doc = req.survive_token!
 
 		res.json(
-			{ expire, scope },
+			structure.pick(doc, 'expire', 'scope', 'is_super'),
 
 		)
 

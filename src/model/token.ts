@@ -39,6 +39,8 @@ export type TPopulatePaths = {
 }
 
 export type TVirtuals = {
+	is_super: boolean
+
 	is_usable: boolean
 	is_survive: boolean
 
@@ -161,6 +163,14 @@ export const schema = new Schema<
 			default: () => delay(),
 
 		},
+
+	},
+
+)
+
+schema.virtual('is_super').get(
+	function (): TVirtuals['is_super'] {
+		return this.scope === Infinity
 
 	},
 

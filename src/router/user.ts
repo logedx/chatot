@@ -115,7 +115,7 @@ router.post(
 		await token_model.default.findByIdAndUpdate(
 			_id,
 
-			{ weapp, user, scope: user.scope?.value ?? [] },
+			{ weapp, user, scope: user.scope?.value ?? scope_model.Role.普通 },
 
 		)
 
