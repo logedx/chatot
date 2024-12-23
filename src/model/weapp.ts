@@ -1,6 +1,7 @@
 /**
  * 小程序模型
  */
+import ali_oss from 'ali-oss'
 import { Schema, Model, HydratedDocument } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
@@ -79,6 +80,12 @@ export type TInstanceMethods = {
 		scene: string,
 
 	): Promise<weapp.Unlimited>
+
+	to_ali_oss(
+		// eslint-disable-next-line no-use-before-define
+		this: THydratedDocumentType,
+
+	): ali_oss
 
 	to_api_v3_option(
 		// eslint-disable-next-line no-use-before-define
@@ -295,6 +302,15 @@ schema.method(
 			let token = await this.get_access_token()
 
 			return weapp.get_phone_number(token, code)
+
+		},
+
+		to_ali_oss() {
+			const client = storage.ali_oss()
+
+			client.useBucket(this.bucket)
+
+			return client
 
 		},
 

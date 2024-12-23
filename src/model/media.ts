@@ -2,11 +2,14 @@
  * 媒体模型
  */
 import path from 'node:path'
+import stream from 'node:stream'
 
+import ali_oss from 'ali-oss'
 import mime_types from 'mime-types'
-import { Schema, Model, Types, HydratedDocument } from 'mongoose'
+import { Schema, Model, Types, HydratedDocument, Require_id } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
+import * as detective from '../lib/detective.js'
 
 import * as weapp_model from './weapp.js'
 
@@ -23,7 +26,7 @@ export type TRawDocType = storage.TRawDocType<
 		pathname: string
 		reference: number
 
-		src: string
+		src?: string
 
 	}
 
@@ -45,11 +48,28 @@ export type TInstanceMethods = {
 
 	): Promise<void>
 
+	safe_push(
+		// eslint-disable-next-line no-use-before-define
+		this: THydratedDocumentType,
+
+		body: stream.Readable,
+
+	// eslint-disable-next-line no-use-before-define
+	): Promise<THydratedDocumentType>
+
 	safe_delete(
 		// eslint-disable-next-line no-use-before-define
 		this: THydratedDocumentType,
 
 	): Promise<void>
+
+	safe_access(
+		// eslint-disable-next-line no-use-before-define
+		this: THydratedDocumentType,
+
+		expires?: number,
+
+	): Promise<Require_id<Required<TRawDocType>>>
 
 }
 
@@ -102,6 +122,7 @@ export const schema = new Schema<
 			unique: true,
 			required: true,
 			trim: true,
+			set: (v: string) => v.replace(/\\/g, '/'),
 
 		},
 
@@ -117,7 +138,7 @@ export const schema = new Schema<
 		src: {
 			type: String,
 			unique: true,
-			required: true,
+			sparse: true,
 			trim: true,
 
 		},
@@ -138,6 +159,38 @@ schema.method(
 
 		},
 
+		async safe_push(body) {
+			let size = 0
+
+			body.on(
+				'data',
+
+				v => {
+					if (detective.is_buffer(v)
+						|| detective.is_array_buffer(v)
+
+					) {
+						size = size + v.byteLength
+
+					}
+
+				},
+
+			)
+
+			let doc = await this.populate<TPopulatePaths>('weapp')
+
+			let client = doc.weapp.to_ali_oss()
+
+			let result = await client.putStream(this.pathname, body) as ali_oss.PutObjectResult
+
+			this.size = size
+			this.src = result.url
+
+			return this.save()
+
+		},
+
 		async safe_delete() {
 			this.reference = this.reference - 1
 
@@ -148,9 +201,35 @@ schema.method(
 
 			}
 
+			let doc = await this.populate<TPopulatePaths>('weapp')
+
+			let client = doc.weapp.to_ali_oss()
+
+			await client.delete(this.pathname)
+
 			await this.deleteOne()
 
 		},
+
+		async safe_access(expires = 1800) {
+			let doc = await this.populate<TPopulatePaths>('weapp')
+
+			let client = doc.weapp.to_ali_oss()
+
+			this.src = client.signatureUrl(
+				this.pathname,
+
+				{
+					expires,
+
+				},
+
+			)
+
+			return this.toObject() as Require_id<Required<TRawDocType>>
+
+		},
+
 
 	},
 
