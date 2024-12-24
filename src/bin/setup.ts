@@ -186,12 +186,12 @@ async function manually_configure_application(node_env: NodeEnv): Promise<void> 
 
 	)
 
-	let ali_oss = {
+	let aliopen = {
 		endpoint: await inquirer.input(
 			{
-				message: `ALI Object Storage Service: ${chalk.gray('Endpoint')}`,
-				validate: (v: string) => (/^(https?:\/\/)?[0-9a-z]+(\.[0-9a-z-]+)*\/$/).test(v),
-				default: 'https://oss-cn-shenzhen.aliyuncs.com/',
+				message: `ALI Cloud Open API: ${chalk.gray('Endpoint')}`,
+				validate: (v: string) => (/^[a-z]{2}-[a-z]+(-[0-9a-z]+)?$/).test(v),
+				default: 'cn-shenzhen',
 
 			},
 
@@ -199,7 +199,7 @@ async function manually_configure_application(node_env: NodeEnv): Promise<void> 
 
 		access_key_id: await inquirer.input(
 			{
-				message: `ALI Object Storage Service: ${chalk.gray('Access Key Id')}`,
+				message: `ALI Cloud Open API: ${chalk.gray('Access Key Id')}`,
 				validate: (v: string) => (/^$|^[0-9a-zA-Z]{24}$/).test(v),
 
 			},
@@ -208,7 +208,7 @@ async function manually_configure_application(node_env: NodeEnv): Promise<void> 
 
 		secret_access_key: await inquirer.input(
 			{
-				message: `ALI Object Storage Service: ${chalk.gray('Secret Access Key')}`,
+				message: `ALI Cloud Open API: ${chalk.gray('Secret Access Key')}`,
 				validate: (v: string) => (/^$|^[0-9a-zA-Z]{30}$/).test(v),
 
 			},
@@ -227,18 +227,18 @@ async function manually_configure_application(node_env: NodeEnv): Promise<void> 
 
 		),
 
-		app_secret: await inquirer.input(
+		aes_key: await inquirer.input(
 			{
-				message: `Weixin Open Platform: ${chalk.gray('App Secret')}`,
+				message: `Weixin Open Platform: ${chalk.gray('AES Key')}`,
 				validate: (v: string) => (/^$|^[0-9a-f]{32}$/).test(v),
 
 			},
 
 		),
 
-		aes_key: await inquirer.input(
+		app_secret: await inquirer.input(
 			{
-				message: `Weixin Open Platform: ${chalk.gray('AES Key')}`,
+				message: `Weixin Open Platform: ${chalk.gray('App Secret')}`,
 				validate: (v: string) => (/^$|^[0-9a-f]{32}$/).test(v),
 
 			},
@@ -249,7 +249,7 @@ async function manually_configure_application(node_env: NodeEnv): Promise<void> 
 
 
 	let ctx = JSON.stringify(
-		{ host, salt, mongodb, ali_oss, wxopen },
+		{ host, salt, mongodb, aliopen, wxopen },
 
 		null,
 

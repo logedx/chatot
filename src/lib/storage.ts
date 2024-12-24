@@ -14,9 +14,9 @@ const connect: Connect = { ali_oss: null, mongodb: null }
 
 const mongodb_uri = config.get<string>('mongodb')
 
-const ali_oss_endpoint = config.get<string>('ali_oss.endpoint')
-const ali_oss_access_key_id = config.get<string>('ali_oss.access_key_id')
-const ali_oss_access_key_secret = config.get<string>('ali_oss.secret_access_key')
+const aliopen_endpoint = config.get<string>('aliopen.endpoint')
+const aliopen_access_key_id = config.get<string>('aliopen.access_key_id')
+const aliopen_access_key_secret = config.get<string>('aliopen.secret_access_key')
 
 
 
@@ -132,13 +132,13 @@ export function ali_oss(): alioss {
 		// eslint-disable-next-line new-cap
 		connect.ali_oss = new alioss(
 			{
-				endpoint: ali_oss_endpoint,
+				endpoint: aliopen_endpoint,
 
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				accessKeyId: ali_oss_access_key_id,
+				accessKeyId: aliopen_access_key_id,
 
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				accessKeySecret: ali_oss_access_key_secret,
+				accessKeySecret: aliopen_access_key_secret,
 
 			},
 
