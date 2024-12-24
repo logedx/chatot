@@ -170,7 +170,7 @@ export const schema = new Schema<
 
 schema.virtual('is_super').get(
 	function (): TVirtuals['is_super'] {
-		return this.scope === Infinity
+		return this.scope > 0
 
 	},
 
