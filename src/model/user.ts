@@ -105,7 +105,7 @@ export const schema = new Schema<
 
 		phone: {
 			type: String,
-			unique: true,
+			index: true,
 			sparse: true,
 			select: false,
 			lowercase: true,
@@ -150,6 +150,13 @@ export const schema = new Schema<
 
 schema.index(
 	{ weapp: 1, created: -1 },
+
+)
+
+schema.index(
+	{ weapp: 1, phone: 1 },
+
+	{ unique: true, sparse: true },
 
 )
 
