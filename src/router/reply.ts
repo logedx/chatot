@@ -148,7 +148,20 @@ export const finish: express.ErrorRequestHandler = function finish(
 
 	}
 
-	res.stdio(e)
+	if (detective.is_exist(res.stdio)
+
+	) {
+		res?.stdio(e)
+
+	}
+
+	else {
+		reply.stdio(
+			secret.hex(8), e,
+
+		)
+
+	}
 
 	res.status(e.errno ?? 500)
 		.json(
