@@ -132,7 +132,7 @@ export function ali_oss(): alioss {
 		// eslint-disable-next-line new-cap
 		connect.ali_oss = new alioss(
 			{
-				endpoint: aliopen_endpoint,
+				region: `oss-${aliopen_endpoint}`,
 
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				accessKeyId: aliopen_access_key_id,
