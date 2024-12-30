@@ -4,7 +4,6 @@
 import path from 'node:path'
 import stream from 'node:stream'
 
-import ali_oss from 'ali-oss'
 import mime_types from 'mime-types'
 import { Schema, Model, Types, HydratedDocument, Require_id } from 'mongoose'
 
@@ -160,31 +159,52 @@ schema.method(
 		},
 
 		async safe_push(body) {
-			let size = 0
+			class SizeTrackingStream extends stream.Transform implements stream.Transform {
+				#value = 0
 
-			body.on(
-				'data',
+				get value(): number {
+					return this.#value
 
-				v => {
-					if (detective.is_buffer(v)
-						|| detective.is_array_buffer(v)
+				}
+
+				_transform(
+					chunk: unknown,
+					encoding: BufferEncoding,
+					callback: stream.TransformCallback,
+
+				): void {
+					if (detective.is_buffer(chunk)
+						|| detective.is_array_buffer(chunk)
 
 					) {
-						size = size + v.byteLength
+						this.#value = this.#value + chunk.byteLength
 
 					}
 
-				},
+					this.push(chunk)
 
-			)
+					callback()
+
+				}
+
+			}
+
+			let size = new SizeTrackingStream()
 
 			let doc = await this.populate<TPopulatePaths>('weapp')
 
 			let client = doc.weapp.to_ali_oss()
 
-			let result = await client.putStream(this.pathname, body) as ali_oss.PutObjectResult
+			let result = await client.append(
+				this.pathname,
 
-			this.size = size
+				body.pipe(size),
+
+				{ mime: this.mime },
+
+			)
+
+			this.size = size.value
 			this.src = result.url
 
 			return this.save()
