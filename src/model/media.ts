@@ -5,7 +5,7 @@ import path from 'node:path'
 import stream from 'node:stream'
 
 import mime_types from 'mime-types'
-import { Schema, Model, Types, HydratedDocument, Require_id } from 'mongoose'
+import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
@@ -68,7 +68,7 @@ export type TInstanceMethods = {
 
 		expires?: number,
 
-	): Promise<Require_id<Required<TRawDocType>>>
+	): Promise<URL>
 
 }
 
@@ -236,17 +236,18 @@ schema.method(
 
 			let client = doc.weapp.to_ali_oss()
 
-			this.src = client.signatureUrl(
-				this.pathname,
+			return new URL(
+				client.signatureUrl(
+					this.pathname,
 
-				{
-					expires,
+					{
+						expires,
 
-				},
+					},
+
+				),
 
 			)
-
-			return this.toObject() as Require_id<Required<TRawDocType>>
 
 		},
 

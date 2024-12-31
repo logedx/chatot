@@ -100,6 +100,18 @@ router.post(
 
 		)
 
+		let uri = await doc.safe_access()
+
+		res.set(
+			'X-Access-URI', uri.href,
+
+		)
+
+		res.set(
+			'X-Oss-Process', uri.searchParams.toString(),
+
+		)
+
 		res.json(doc.src)
 
 	},
