@@ -15,7 +15,7 @@
 		"./router/*": "./src/router/*"
 	},
 	"scripts": {
-		"prepare": "husky install",
+		"prepare": "npx husky",
 		"eslint": "npx tsc --noEmit && npx eslint **/*.ts",
 		"test": "npx mocha test/**/*.ts",
 		"release": "npx standard-version",
