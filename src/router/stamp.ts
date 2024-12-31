@@ -88,7 +88,10 @@ router.post(
 
 		)
 
-		let media = await media_router.create(weapp, 'stamp', 'image/png', unlimited.body)
+		let media = await media_router.create(
+			weapp, unlimited.body, { folder: '/stamp', mime: 'image/png' },
+
+		)
 
 
 		await stamp_model.default.create(

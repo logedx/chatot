@@ -23,16 +23,19 @@ import * as token_router from './token.js'
 export async function create(
 	weapp: weapp_model.THydratedDocumentType,
 
-	mime: string,
-	folder: string,
-
 	body: stream.Readable,
 
+	option: {
+		mime: string,
+		folder: string,
+
+	},
+
 ): Promise<media_model.THydratedDocumentType> {
-	let pathname = media_model.resolve(folder, mime)
+	let pathname = media_model.resolve(option.folder, option.mime)
 
 	let doc = await media_model.default.create(
-		{ weapp, mime, pathname, store: 'alioss', bucket: weapp.bucket },
+		{ weapp, mime: option.mime, pathname, store: 'alioss', bucket: weapp.bucket },
 
 	)
 
@@ -53,13 +56,7 @@ router.post(
 	async function create_(req, res) {
 		type Suspect = {
 			mime: string
-
 			folder: string
-			pathname: string
-
-			src: string
-
-			weapp: Types.ObjectId
 
 		}
 
@@ -96,7 +93,7 @@ router.post(
 		)
 
 		let doc = await create(
-			weapp, suspect.get('mime'), suspect.get('folder'), req,
+			weapp, req, suspect.get(),
 
 		)
 
