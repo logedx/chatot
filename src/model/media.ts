@@ -121,7 +121,9 @@ export const schema = new Schema<
 			unique: true,
 			required: true,
 			trim: true,
-			set: (v: string) => v.replace(/\\/g, '/'),
+			set: (v: string) => v.replace(/\\/g, '/')
+				.replace(/\/{2,}/g, '/')
+				.replace(/^([^/])/g, '/$1'),
 
 		},
 
