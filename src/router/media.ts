@@ -135,7 +135,7 @@ router.delete(
 
 		let weapp = await req.survive_token!.to_weapp()
 
-		let suspect = evidence.suspect<Suspect>(req.headers)
+		let suspect = evidence.suspect<Suspect>(req.body)
 
 		await suspect.infer_signed<'src'>(
 			evidence.Text.is_media_uri.signed('src'),
