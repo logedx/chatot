@@ -94,16 +94,7 @@ router.put(
 
 		let [, refresh] = authorization.split(' ')
 
-		let doc = await token_model.default
-			.findOne(
-				{ refresh },
-
-			)
-
-
-		reply.NotFound.asserts(doc, 'token')
-
-		await doc.replenish()
+		let doc = await token_model.default.replenish(refresh)
 
 		res.json(
 			structure.pick(doc, 'value', 'refresh', 'expire'),

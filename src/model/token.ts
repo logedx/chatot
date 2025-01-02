@@ -86,6 +86,18 @@ export type TInstanceMethods = {
 
 }
 
+export type TStaticMethods = {
+	replenish(
+		// eslint-disable-next-line no-use-before-define
+		this: TModel,
+
+		refresh: string,
+
+	// eslint-disable-next-line no-use-before-define
+	): Promise<THydratedDocumentType>
+
+}
+
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
 
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
@@ -110,7 +122,8 @@ export const schema = new Schema<
 	TModel,
 	TInstanceMethods,
 	TQueryHelpers,
-	TVirtuals
+	TVirtuals,
+	TStaticMethods
 
 >(
 	{
@@ -266,10 +279,27 @@ schema.method(
 
 )
 
-const model = drive.model('Token', schema)
+
+schema.static(
+	{
+		async replenish(refresh) {
+			let doc = await this.findOne(
+				{ refresh },
+
+			)
+
+			reply.NotFound.asserts(doc, 'token')
+
+			return doc.replenish()
+
+		},
+
+	},
+
+)
 
 
-export default model
+export default drive.model('Token', schema)
 
 
 /**
