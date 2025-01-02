@@ -7,6 +7,7 @@ import stream from 'node:stream'
 import mime_types from 'mime-types'
 import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 
+import * as reply from '../lib/reply.js'
 import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
 
@@ -72,10 +73,31 @@ export type TInstanceMethods = {
 
 }
 
+export type TStaticMethods = {
+	safe_delete(
+		// eslint-disable-next-line no-use-before-define
+		this: TModel,
+
+		weapp: Types.ObjectId,
+		src: string,
+
+	): Promise<void>
+
+	safe_access(
+		// eslint-disable-next-line no-use-before-define
+		this: TModel,
+
+		weapp: Types.ObjectId,
+		src: string,
+		expires?: number,
+
+	): Promise<URL>
+
+}
+
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
 
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
-
 
 
 
@@ -89,7 +111,8 @@ export const schema = new Schema<
 	TModel,
 	TInstanceMethods,
 	TQueryHelpers,
-	TVirtuals
+	TVirtuals,
+	TStaticMethods
 
 >(
 	{
@@ -253,6 +276,37 @@ schema.method(
 
 		},
 
+
+	},
+
+)
+
+
+schema.static(
+	{
+		async safe_delete(weapp, src) {
+			let doc = await this.findOne(
+				{ weapp, src },
+
+			)
+
+			reply.NotFound.asserts(doc, 'media')
+
+			await doc.safe_delete()
+
+		},
+
+		async safe_access(weapp, src, expires = 1800) {
+			let doc = await this.findOne(
+				{ weapp, src },
+
+			)
+
+			reply.NotFound.asserts(doc, 'media')
+
+			return doc.safe_access(expires)
+
+		},
 
 	},
 

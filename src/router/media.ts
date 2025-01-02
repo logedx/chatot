@@ -1,10 +1,8 @@
 import stream from 'node:stream'
 
 import express from 'express'
-import { Types } from 'mongoose'
 import mime_types from 'mime-types'
 
-import * as reply from '../lib/reply.js'
 import * as evidence from '../lib/evidence.js'
 
 import * as media_model from '../model/media.js'
@@ -128,12 +126,10 @@ router.delete(
 		type Suspect = {
 			src: string
 
-			weapp: Types.ObjectId
-
 		}
 
 
-		let weapp = await req.survive_token!.to_weapp()
+		let { weapp } = req.survive_token!
 
 		let suspect = evidence.suspect<Suspect>(req.body)
 
@@ -142,16 +138,10 @@ router.delete(
 
 		)
 
-		await suspect.set('weapp', weapp._id)
-
-		let doc = await media_model.default.findOne(
-			suspect.get(),
+		await media_model.default.safe_delete(
+			weapp, suspect.get('src'),
 
 		)
-
-		reply.NotFound.asserts(doc, 'media')
-
-		await doc.safe_delete()
 
 		res.json()
 
