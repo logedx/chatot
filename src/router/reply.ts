@@ -126,12 +126,6 @@ export const finish: express.ErrorRequestHandler = function finish(
 ) {
 	let stack = e.stack ?? ''
 
-	// set locals, only providing error in develop
-	if (NODE_ENV === 'production') {
-		stack = ''
-
-	}
-
 	if (e instanceof mongoose.mongo.MongoServerError
 		&& detective.is_number(e.code)
 		&& detective.is_exist(mongo_i18n.server_error[e.code])
@@ -139,12 +133,16 @@ export const finish: express.ErrorRequestHandler = function finish(
 	) {
 		e = new reply.BadRequest(mongo_i18n.server_error[e.code])
 
+		e.stack = stack
+
 	}
 
 	if (e instanceof reply.Exception === false
 
 	) {
 		e = new reply.BadRequest(e.message)
+
+		e.stack = stack
 
 	}
 
@@ -160,6 +158,13 @@ export const finish: express.ErrorRequestHandler = function finish(
 			secret.hex(8), e,
 
 		)
+
+	}
+
+
+	// set locals, only providing error in develop
+	if (NODE_ENV === 'production') {
+		stack = ''
 
 	}
 
