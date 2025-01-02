@@ -18,12 +18,7 @@ export const cypher_decrypt_evidence_chain = evidence.Text.required.to(stamp_mod
 
 export function symbol_evidence_chain(value: string): evidence.Chain<Types.ObjectId> {
 	return evidence.Text.required.to(
-		async v => {
-			let doc = await stamp_model.survive(v, value)
-
-			return doc.eternal()
-
-		},
+		v => stamp_model.default.eternal(v, value),
 
 	)
 
@@ -116,7 +111,7 @@ router.get(
 	async function retrieve(req, res) {
 		let { value } = req.params
 
-		let doc = await stamp_model.from_value(value)
+		let doc = await stamp_model.default.from(value)
 
 		res.json(doc)
 

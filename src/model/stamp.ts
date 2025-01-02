@@ -45,6 +45,28 @@ export type TInstanceMethods = {
 
 }
 
+export type TStaticMethods = {
+	eternal(
+		// eslint-disable-next-line no-use-before-define
+		this: TModel,
+
+		value: string,
+		symbol: string,
+
+	): Promise<Types.ObjectId>
+
+	from(
+		// eslint-disable-next-line no-use-before-define
+		this: TModel,
+
+		value: string,
+
+		// eslint-disable-next-line no-use-before-define
+	): Promise<THydratedDocumentType>
+
+}
+
+
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
 
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
@@ -62,7 +84,8 @@ export const schema = new Schema<
 	TModel,
 	TInstanceMethods,
 	TQueryHelpers,
-	TVirtuals
+	TVirtuals,
+	TStaticMethods
 
 >(
 	{
@@ -129,10 +152,42 @@ schema.method(
 
 )
 
-const model = drive.model('Stamp', schema)
+
+schema.static(
+	{
+		async eternal(value, symbol) {
+			let doc = await this.findOne(
+				{ value, symbol, expire: { $gte: new Date() } },
+
+			)
+
+			reply.NotFound.asserts(doc, 'stamp')
+
+			return doc.eternal()
 
 
-export default model
+		},
+
+		async from(value) {
+			let doc = await this.findOne(
+				{ value },
+
+			)
+
+			reply.NotFound.asserts(doc, 'stamp')
+
+			return doc
+
+
+		},
+
+
+	},
+
+)
+
+
+export default drive.model('Stamp', schema)
 
 /**
  * 过期时间顺延
@@ -143,44 +198,6 @@ export function delay(): Date {
 	d.setMinutes(d.getMinutes() + 10)
 
 	return d
-
-}
-
-/**
- * 生存周期检查
- */
-export async function survive(
-	value: string,
-	symbol: string,
-
-): Promise<THydratedDocumentType> {
-	let doc = await model.findOne(
-		{ value, symbol, expire: { $gte: new Date() } },
-
-	)
-
-
-	reply.NotFound.asserts(doc, 'stamp')
-
-	return doc
-
-
-}
-
-export async function from_value(
-	value: string,
-
-): Promise<THydratedDocumentType> {
-	let doc = await model.findOne(
-		{ value },
-
-	)
-
-
-	reply.NotFound.asserts(doc, 'stamp')
-
-	return doc
-
 
 }
 
