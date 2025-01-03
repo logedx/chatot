@@ -85,14 +85,32 @@ export function clone<T>(target: T): T {
 
 }
 
+export function get<
+	T extends object,
+	K extends keyof T = keyof T
+
+>(
+	source: T,
+	key: K extends string ? Lowercase<K> : K,
+
+): T[K]
+
 export function get<T>(
 	source: object,
-	name: PropertyKey,
+	key: PropertyKey,
 
 	_default: T,
 
+): T
+
+export function get<T>(
+	source: object,
+	key: PropertyKey,
+
+	_default?: T,
+
 ): T {
-	let nk = name.toString().toLowerCase()
+	let nk = key.toString().toLowerCase()
 
 	for (let [k, v] of Object.entries(source)
 
@@ -106,7 +124,14 @@ export function get<T>(
 
 	}
 
-	return _default
+	if (detective.is_undefined(_default) === false
+
+	) {
+		return _default
+
+	}
+
+	throw new Error(`${key.toString()} is not exist`)
 
 }
 
