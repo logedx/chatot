@@ -144,7 +144,7 @@ export function is_string(v: unknown): v is string {
 
 }
 
-export function is_empty_string(v: unknown): v is string {
+export function is_empty_string(v: unknown): v is '' {
 	return v === ''
 
 }
@@ -154,12 +154,12 @@ export function is_required_string(v: unknown): v is string {
 
 }
 
-export function is_switch_string(v: unknown): v is string {
+export function is_switch_string(v: unknown): v is '0' | '1' {
 	return v === '0' || v === '1'
 
 }
 
-export function is_boolean_string(v: unknown): v is string {
+export function is_boolean_string(v: unknown): v is 'false' | 'true' {
 	return is_string(v)
 		&& ['false', 'true'].includes(
 			v.toLowerCase(),
