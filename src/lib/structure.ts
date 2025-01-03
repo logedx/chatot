@@ -88,11 +88,19 @@ export function get<T>(
 	name: PropertyKey,
 
 	_default: T,
+
 ): T {
-	if (detective.is_object_keyof(source, name)
+	let nk = name.toString().toLowerCase()
+
+	for (let [k, v] of Object.entries(source)
 
 	) {
-		return clone(source[name]) as T
+		if (nk === k.toLowerCase()
+
+		) {
+			return clone(v) as T
+
+		}
 
 	}
 
@@ -116,7 +124,6 @@ export function pick<T extends object, K extends keyof T>(
 
 }
 
-
 export function omit<
 	T extends object,
 	K extends keyof T,
@@ -136,7 +143,6 @@ export function omit<
 	return value
 
 }
-
 
 export function transform_property_to_date<
 	T extends object,
