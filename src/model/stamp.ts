@@ -218,9 +218,9 @@ export function is_mailer(v: unknown): v is Mailer {
 
 	}
 
-	let symbol = detective.is_object_keyof('symbol', v)
-	let expire = detective.is_object_keyof('expire', v)
-	let amber = detective.is_object_keyof('amber', v)
+	let symbol = detective.is_object_keyof(v, 'symbol')
+	let expire = detective.is_object_keyof(v, 'expire')
+	let amber = detective.is_object_keyof(v, 'amber')
 
 	return symbol && expire && amber
 

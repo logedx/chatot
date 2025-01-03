@@ -62,7 +62,7 @@ export function clone<T>(target: T): T {
 	if (detective.is_object(target)
 
 	) {
-		let value: Record<detective.Key, unknown> = {}
+		let value: Record<PropertyKey, unknown> = {}
 
 		for (let v in target) {
 			if (Object.prototype.hasOwnProperty.call(target, v)
@@ -83,6 +83,22 @@ export function clone<T>(target: T): T {
 
 }
 
+export function get<T>(
+	source: object,
+	name: PropertyKey,
+
+	_default: T,
+): T {
+	if (detective.is_object_keyof(source, name)
+
+	) {
+		return clone(source[name]) as T
+
+	}
+
+	return _default
+
+}
 
 export function pick<T extends object, K extends keyof T>(
 	source: T,

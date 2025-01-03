@@ -20,7 +20,7 @@ export const value_evidence_chain = evidence.Chain
 	.infer<keyof typeof scope_model.Role>(
 		'is not a Role',
 
-		v => detective.is_object_keyof(v, scope_model.Role),
+		v => detective.is_object_key(v) && detective.is_object_keyof(scope_model.Role, v),
 
 	)
 	.to(

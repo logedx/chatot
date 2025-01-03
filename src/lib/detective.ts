@@ -1,8 +1,6 @@
 import mongoose, { Types } from 'mongoose'
 
 
-export type Key = string | number | symbol
-
 
 export type Range<T> = [T, T]
 
@@ -170,43 +168,53 @@ export function is_boolean_string(v: unknown): v is string {
 
 }
 
-export function is_object(v: unknown): v is Record<Key, unknown> {
-	let a = Object.prototype.toString.call(v) === '[object Object]'
 
-	if (v?.constructor) {
-		return a && ['Array', 'Object'].includes(v.constructor.name)
+export function is_object<
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+	T extends object = Record<PropertyKey, unknown>
+
+>(v: unknown): v is T {
+	if (Array.isArray(v)
+
+	) {
+		return true
 
 	}
 
-	return a
+	if (v?.constructor?.name === 'Object') {
+		return true
+
+	}
+
+	return is_object_like(v)
 
 }
 
-export function is_object_key(v: unknown): v is Key {
+export function is_object_like(v: unknown): v is Record<PropertyKey, unknown> {
+	return Object.prototype.toString.call(v) === '[object Object]'
+
+}
+
+export function is_object_key(v: unknown): v is PropertyKey {
 	return is_string(v) || is_number(v) || is_symbol(v)
 
 }
 
-export function is_object_keyof<T extends object>(
-	key: unknown,
-
-	target: T,
-
-): key is keyof T {
-	return is_object_key(key) && key.toString() in target
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+type ObjectKeyofMixedy< T extends object, K extends PropertyKey, V> = T & {
+	[k in K]: V
 
 }
 
-export function is_object_valueof<T extends object, K extends keyof T>(
-	value: unknown,
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export function is_object_keyof<K extends PropertyKey, V = unknown, T extends object = {}>(
+	target: unknown,
 
 	key: K,
 
-	target: T,
 
-): value is T[K] {
-	return is_object_keyof(key, target)
-		&& Object.prototype.toString.call(value) === Object.prototype.toString.call(target[key])
+): target is ObjectKeyofMixedy<T, K, V> {
+	return is_object_like(target) && Object.hasOwn(target, key)
 
 }
 

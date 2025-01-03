@@ -141,7 +141,7 @@ export class Exhibit<T extends object> {
 
 	}
 
-	#del(key: detective.Key): void {
+	#del(key: PropertyKey): void {
 		if (detective.is_object(this.#value)
 
 		) {
@@ -151,7 +151,7 @@ export class Exhibit<T extends object> {
 
 	}
 
-	#set(key: detective.Key, value?: unknown): void {
+	#set(key: PropertyKey, value?: unknown): void {
 		this.#value = {
 			...this.#value ?? {},
 
@@ -311,14 +311,14 @@ export class Exhibit<T extends object> {
 
 	): Promise<void>
 
-	infer_signed<K extends keyof T, S extends detective.Key>(
+	infer_signed<K extends keyof T, S extends PropertyKey>(
 		chain: Chain<T[K], Exclude<S, K>>,
 
 		option: InferRenameOption<T, K>,
 
 	): Promise<void>
 
-	infer_signed<K extends keyof T, S extends detective.Key>(
+	infer_signed<K extends keyof T, S extends PropertyKey>(
 		chain: Chain<T[K], K> | Chain<T[K], Exclude<S, K>>,
 
 		option: InferQuietOption<T, K> | InferPartialQuietOption<T, K> | InferRenameOption<T, K> = {},
@@ -341,7 +341,7 @@ export class Exhibit<T extends object> {
 }
 
 
-export class Chain<T = unknown, K extends undefined | detective.Key = undefined> {
+export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 	#message = ''
 
 	#signed?: K
@@ -350,7 +350,7 @@ export class Chain<T = unknown, K extends undefined | detective.Key = undefined>
 	#infer?: Infer<any, any>
 
 	// eslint-disable-next-line no-use-before-define
-	#linker?: Chain<unknown, undefined | detective.Key>
+	#linker?: Chain<unknown, undefined | PropertyKey>
 
 
 	get symbol(): undefined | K {
@@ -377,7 +377,7 @@ export class Chain<T = unknown, K extends undefined | detective.Key = undefined>
 			signed?: K
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			infer?: Infer<any, any>
-			linker?: Chain<unknown, undefined | detective.Key>
+			linker?: Chain<unknown, undefined | PropertyKey>
 
 		},
 
@@ -443,7 +443,7 @@ export class Chain<T = unknown, K extends undefined | detective.Key = undefined>
 
 	}
 
-	signed<N extends undefined | detective.Key>(name: N): Chain<T, N> {
+	signed<N extends undefined | PropertyKey>(name: N): Chain<T, N> {
 		return new Chain<T, N>(
 			this.#message,
 
@@ -910,7 +910,7 @@ export class Model {
 }
 
 
-export class Pagination<T extends object = Record<detective.Key, never>> {
+export class Pagination<T extends object = Record<PropertyKey, never>> {
 	#skip = 0
 
 	#limit = 10
