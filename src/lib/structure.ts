@@ -40,8 +40,10 @@ export type PropertyTypeExclude<T extends object, V> = Exclude<
 
 >
 
-export type PropertyToDate<T extends object, K extends keyof T> = {
-	[N in keyof T]: N extends K ? Date : T[N]
+export type PropertyTransformHandler = (v: unknown) => unknown
+
+export type PropertyTransformResult<T extends object, V, K extends keyof T> = {
+	[N in keyof T]: N extends K ? V : T[N]
 
 }
 
@@ -144,30 +146,63 @@ export function omit<
 
 }
 
-export function transform_property_to_date<
-	T extends object,
-	K extends keyof T,
+export function transform<
+	F extends PropertyTransformHandler = PropertyTransformHandler,
+	T extends object = object,
+	K extends keyof T = keyof T,
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+	R = PropertyTransformResult<T, ReturnType<F>, K>
 
 >(
 	source: T,
-	...name: Array<K>
+	key: Array<K>,
+	handle: F,
+): R {
+	let value = {} as Record<K, ReturnType<F>>
 
-): PropertyToDate<T, K> {
-	let value = {} as Record<K, Date>
-
-	for (let v of name) {
-		let d = source[v]
-
-		if (detective.is_required_string(d)
-			|| detective.is_timestamp_number(d)
-
-		) {
-			value[v] = new Date(d)
-
-		}
+	for (let v of key) {
+		value[v] = handle(source[v]) as ReturnType<F>
 
 	}
 
-	return { ...clone(source), ...value } as PropertyToDate<T, K>
+	return { ...clone(source), ...value } as R
+
+}
+
+
+export class Transform {
+	static date<T extends object = object, K extends keyof T = keyof T>(
+		source: T,
+		...name: Array<K>
+
+	): PropertyTransformResult<T, Date, K> {
+		return transform(
+			source,
+
+			name,
+
+			(v): Date => {
+				if (detective.is_required_string(v)
+					|| detective.is_timestamp_number(v)
+
+				) {
+					v = new Date(v)
+
+				}
+
+				if (v instanceof Date && v.valueOf() > 0) {
+					return v
+
+				}
+
+				return new Date()
+
+			},
+
+
+		)
+
+
+	}
 
 }
