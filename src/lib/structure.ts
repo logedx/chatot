@@ -38,7 +38,15 @@ export type PropertyTypeExclude<T extends object, V> = Exclude<
 
 	undefined
 
->
+	>
+
+
+export type PropertyTypeRequired<T, K extends keyof T> = Omit<T, K>
+	& Required<
+		Pick<T, K>
+
+	>
+
 
 export type PropertyTransformHandler = (v: unknown) => unknown
 

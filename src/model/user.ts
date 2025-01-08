@@ -3,7 +3,9 @@
  */
 import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 
+import * as reply from '../lib/reply.js'
 import * as storage from '../lib/storage.js'
+import * as structure from '../lib/structure.js'
 
 import * as scope_model from './scope.js'
 import * as weapp_model from './weapp.js'
@@ -49,6 +51,18 @@ export type TInstanceMethods = {
 		this: THydratedDocumentType,
 
 	): Promise<void>
+
+	select_sensitive_fields<T extends 'phone' | 'wxopenid' | 'wxsession'>(
+		// eslint-disable-next-line no-use-before-define
+		this: THydratedDocumentType,
+
+		...select: Array<`+${T}`>
+
+	): Promise<
+		// eslint-disable-next-line no-use-before-define
+		structure.PropertyTypeRequired<THydratedDocumentType, T>
+
+	>
 
 }
 
@@ -174,6 +188,26 @@ schema.method(
 			this.active = true
 
 			await this.save()
+		},
+
+		async select_sensitive_fields<T extends keyof TRawDocType>(
+			this: THydratedDocumentType,
+
+			...select: Array<`+${T}`>
+
+		): Promise<
+			structure.PropertyTypeRequired<THydratedDocumentType, T>
+
+		> {
+			const model = this.model()
+
+
+			let doc = await model.findById(this._id).select(select)
+
+			reply.NotFound.asserts(doc, 'user')
+
+			return doc as unknown as structure.PropertyTypeRequired<THydratedDocumentType, T>
+
 		},
 
 	},
