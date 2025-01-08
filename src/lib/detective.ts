@@ -21,6 +21,12 @@ export type PointCoordinates = {
 
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+export type ObjectKeyofMixedy< T extends object, K extends PropertyKey, V> = Omit<T, K> & {
+	[k in K]: V
+
+}
+
 
 export function is_null(v: unknown): v is null {
 	return v === null
@@ -76,35 +82,47 @@ export function is_array_every<T = unknown>(
 
 }
 
-export function is_array_buffer(v: unknown): v is ArrayBuffer {
-	return v instanceof ArrayBuffer
-
-}
-
-export function is_required_array<T = unknown>(v: unknown): v is Array<T> {
+export function is_required_array<T>(v: unknown): v is Array<T> {
 	return Array.isArray(v) && v.length > 0
 
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+export function is_prototype_of<T>(v: unknown, type: string): v is T {
+	return Object.prototype.toString.call(v) === type
+
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+export function is_prototype_of_object<T>(v: unknown, type: string): v is T {
+	return Object.prototype.toString.call(v) === `[object ${type}]`
+
+}
+
 export function is_symbol(v: unknown): v is symbol {
-	return Object.prototype.toString.call(v) === '[object Symbol]'
+	return is_prototype_of_object(v, 'Symbol')
 
 }
 
 export function is_boolean(v: unknown): v is boolean {
-	return Object.prototype.toString.call(v) === '[object Boolean]'
+	return is_prototype_of_object(v, 'Boolean')
 
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function is_function(v: unknown): v is (...args: Array<any>) => any {
-	return Object.prototype.toString.call(v) === '[object Function]'
+	return is_prototype_of_object(v, 'Function')
 
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function is_async_function(v: unknown): v is (...args: Array<any>) => Promise<any> {
-	return Object.prototype.toString.call(v) === '[object AsyncFunction]'
+	return is_prototype_of_object(v, 'AsyncFunction')
+
+}
+
+export function is_array_buffer(v: unknown): v is ArrayBuffer {
+	return is_prototype_of_object(v, 'ArrayBuffer')
 
 }
 
@@ -115,7 +133,7 @@ export function is_any_function(v: unknown): v is (...args: Array<any>) => any {
 }
 
 export function is_number(v: unknown): v is number {
-	return Object.prototype.toString.call(v) === '[object Number]'
+	return is_prototype_of_object(v, 'Number')
 
 }
 
@@ -140,7 +158,7 @@ export function is_timestamp_number(v: unknown): v is number {
 }
 
 export function is_string(v: unknown): v is string {
-	return Object.prototype.toString.call(v) === '[object String]'
+	return is_prototype_of_object(v, 'String')
 
 }
 
@@ -191,18 +209,12 @@ export function is_object<
 }
 
 export function is_object_like(v: unknown): v is Record<PropertyKey, unknown> {
-	return Object.prototype.toString.call(v) === '[object Object]'
+	return is_prototype_of_object(v, 'Object')
 
 }
 
 export function is_object_key(v: unknown): v is PropertyKey {
 	return is_string(v) || is_number(v) || is_symbol(v)
-
-}
-
-// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-type ObjectKeyofMixedy< T extends object, K extends PropertyKey, V> = T & {
-	[k in K]: V
 
 }
 
