@@ -250,9 +250,10 @@ schema.index(
 schema.method(
 	{
 		async select_sensitive_fields(...select) {
-			// eslint-disable-next-line no-use-before-define
-			let doc = await model.findById(this._id).select(select)
+			const model = this.model()
 
+
+			let doc = await model.findById(this._id).select(select)
 
 			reply.NotFound.asserts(doc, 'weapp')
 
@@ -361,7 +362,5 @@ schema.method(
 
 )
 
-const model = drive.model('Weapp', schema)
 
-
-export default model
+export default drive.model('Weapp', schema)
