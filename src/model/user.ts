@@ -5,6 +5,7 @@ import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 
 import * as reply from '../lib/reply.js'
 import * as storage from '../lib/storage.js'
+import * as detective from '../lib/detective.js'
 import * as structure from '../lib/structure.js'
 
 import * as scope_model from './scope.js'
@@ -185,9 +186,12 @@ schema.index(
 schema.method(
 	{
 		async shine() {
-			this.active = true
+			let doc = await this.select_sensitive_fields('+phone')
 
-			await this.save()
+			doc.active = detective.is_phone_number_string(doc.phone)
+
+			await doc.save()
+
 		},
 
 		async select_sensitive_fields<T extends keyof TRawDocType>(
