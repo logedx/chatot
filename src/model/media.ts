@@ -79,9 +79,15 @@ export type TStaticMethods = {
 		this: TModel,
 
 		weapp: Types.ObjectId,
-		src: string,
+		...src: Array<string>
 
-	): Promise<void>
+	): Promise<
+		Array<
+			PromiseSettledResult<void>
+
+		>
+
+	>
 
 	safe_access(
 		// eslint-disable-next-line no-use-before-define
@@ -284,15 +290,30 @@ schema.method(
 
 schema.static(
 	{
-		async safe_delete(weapp, src) {
-			let doc = await this.findOne(
+		async safe_delete(weapp, ...src) {
+			src = src.map(
+				v => {
+					let uri = new URL(v)
+
+					uri.search = ''
+
+					return uri.href
+
+				},
+
+			)
+
+			let doc = await this.find(
 				{ weapp, src },
 
 			)
 
-			reply.NotFound.asserts(doc, 'media')
+			let p = doc.map(
+				v => v.safe_delete(),
 
-			await doc.safe_delete()
+			)
+
+			return Promise.allSettled(p)
 
 		},
 

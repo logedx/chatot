@@ -123,23 +123,20 @@ router.delete(
 	),
 
 	async function delete_(req, res) {
-		type Suspect = {
-			src: string
-
-		}
+		type Suspect = Array<string>
 
 
 		let { weapp } = req.survive_token!
 
 		let suspect = evidence.suspect<Suspect>(req.body)
 
-		await suspect.infer_signed<'src'>(
-			evidence.Text.is_media_uri.signed('src'),
+		await suspect.infer(
+			evidence.Every.is_media_uri_string,
 
 		)
 
 		await media_model.default.safe_delete(
-			weapp, suspect.get('src'),
+			weapp, ...suspect.get(),
 
 		)
 
