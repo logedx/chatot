@@ -2,6 +2,7 @@
  * 媒体模型
  */
 import path from 'node:path'
+import crypto from 'node:crypto'
 import stream from 'node:stream'
 
 import mime_types from 'mime-types'
@@ -23,10 +24,25 @@ export type TRawDocType = storage.TRawDocType<
 		size: number
 		mime: string
 
-		pathname: string
-		reference: number
+		folder: string
+		filename: string
+
+		store: 'alioss'
+		bucket: string
+
 
 		src?: string
+		hash?: string
+
+		linker: Types.Array<
+			{
+				name: string
+				model: string
+
+			}
+
+		>
+
 
 	}
 
@@ -37,17 +53,14 @@ export type TPopulatePaths = {
 
 }
 
-export type TVirtuals = object
+export type TVirtuals = {
+	pathname: string
+
+}
 
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	linker(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-	): Promise<void>
-
 	safe_push(
 		// eslint-disable-next-line no-use-before-define
 		this: THydratedDocumentType,
@@ -99,6 +112,17 @@ export type TStaticMethods = {
 
 	): Promise<URL>
 
+	safe_to_link(
+		// eslint-disable-next-line no-use-before-define
+		this: TModel,
+
+		name: string,
+		model: string,
+
+		query: { hash: string } | { src: string }
+
+	// eslint-disable-next-line no-use-before-define
+	): Promise<null | THydratedDocumentType>
 }
 
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
@@ -143,11 +167,20 @@ export const schema = new Schema<
 			lowercase: true,
 			trim: true,
 
+			set(v: string) {
+				let name = Date.now().toString(36)
+				let extension = mime_types.extension(v)
+
+				this.filename = `${name}.${extension}`
+
+				return v
+
+			},
+
 		},
 
-		pathname: {
+		folder: {
 			type: String,
-			unique: true,
 			required: true,
 			trim: true,
 			set: (v: string) => v.replace(/\\/g, '/')
@@ -156,15 +189,33 @@ export const schema = new Schema<
 
 		},
 
-		reference: {
-			type: Number,
+		filename: {
+			type: String,
+			unique: true,
 			required: true,
-			min: 0,
-			default: 0,
+			trim: true,
+
+			validate: (v: string) => (/^[0-9a-z]+\.[a-z]+$/).test(v),
 
 		},
 
-		// media uri
+		store: {
+			type: String,
+			required: true,
+			trim: true,
+			enum: ['alioss'],
+			default: 'alioss',
+
+		},
+
+		bucket: {
+			type: String,
+			required: true,
+			trim: true,
+
+		},
+
+
 		src: {
 			type: String,
 			unique: true,
@@ -173,25 +224,70 @@ export const schema = new Schema<
 
 		},
 
+		hash: {
+			type: String,
+			unique: true,
+			sparse: true,
+			trim: true,
+
+		},
+
+		linker: [
+			{
+				name: {
+					type: String,
+					required: true,
+					lowercase: true,
+					trim: true,
+
+				},
+
+				model: {
+					type: String,
+					required: true,
+					trim: true,
+					validate(v: string): boolean {
+						let k = v.toLowerCase()
+
+						let name = drive.modelNames()
+
+						return name.some(
+							vv => vv.toLowerCase() === k,
+
+						)
+
+					},
+
+				},
+			},
+
+		],
 	},
 
 )
 
 
+schema.virtual('pathname').get(
+	function (): TVirtuals['pathname'] {
+		return path.join(this.folder, this.filename).replace(/\\/g, '/')
+
+	},
+
+)
+
 
 schema.method(
 	{
-		async linker() {
-			await this.updateOne(
-				{ $inc: { reference: 1 } },
-
-			)
-
-		},
-
 		async safe_push(body) {
 			class SizeTrackingStream extends stream.Transform implements stream.Transform {
+				#hash = crypto.createHash('md5')
+
 				#value = 0
+
+				get hash(): string {
+					return this.#hash.digest('hex')
+
+				}
 
 				get value(): number {
 					return this.#value
@@ -208,6 +304,7 @@ schema.method(
 						|| detective.is_array_buffer(chunk)
 
 					) {
+						this.#hash.update(chunk as Buffer)
 						this.#value = this.#value + chunk.byteLength
 
 					}
@@ -236,22 +333,26 @@ schema.method(
 			)
 
 			this.size = size.value
+			this.hash = size.hash
+
 			this.src = result.url
 
-			return this.save()
+			try {
+				return await this.save()
+
+			}
+
+			catch (e) {
+				await this.deleteOne()
+
+				throw e
+
+			}
+
 
 		},
 
 		async safe_delete() {
-			this.reference = this.reference - 1
-
-			if (this.reference > 0) {
-				await this.save()
-
-				return
-
-			}
-
 			let doc = await this.populate<TPopulatePaths>('weapp')
 
 			let client = doc.weapp.to_ali_oss()
@@ -329,19 +430,43 @@ schema.static(
 
 		},
 
+
+		async safe_to_link(name, model, query) {
+			let doc = await this.findOne(query)
+
+			if (detective.is_empty(doc)
+
+			) {
+				return null
+
+			}
+
+			name = name.toLowerCase()
+			model = model.toLowerCase()
+
+			let some = doc.linker.some(
+				v => name === v.name.toLowerCase() && model === v.model.toLowerCase(),
+
+			)
+
+			if (some) {
+				return doc
+
+			}
+
+			doc.linker.push(
+				{ name, model },
+
+			)
+
+			return doc.save()
+
+
+		},
+
 	},
 
 )
 
 
 export default drive.model('Media', schema)
-
-
-
-export function resolve(folder: string, mime: string): string {
-	let name = Date.now().toString(36)
-	let extension = mime_types.extension(mime)
-
-	return path.join(folder, `${name}.${extension}`).replace(/\\/g, '/')
-
-}

@@ -4,6 +4,7 @@ import express from 'express'
 import mime_types from 'mime-types'
 
 import * as evidence from '../lib/evidence.js'
+import * as detective from '../lib/detective.js'
 
 import * as media_model from '../model/media.js'
 import * as scope_model from '../model/scope.js'
@@ -24,16 +25,48 @@ export async function create(
 	body: stream.Readable,
 
 	option: {
+		name: string,
+		model: string,
+
 		mime: string,
 		folder: string,
+
+		hash?: string
 
 	},
 
 ): Promise<media_model.THydratedDocumentType> {
-	let pathname = media_model.resolve(option.folder, option.mime)
+	if (detective.is_hex_string(option.hash)
+
+	) {
+		let doc = await media_model.default
+			.safe_to_link(
+				option.name, option.model, { hash: option.hash },
+
+			)
+
+		if (detective.is_exist(doc)
+
+		) {
+			return doc
+
+		}
+
+	}
+
 
 	let doc = await media_model.default.create(
-		{ weapp, mime: option.mime, pathname, store: 'alioss', bucket: weapp.bucket },
+		{
+			weapp,
+			mime: option.mime, folder: option.folder,
+			bucket: weapp.bucket,
+
+			linker: [
+				{ name: option.name, model: option.model },
+
+			],
+
+		},
 
 	)
 
@@ -53,8 +86,13 @@ router.post(
 
 	async function create_(req, res) {
 		type Suspect = {
-			mime: string
+			name: string
+			model: string
 			folder: string
+
+			mime: string
+
+			hash?: string
 
 		}
 
@@ -62,6 +100,21 @@ router.post(
 		let weapp = await req.survive_token!.to_weapp()
 
 		let suspect = evidence.suspect<Suspect>(req.headers)
+
+		await suspect.infer_signed<'name'>(
+			evidence.Text.required.signed('name'),
+
+		)
+
+		await suspect.infer_signed<'model'>(
+			evidence.Text.required.signed('model'),
+
+		)
+
+		await suspect.infer_signed<'folder'>(
+			evidence.Text.is_dirname.signed('folder'),
+
+		)
 
 		await suspect.infer_signed<'mime', 'accept'>(
 			evidence.Text.required
@@ -85,8 +138,10 @@ router.post(
 
 		)
 
-		await suspect.infer_signed<'folder'>(
-			evidence.Text.is_dirname.signed('folder'),
+		await suspect.infer_signed<'hash'>(
+			evidence.Text.required.signed('hash'),
+
+			{ quiet: true },
 
 		)
 

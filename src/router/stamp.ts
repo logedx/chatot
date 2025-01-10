@@ -84,7 +84,7 @@ router.post(
 		)
 
 		let media = await media_router.create(
-			weapp, unlimited.body, { folder: '/stamp', mime: 'image/png' },
+			weapp, unlimited.body, { name: 'src', model: 'stamp', mime: 'image/png', folder: '/stamp' },
 
 		)
 
