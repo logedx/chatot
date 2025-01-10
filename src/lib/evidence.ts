@@ -85,20 +85,22 @@ export class Exhibit<T extends object> {
 
 	#value?: unknown
 
+	#so: boolean | Record<PropertyKey, true> = false
+
 	constructor(source: unknown) {
 		this.#source = source
 
 	}
 
 	get source(): unknown {
-		return this.#source
+		return structure.clone(this.#source)
 
 	}
 
 
 	get(): T
 
-	get<N extends keyof T>(key?: ExhibitKey<T, N>, _default?: ExhibitValue<T, N>): ExhibitValue<T, N>
+	get<N extends keyof T>(key: ExhibitKey<T, N>, _default?: ExhibitValue<T, N>): ExhibitValue<T, N>
 
 	get<N extends keyof T>(key?: ExhibitKey<T, N>, _default?: ExhibitValue<T, N>): T | ExhibitValue<T, N> {
 		if (detective.is_undefined(key)
@@ -222,6 +224,8 @@ export class Exhibit<T extends object> {
 	async #infer(chain: Chain<T>): Promise<void> {
 		this.#value = await chain.verify(this.#source)
 
+		this.#confirm()
+
 	}
 
 	async #infer_signed(
@@ -255,11 +259,14 @@ export class Exhibit<T extends object> {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			let value = await chain.verify(this.#source[chain.symbol])
 
+			this.#confirm(key)
 			this.#set(key, value)
+
 
 			if (detective.is_exist(option.alias)
 
 			) {
+				this.#confirm(option.alias)
 				this.#set(option.alias, value)
 
 			}
@@ -271,6 +278,13 @@ export class Exhibit<T extends object> {
 
 			) {
 				this.#del(key)
+
+				if (detective.is_exist(option.alias)
+
+				) {
+					this.#del(option.alias)
+
+				}
 
 			}
 
@@ -337,6 +351,50 @@ export class Exhibit<T extends object> {
 
 
 	}
+
+
+	#confirm(v?: PropertyKey): void {
+		if (detective.is_undefined(v)
+
+		) {
+			this.#so = true
+
+			return
+
+		}
+
+		if (detective.is_object(this.#so)
+
+		) {
+			this.#so[v] = true
+
+			return
+
+		}
+
+		this.#so = { [v]: true } as Record<PropertyKey, true>
+
+	}
+
+	so<N extends keyof T>(key?: ExhibitKey<T, N>): boolean {
+		if (detective.is_undefined(key)
+
+		) {
+			return this.#so === true || detective.is_object(this.#so)
+
+		}
+
+		if (detective.is_object(this.#so)
+
+		) {
+			return this.#so[key] === true
+
+		}
+
+		return false
+
+	}
+
 
 }
 
