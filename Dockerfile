@@ -14,11 +14,13 @@ WORKDIR /app
 # Bundle app source
 COPY . /app
 
-
-RUN npm ci --ignore-scripts
+# If you are building your code for production
+# RUN npm ci --omit=dev
+RUN npm ci --omit=dev
 
 RUN npm run build
 
+RUN ls -l /app/dist
 
 
 
@@ -39,18 +41,22 @@ WORKDIR /app
 
 # Bundle app source
 COPY --from=builder /app/dist /app
-COPY --from=builder /app/package-lock.json /app/package-lock.json
+COPY --from=builder /app/cert /app/cert
+COPY --from=builder /app/config /app/config
+COPY --from=builder /app/node_modules /app/node_modules
+
+COPY --from=builder /app/README.md /app/README.md
+COPY --from=builder /app/package.json /app/package.json
 
 
 ENV PORT=443 NODE_ENV=production
 
+RUN ls -l /app
+RUN ls -l /app/src
+
 # Set time zone
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
-
-# If you are building your code for production
-# RUN npm ci --only=production
-RUN npm ci --only=production --ignore-scripts
 
 EXPOSE 80
 EXPOSE 443
