@@ -152,6 +152,11 @@ export function is_signed_natural_number(v: unknown): v is number {
 
 }
 
+export function is_boolean_number(v: unknown): v is 0 | 1 {
+	return v === 0 || v === 1
+
+}
+
 export function is_timestamp_number(v: unknown): v is number {
 	return is_natural_number(v) && v.toString().length === 13
 
