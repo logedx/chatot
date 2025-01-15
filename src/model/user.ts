@@ -53,6 +53,12 @@ export type TInstanceMethods = {
 
 	): Promise<void>
 
+	overcast(
+		// eslint-disable-next-line no-use-before-define
+		this: THydratedDocumentType,
+
+	): Promise<void>
+
 	select_sensitive_fields<T extends 'phone' | 'wxopenid' | 'wxsession'>(
 		// eslint-disable-next-line no-use-before-define
 		this: THydratedDocumentType,
@@ -191,6 +197,13 @@ schema.method(
 			doc.active = detective.is_phone_number_string(doc.phone)
 
 			await doc.save()
+
+		},
+
+		async overcast() {
+			this.active = false
+
+			await this.save()
 
 		},
 
