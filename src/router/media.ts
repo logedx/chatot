@@ -11,6 +11,7 @@ import * as scope_model from '../model/scope.js'
 import * as weapp_model from '../model/weapp.js'
 
 import * as token_router from './token.js'
+import * as retrieve_router from './retrieve.js'
 
 
 
@@ -79,10 +80,7 @@ export const router = express.Router()
 router.post(
 	'/media',
 
-	...token_router.checkpoint(
-		scope_model.Role.运营,
-
-	),
+	retrieve_router.survive_token,
 
 	async function create_(req, res) {
 		type Suspect = {
