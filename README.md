@@ -10,7 +10,7 @@
 # 初始化
 
 ```bash
-openssl req -x509 -out crt -keyout key -newkey rsa:2048 -nodes -sha256
+openssl req -x509 -out pem -keyout key -newkey rsa:2048 -nodes -sha256
 
 ```
 

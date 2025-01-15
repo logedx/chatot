@@ -21,6 +21,8 @@ function listen(port: number): (...arg: Array<any>) => void {
 
 
 		console.info(`
+
+
   ${canvas}
 
   ${chalk.cyan('$')} Port: ${chalk.green(`${port}`)}
@@ -65,13 +67,18 @@ function error(port: number): (...arg: Array<any>) => never {
 }
 
 
-function read_file(filename: string): Promise<Buffer> {
-	let x = filename.toUpperCase()
-	let y = filename.toLowerCase()
+async function read_file(name: string): Promise<Buffer> {
+	let x = name.toLowerCase()
+	let y = name.toUpperCase()
+
+	console.info(
+		chalk.grey(`Reading: ${name}.`),
+
+	)
 
 	for (let v of [x, y]) {
 		try {
-			return fs.readFile(
+			return await fs.readFile(
 				path.resolve(app.cert_dirname, v),
 
 			)
@@ -79,21 +86,29 @@ function read_file(filename: string): Promise<Buffer> {
 
 		}
 
-		catch {
-			// 
+		catch (e) {
+			let z = e as NodeJS.ErrnoException
+
+			console.info(
+				chalk.gray(z.message),
+
+			)
+
 
 		}
 
 	}
 
-	throw new Error('File not exist')
+	throw new Error(`× ${name} not found`)
 
 }
 
 async function create_server(_app: express.Application): Promise<http.Server | https.Server> {
+	console.info()
+
 	try {
-		const key = await read_file('key')
-		const cert = await read_file('crt')
+		const key = await read_file(app.key_name)
+		const cert = await read_file(app.pem_name)
 
 
 		return https.createServer(

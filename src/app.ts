@@ -25,8 +25,11 @@ const __cwd = process.cwd()
 const __cert_dirname = path.resolve(__cwd, 'cert')
 const __config_dirname = path.resolve(__cwd, 'config')
 
-const __key_filename = path.resolve(__cert_dirname, 'key')
-const __crt_filename = path.resolve(__cert_dirname, 'crt')
+const __key_name = 'key'
+const __key_filename = path.resolve(__cert_dirname, __key_name)
+
+const __pem_name = 'pem'
+const __pem_filename = path.resolve(__cert_dirname, __pem_name)
 
 
 const __package_filename = url.pathToFileURL(
@@ -51,13 +54,19 @@ export const name_of_art_font = await std.retrieve_art_font_from_readme(__cwd)
 
 export const version = _package_.default.version
 
+export const cwd = __cwd
+
 export const cert_dirname = __cert_dirname
 
 export const config_dirname = __config_dirname
 
+export const key_name = __key_name
+
 export const key_filename = __key_filename
 
-export const crt_filename = __crt_filename
+export const pem_name = __pem_name
+
+export const pem_filename = __pem_filename
 
 export const base_behavior_bundle: HandlerBundle = [
 	cors(),

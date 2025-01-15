@@ -104,10 +104,10 @@ async function import_https_certificate(): Promise<void> {
 
 	)
 
-	let crt_filename_ = await inquirer.input(
+	let pem_filename_ = await inquirer.input(
 		{
-			message: `Https Certificate: ${chalk.gray('CRT')}`,
-			default: app.crt_filename,
+			message: `Https Certificate: ${chalk.gray('PEM')}`,
+			default: app.pem_filename,
 			validate,
 
 		},
@@ -115,12 +115,12 @@ async function import_https_certificate(): Promise<void> {
 	)
 
 	let key = await fs.readFile(key_filename_)
-	let crt = await fs.readFile(crt_filename_)
+	let pem = await fs.readFile(pem_filename_)
 
 
 
 	await write_file(key, app.key_filename)
-	await write_file(crt, app.crt_filename)
+	await write_file(pem, app.pem_filename)
 
 }
 
@@ -131,7 +131,7 @@ async function open_ssl_create_https_certificate(): Promise<null | number> {
 
 		[
 			'req', '-x509',
-			'-out', 'crt',
+			'-out', 'pem',
 			'-keyout', 'key',
 			'-newkey', 'rsa:2048',
 			'-nodes', '-sha256',
