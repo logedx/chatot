@@ -4,7 +4,6 @@ import { Types } from 'mongoose'
 import * as secret from '../lib/secret.js'
 import * as evidence from '../lib/evidence.js'
 
-import * as scope_model from '../model/scope.js'
 import * as stamp_model from '../model/stamp.js'
 
 import * as token_router from './token.js'
@@ -44,10 +43,7 @@ export const router = express.Router()
 router.post(
 	'/stamp',
 
-	...token_router.checkpoint(
-		scope_model.Role.运营,
-
-	),
+	...token_router.checkpoint(),
 
 	async function create(req, res) {
 		type Suspect = {

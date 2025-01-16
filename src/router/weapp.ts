@@ -24,7 +24,7 @@ router.get(
 		scope_model.chmod(
 			scope_model.Role.运营,
 
-			scope_model.Mode.管理,
+			scope_model.Mode.系统,
 
 		),
 
@@ -67,7 +67,7 @@ router.get(
 		scope_model.chmod(
 			scope_model.Role.运营,
 
-			scope_model.Mode.管理,
+			scope_model.Mode.系统,
 
 		),
 
@@ -89,7 +89,7 @@ router.put(
 		scope_model.chmod(
 			scope_model.Role.运营,
 
-			scope_model.Mode.管理,
+			scope_model.Mode.系统,
 
 		),
 
@@ -144,7 +144,7 @@ router.delete(
 		scope_model.chmod(
 			scope_model.Role.运营,
 
-			scope_model.Mode.管理,
+			scope_model.Mode.系统,
 
 		),
 
@@ -170,7 +170,7 @@ router.get(
 		scope_model.chmod(
 			scope_model.Role.运营,
 
-			scope_model.Mode.管理,
+			scope_model.Mode.系统,
 
 		),
 

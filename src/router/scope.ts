@@ -40,6 +40,13 @@ router.options(
 	...token_router.checkpoint(
 		scope_model.Role.管理,
 
+		scope_model.chmod(
+			scope_model.Role.管理,
+
+			scope_model.Mode.管理,
+
+		),
+
 	),
 
 	stamp_router.symbol_encrypt('/mine/scope#put'),
@@ -108,6 +115,13 @@ router.get(
 	...token_router.checkpoint(
 		scope_model.Role.管理,
 
+		scope_model.chmod(
+			scope_model.Role.管理,
+
+			scope_model.Mode.管理,
+
+		),
+
 	),
 
 	async function retrieve_pagination(req, res) {
@@ -170,6 +184,13 @@ router.get(
 	...token_router.checkpoint(
 		scope_model.Role.管理,
 
+		scope_model.chmod(
+			scope_model.Role.管理,
+
+			scope_model.Mode.管理,
+
+		),
+
 	),
 
 	async function retrieve(req, res) {
@@ -201,6 +222,13 @@ router.put(
 
 	...token_router.checkpoint(
 		scope_model.Role.管理,
+
+		scope_model.chmod(
+			scope_model.Role.管理,
+
+			scope_model.Mode.管理,
+
+		),
 
 	),
 
@@ -271,6 +299,13 @@ router.delete(
 
 	...token_router.checkpoint(
 		scope_model.Role.管理,
+
+		scope_model.chmod(
+			scope_model.Role.管理,
+
+			scope_model.Mode.管理,
+
+		),
 
 	),
 
