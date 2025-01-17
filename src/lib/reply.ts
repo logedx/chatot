@@ -1,5 +1,7 @@
 import chalk from 'chalk'
+import express from 'express'
 
+import * as secret from './secret.js'
 import * as detective from './detective.js'
 
 
@@ -71,6 +73,23 @@ export function stdio(id: string, e: unknown): void {
 
 	console.warn('\n\n')
 
+
+}
+
+export function stdio_(req: express.Request, e: NodeJS.ErrnoException): void {
+	let id = secret.hex(8)
+
+	let date = new Date().toISOString()
+
+	let method = req.method.toUpperCase()
+
+
+	console.log(
+		`${method} ${e.code} 0 ms\n - ${req.originalUrl}\n - ${date} ⊶ ${req.ip} ⊶ ${id}\n`,
+
+	)
+
+	stdio(id, e)
 
 }
 

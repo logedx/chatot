@@ -154,10 +154,7 @@ export const finish: express.ErrorRequestHandler = function finish(
 	}
 
 	else {
-		reply.stdio(
-			secret.hex(8), e,
-
-		)
+		reply.stdio_(req, e)
 
 	}
 
