@@ -2,7 +2,7 @@
  * 邮票模型
  */
 import config from 'config'
-import { Schema, Model, HydratedDocument, Mixed, Types } from 'mongoose'
+import { Schema, Model, HydratedDocument, Mixed } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
 
@@ -41,7 +41,7 @@ export type TInstanceMethods = {
 		// eslint-disable-next-line no-use-before-define
 		this: THydratedDocumentType
 
-	): Promise<Types.ObjectId>
+	): Promise<TRawDocType['amber']>
 
 }
 
@@ -53,7 +53,7 @@ export type TStaticMethods = {
 		value: string,
 		symbol: string,
 
-	): Promise<Types.ObjectId>
+	): Promise<TRawDocType['amber']>
 
 	from(
 		// eslint-disable-next-line no-use-before-define
@@ -144,7 +144,7 @@ schema.method(
 
 			await this.save()
 
-			return this._id
+			return this.amber
 
 		},
 

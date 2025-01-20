@@ -8,6 +8,7 @@ import * as detective from '../lib/detective.js'
 import * as user_model from '../model/user.js'
 import * as token_model from '../model/token.js'
 import * as scope_model from '../model/scope.js'
+import * as stamp_model from '../model/stamp.js'
 
 import * as user_router from './user.js'
 import * as token_router from './token.js'
@@ -60,7 +61,7 @@ router.post(
 
 	async function create(req, res) {
 		type Suspect = {
-			value: Types.ObjectId
+			value: stamp_model.TRawDocType['amber']
 
 		}
 

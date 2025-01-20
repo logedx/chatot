@@ -1,5 +1,4 @@
 import express from 'express'
-import { Types } from 'mongoose'
 
 import * as secret from '../lib/secret.js'
 import * as evidence from '../lib/evidence.js'
@@ -15,7 +14,7 @@ import * as retrieve_router from './retrieve.js'
 
 export const cypher_decrypt_evidence_chain = evidence.Text.required.to(stamp_model.decrypt)
 
-export function symbol_evidence_chain(value: string): evidence.Chain<Types.ObjectId> {
+export function symbol_evidence_chain(value: string): evidence.Chain<stamp_model.TRawDocType['amber']> {
 	return evidence.Text.required.to(
 		v => stamp_model.default.eternal(v, value),
 
