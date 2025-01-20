@@ -23,9 +23,16 @@ export function symbol_evidence_chain(value: string): evidence.Chain<stamp_model
 
 }
 
-export function symbol_encrypt(value: string): express.RequestHandler {
+export function symbol_encrypt(
+	value: string,
+
+	expire = stamp_model.delay(),
+
+	amber: unknown = null,
+
+): express.RequestHandler {
 	return function (req, res) {
-		let cypher = stamp_model.encrypt(value)
+		let cypher = stamp_model.encrypt(value, expire, amber)
 
 		res.setHeader('Access-Control-Max-Age', 600)
 		res.setHeader('Access-Control-Allow-Methods', 'POST')
