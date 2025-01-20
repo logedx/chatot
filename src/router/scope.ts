@@ -49,7 +49,7 @@ router.options(
 
 	),
 
-	stamp_router.symbol_encrypt('/mine/scope#put'),
+	stamp_router.symbol_encrypt('/scope#post'),
 
 )
 
@@ -68,7 +68,7 @@ router.post(
 		let suspect = evidence.suspect<Suspect>(req.body)
 
 		await suspect.infer_signed<'value'>(
-			stamp_router.symbol_evidence_chain('/scope#put').signed('value'),
+			stamp_router.symbol_evidence_chain('/scope#post').signed('value'),
 
 		)
 
