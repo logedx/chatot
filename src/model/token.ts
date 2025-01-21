@@ -10,6 +10,7 @@ import * as reply from '../lib/reply.js'
 import * as secret from '../lib/secret.js'
 
 import * as user_model from './user.js'
+import * as scope_model from './scope.js'
 import * as weapp_model from './weapp.js'
 
 
@@ -43,6 +44,8 @@ export type TVirtuals = {
 
 	is_usable: boolean
 	is_survive: boolean
+
+	mode: scope_model.Mode
 
 }
 
@@ -203,6 +206,14 @@ schema.virtual('is_survive').get(
 		let is_anonymous = detective.is_null(this.user) || detective.is_null(this.weapp)
 
 		return is_expired && !is_anonymous
+
+	},
+
+)
+
+schema.virtual('mode').get(
+	function (): TVirtuals['mode'] {
+		return scope_model.vtmod(this.scope)
 
 	},
 

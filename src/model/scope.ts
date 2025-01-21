@@ -5,6 +5,7 @@ import moment from 'moment'
 import { Schema, Model, HydratedDocument } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
+import * as detective from '../lib/detective.js'
 
 
 
@@ -237,6 +238,7 @@ export function mixed(value: Role, ...role: Array<Role>): Role {
 		(a, b) => a | b,
 
 		value,
+
 	)
 
 }
@@ -248,5 +250,48 @@ export function chmod(value: Role, mode: Mode): Role {
 	}
 
 	return value << mode
+
+}
+
+export function vtmod(value: Role): Mode {
+	if (value <= Role.普通) {
+		return Mode.普通
+
+	}
+
+	if (value === Role.无限) {
+		return Mode.系统
+
+	}
+
+	let vxmod = Object.values(Mode)
+		.filter(detective.is_number)
+		.toSorted(
+			(a, b) => a - b,
+
+		)
+
+	let vscope = Math.floor(value)
+		.toString(2)
+		.split('')
+		.reverse()
+
+	return vscope.reduce(
+		(a, b, i) => {
+			if (b === '0') {
+				return a
+
+			}
+
+			let v = vxmod[i % vxmod.length]
+
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+			return v > a ? v : a
+
+		},
+
+		Mode.普通,
+
+	)
 
 }
