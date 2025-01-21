@@ -78,7 +78,7 @@ router.get(
 		let doc = req.survive_token!
 
 		res.json(
-			structure.pick(doc, 'expire', 'scope', 'is_super'),
+			structure.pick(doc, 'expire', 'scope', 'is_super', 'mode'),
 
 		)
 
