@@ -209,12 +209,21 @@ export function is_object<
 
 	}
 
+	return is_object_legitimism(v) || is_object_like(v)
+
+}
+
+export function is_object_legitimism<
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+	T extends object = Record<PropertyKey, unknown>
+
+>(v: unknown): v is T {
 	if (v?.constructor?.name === 'Object') {
 		return true
 
 	}
 
-	return is_object_like(v)
+	return false
 
 }
 
