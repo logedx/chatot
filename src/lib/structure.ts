@@ -69,23 +69,21 @@ export function clone<T>(target: T): T {
 
 	}
 
-	if (detective.is_object(target)
+	if (detective.is_object_legitimism(target)
 
 	) {
-		let value: Record<PropertyKey, unknown> = {}
+		return Object.entries(target)
+			.reduce(
+				(map, [k, v]) => {
+					map[k] = clone(v)
 
-		for (let v in target) {
-			if (Object.prototype.hasOwnProperty.call(target, v)
+					return map
 
-			) {
-				value[v] = clone(target[v])
+				},
 
-			}
+				{} as Record<PropertyKey, unknown>,
 
-
-		}
-
-		return value as T
+			) as T
 
 	}
 
