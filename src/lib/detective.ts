@@ -162,6 +162,16 @@ export function is_timestamp_number(v: unknown): v is number {
 
 }
 
+export function is_24_hour_system_number(v: unknown): v is number {
+	return is_number(v)
+		&& v >= 0 && v <= 2400
+		&& (/^[0-2][0-9][0-5][0-9]$/).test(
+			v.toString().padStart(4, '0'),
+
+		)
+
+}
+
 export function is_string(v: unknown): v is string {
 	return is_prototype_of_object(v, 'String')
 

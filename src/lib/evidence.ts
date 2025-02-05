@@ -776,9 +776,13 @@ export class Digital {
 
 	)
 
-
 	static is_natural = Chain.infer<number>(
 		'is not a natural number', detective.is_natural_number,
+
+	)
+
+	static is_24_hour_system_number = Chain.infer<number>(
+		'is not a 24 hour system number', detective.is_24_hour_system_number,
 
 	)
 
