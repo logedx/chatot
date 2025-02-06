@@ -923,7 +923,7 @@ export class Every {
 
 	)
 
-	static is_object_id = this.is<string>(
+	static is_object_id = this.is<Types.ObjectId>(
 		'object id',
 
 		detective.is_object_id,
