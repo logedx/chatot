@@ -602,7 +602,7 @@ export class Text {
 
 
 	static is_time = Chain.infer<string>(
-		'is not a time string', detective.is_time_string,
+		'is not a time string', detective.is_24_hour_system_string,
 
 	)
 

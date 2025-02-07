@@ -275,13 +275,13 @@ export function is_media_uri_string(v: unknown): v is string {
 
 }
 
-export function is_time_string(v: unknown): v is string {
-	return is_required_string(v) && (/[0-9]{2}:[0-9]{2}/).test(v)
+export function is_date_string(v: unknown): v is string {
+	return is_required_string(v) && new Date(v).valueOf() > 0
 
 }
 
-export function is_date_string(v: unknown): v is string {
-	return is_required_string(v) && new Date(v).valueOf() > 0
+export function is_24_hour_system_string(v: unknown): v is string {
+	return is_required_string(v) && (/^[0-2][0-9]:[0-5][0-9]$/).test(v)
 
 }
 
@@ -312,7 +312,7 @@ export function is_range<T = unknown>(v: unknown): v is Array<T> {
 }
 
 export function is_time_range(v: unknown): v is RangeTime {
-	return is_range(v) && is_time_string(v[0]) && is_time_string(v[1])
+	return is_range(v) && is_24_hour_system_string(v[0]) && is_24_hour_system_string(v[1])
 
 }
 
