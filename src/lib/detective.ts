@@ -43,8 +43,8 @@ export function is_exist<T>(v: T): v is Exclude<T, undefined | null> {
 
 }
 
-export function is_empty<T>(v: T): v is Extract<T, undefined | null | ''> {
-	return is_null(v) || is_undefined(v) || is_empty_string(v)
+export function is_empty<T>(v: T): v is Extract<T, undefined | null | '' | 0> {
+	return is_null(v) || is_undefined(v) || is_empty_string(v) || v === 0
 
 }
 
