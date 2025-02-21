@@ -178,8 +178,12 @@ router.get(
 
 	retrieve_router.user,
 
-	function retrieve(req, res) {
-		res.json(req.user)
+	async function retrieve(req, res) {
+		let doc = req.user!
+
+		let sensitive_doc = await doc.select_sensitive_fields('+phone')
+
+		res.json(sensitive_doc)
 
 	},
 
