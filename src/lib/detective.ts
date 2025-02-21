@@ -21,11 +21,8 @@ export type PointCoordinates = {
 
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-export type ObjectKeyofMixedy< T extends object, K extends PropertyKey, V> = Omit<T, K> & {
-	[k in K]: V
 
-}
+
 
 
 export function is_null(v: unknown): v is null {
@@ -247,14 +244,16 @@ export function is_object_key(v: unknown): v is PropertyKey {
 
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export function is_object_keyof<K extends PropertyKey, V = unknown, T extends object = {}>(
+export function is_object_keyof<
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+	K extends PropertyKey, V = unknown, T = object
+
+>(
 	target: unknown,
 
 	key: K,
 
-
-): target is ObjectKeyofMixedy<T, K, V> {
+): target is Omit<T, K> & { [k in K]: k extends keyof T ? T[k] : V } {
 	return is_object_like(target) && Object.hasOwn(target, key)
 
 }

@@ -59,7 +59,7 @@ export type TInstanceMethods = {
 
 	): Promise<void>
 
-	select_sensitive_fields<T extends 'phone' | 'wxopenid' | 'wxsession'>(
+	select_sensitive_fields<T extends keyof structure.GetPartial<TRawDocType>>(
 		// eslint-disable-next-line no-use-before-define
 		this: THydratedDocumentType,
 
@@ -67,7 +67,7 @@ export type TInstanceMethods = {
 
 	): Promise<
 		// eslint-disable-next-line no-use-before-define
-		structure.PropertyTypeRequired<THydratedDocumentType, T>
+		storage.TRawDocTypeOverwrite<THydratedDocumentType, T>
 
 	>
 
@@ -207,15 +207,9 @@ schema.method(
 
 		},
 
-		async select_sensitive_fields<T extends keyof TRawDocType>(
-			this: THydratedDocumentType,
-
-			...select: Array<`+${T}`>
-
-		): Promise<
-			structure.PropertyTypeRequired<THydratedDocumentType, T>
-
-		> {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		async select_sensitive_fields(...select) {
 			const model = this.model()
 
 
@@ -223,7 +217,7 @@ schema.method(
 
 			reply.NotFound.asserts(doc, 'user')
 
-			return doc as unknown as structure.PropertyTypeRequired<THydratedDocumentType, T>
+			return doc
 
 		},
 

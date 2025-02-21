@@ -4,12 +4,13 @@
 import ali_oss from 'ali-oss'
 import { Schema, Model, HydratedDocument } from 'mongoose'
 
-import * as storage from '../lib/storage.js'
 
 import * as reply from '../lib/reply.js'
 import * as weapp from '../lib/weapp.js'
 import * as wepay from '../lib/wepay.js'
+import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
+import * as structure from '../lib/structure.js'
 
 
 
@@ -42,13 +43,17 @@ export type TVirtuals = object
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	select_sensitive_fields(
+	select_sensitive_fields<T extends keyof structure.GetPartial<TRawDocType>>(
 		// eslint-disable-next-line no-use-before-define
 		this: THydratedDocumentType,
 
-		...select: Array<keyof TRawDocType>
+		...select: Array<`+${T}`>
+
+	): Promise<
 		// eslint-disable-next-line no-use-before-define
-	): Promise<Required<THydratedDocumentType>>
+		storage.TRawDocTypeOverwrite<THydratedDocumentType, T>
+
+	>
 
 	get_access_token(
 		// eslint-disable-next-line no-use-before-define
@@ -91,8 +96,17 @@ export type TInstanceMethods = {
 		// eslint-disable-next-line no-use-before-define
 		this: THydratedDocumentType,
 
-		// eslint-disable-next-line no-use-before-define
-	): Promise<Required<THydratedDocumentType>>
+	): Promise<
+		storage.TRawDocTypeOverwrite<
+			// eslint-disable-next-line no-use-before-define
+			THydratedDocumentType,
+
+			'mchid' | 'v3key' | 'sign' | 'evidence' | 'verify'
+
+		>
+
+
+	>
 
 	get_transactions_api_v3(
 		// eslint-disable-next-line no-use-before-define
@@ -249,6 +263,8 @@ schema.index(
 
 schema.method(
 	{
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
 		async select_sensitive_fields(...select) {
 			const model = this.model()
 
@@ -257,12 +273,12 @@ schema.method(
 
 			reply.NotFound.asserts(doc, 'weapp')
 
-			return doc as Required<THydratedDocumentType>
+			return doc
 
 		},
 
 		async get_access_token() {
-			let doc = await this.select_sensitive_fields('appid', 'secret', 'token', 'refresh', 'expired')
+			let doc = await this.select_sensitive_fields('+secret', '+token', '+refresh', '+expired')
 
 			if (doc.token && doc.expired > new Date()
 
@@ -285,7 +301,7 @@ schema.method(
 		},
 
 		async get_wx_session(code) {
-			let doc = await this.select_sensitive_fields('appid', 'secret')
+			let doc = await this.select_sensitive_fields('+secret')
 
 			return weapp.get_wx_session(doc.appid, doc.secret, code)
 
@@ -315,10 +331,8 @@ schema.method(
 
 		},
 
-		async to_api_v3_option() {
-			let doc = await this.select_sensitive_fields('appid', 'mchid', 'v3key', 'sign', 'evidence', 'verify')
-
-			return doc
+		to_api_v3_option() {
+			return this.select_sensitive_fields('+mchid', '+v3key', '+sign', '+evidence', '+verify')
 
 		},
 

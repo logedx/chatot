@@ -7,12 +7,7 @@ import * as detective from './detective.js'
 
 export type Infer<V, T> = (v: V) => T | Promise<T>
 
-export type InferAlias<T extends object, K extends keyof T> = Exclude<
-	structure.PropertyExclude<T, K>,
-
-	K
-
->
+export type InferAlias<T extends object, K extends keyof T> = Exclude<keyof T, K>
 
 export type InferOption<T extends object, K extends keyof T> = {
 	rename?: K
@@ -37,7 +32,7 @@ export type InferRenameOption<T extends object, K extends keyof T> = {
 	rename: K
 
 } & (
-		K extends structure.OptionalPropertyOf<T>
+		K extends keyof structure.GetPartial<T>
 		? InferQuietOption<T, K>
 		: InferPartialQuietOption<T, K>
 
@@ -311,14 +306,14 @@ export class Exhibit<T extends object> {
 	}
 
 
-	infer_signed<K extends Exclude<keyof T, structure.OptionalPropertyOf<T>>>(
+	infer_signed<K extends Exclude<keyof T, keyof structure.GetPartial<T>>>(
 		chain: Chain<T[K], K>,
 
 		option?: InferPartialQuietOption<T, K>,
 
 	): Promise<void>
 
-	infer_signed<K extends structure.OptionalPropertyOf<T>>(
+	infer_signed<K extends keyof structure.GetPartial<T>>(
 		chain: Chain<T[K], K>,
 
 		option: InferQuietOption<T, K>,
@@ -1087,7 +1082,7 @@ export class Pagination<T extends object = Record<PropertyKey, never>> {
 	static postpone<T extends object>(
 		value: Array<T>,
 
-		key: structure.PropertyTypeExclude<T, number>,
+		key: keyof structure.GetProperty<T, number>,
 
 	): number {
 		if (value.length < 1) {

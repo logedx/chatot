@@ -2,6 +2,8 @@ import config from 'config'
 import alioss from 'ali-oss'
 import mongoose from 'mongoose'
 
+import * as structure from './structure.js'
+
 
 type Connect = {
 	ali_oss: null | alioss
@@ -32,6 +34,11 @@ export type TExtendRawDocType = {
 }
 
 export type TRawDocType<T> = T & TExtendRawDocType
+
+export type TRawDocTypeOverwrite<T, U extends keyof T> = structure.Overwrite<
+	T, { [k in U]-?: T[k] }
+
+>
 
 
 export async function mongodb(): Promise<typeof mongoose> {

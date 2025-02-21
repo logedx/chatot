@@ -1,6 +1,39 @@
 import * as detective from './detective.js'
 
 
+
+
+
+export type GetProperty<T, V> = {
+	[K in keyof T as T extends V ? K : never]: T[K]
+
+}
+
+export type GetPartial<T> = {
+	[K in keyof T as T extends Record<K, T[K]> ? never : K]: T[K]
+
+}
+
+export type GetRequired<T> = {
+	[K in keyof T as T extends Record<K, T[K]> ? K : never]: T[K]
+
+}
+
+export type Overwrite<T, U, O = Omit<T, keyof U> & Required<U>> = {
+	[K in keyof O]: Exclude<
+		K extends keyof U
+		? U[K]
+		: K extends keyof T
+		? T[K]
+		: never,
+
+		undefined
+
+	>
+
+}
+
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type UnionToInterFunction<U> = U extends any ? (k: () => U) => void : never
 
@@ -19,33 +52,6 @@ export type UnionToTuple<
 	? []
 	: [...UnionToTuple<Exclude<E, L>>, L,]
 
-export type OptionalPropertyOf<T extends object> = Exclude<
-	{ [K in keyof T]: T extends Record<K, T[K]> ? never : K }[keyof T],
-
-	undefined
-
->
-
-export type PropertyExclude<T extends object, K extends keyof T> = Exclude<
-	{ [P in keyof T]: T[P] extends T[K] ? P : never }[keyof T],
-
-	undefined
-
->
-
-export type PropertyTypeExclude<T extends object, V> = Exclude<
-	{ [P in keyof T]: T[P] extends V ? P : never }[keyof T],
-
-	undefined
-
-	>
-
-
-export type PropertyTypeRequired<T, K extends keyof T> = Omit<T, K>
-	& Required<
-		Pick<T, K>
-
-	>
 
 
 export type PropertyTransformHandler = (v: unknown) => unknown
