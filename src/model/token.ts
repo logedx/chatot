@@ -5,6 +5,7 @@ import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
+import * as structure from '../lib/structure.js'
 
 import * as reply from '../lib/reply.js'
 import * as secret from '../lib/secret.js'
@@ -106,10 +107,10 @@ export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TI
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
 
 
-export type TSurviveHydratedDocumentType = HydratedDocument<
-	Omit<TRawDocType, 'user' | 'weapp'> & { user: Types.ObjectId, weapp: Types.ObjectId },
+export type TSurviveHydratedDocumentType = structure.Overwrite<
+	THydratedDocumentType,
 
-	TVirtuals & TInstanceMethods
+	{ user: Types.ObjectId, weapp: Types.ObjectId }
 
 >
 

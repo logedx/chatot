@@ -41,15 +41,6 @@ export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals >
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
 
 
-export type TSurviveHydratedDocumentType = HydratedDocument<
-	Omit<TRawDocType, 'user' | 'weapp'> & { user: Types.ObjectId, weapp: Types.ObjectId },
-
-	TVirtuals
-
->
-
-
-
 
 
 
