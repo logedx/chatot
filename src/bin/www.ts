@@ -71,10 +71,7 @@ async function read_file(name: string): Promise<Buffer> {
 	let x = name.toLowerCase()
 	let y = name.toUpperCase()
 
-	console.info(
-		chalk.grey(`Reading: ${name}.`),
-
-	)
+	console.group()
 
 	for (let v of [x, y]) {
 		try {
@@ -90,7 +87,7 @@ async function read_file(name: string): Promise<Buffer> {
 			let z = e as NodeJS.ErrnoException
 
 			console.info(
-				chalk.gray(z.message),
+				chalk.red(z.message),
 
 			)
 
@@ -99,12 +96,20 @@ async function read_file(name: string): Promise<Buffer> {
 
 	}
 
-	throw new Error(`× ${name} not found`)
+	console.groupEnd()
+
+	throw new Error(`${name} is not found`)
 
 }
 
 async function create_server(_app: express.Application): Promise<http.Server | https.Server> {
 	console.info()
+
+	console.info(
+		chalk.grey(`≥ Create HTTPS Server...`),
+
+	)
+
 
 	try {
 		const key = await read_file(app.key_name)
@@ -120,7 +125,27 @@ async function create_server(_app: express.Application): Promise<http.Server | h
 
 	}
 
-	catch {
+	catch (e) {
+		let z = e as NodeJS.ErrnoException
+
+		console.info()
+
+		console.info(
+			chalk.gray(`× fail: ${z.message}`),
+
+		)
+
+		console.info()
+		console.info()
+		console.info()
+		console.info()
+
+		console.info(
+			chalk.gray('≥ Create HTTP server...'),
+
+		)
+
+
 		return http.createServer(_app)
 
 	}
