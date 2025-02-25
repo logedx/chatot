@@ -6,7 +6,7 @@ import crypto from 'node:crypto'
 import stream from 'node:stream'
 
 import mime_types from 'mime-types'
-import { Schema, Model, Types, HydratedDocument } from 'mongoose'
+import { Schema, Model, Types, SchemaType, HydratedDocument } from 'mongoose'
 
 import * as reply from '../lib/reply.js'
 import * as storage from '../lib/storage.js'
@@ -134,6 +134,82 @@ export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtua
 
 
 const drive = await storage.mongodb()
+
+
+
+export class Secret extends String {
+	#weapp: Types.ObjectId
+
+	constructor(src: string | URL, weapp: Types.ObjectId) {
+		super(src)
+
+		this.#weapp = weapp
+
+	}
+
+	safe_access(expires = 1800): Promise<string> {
+		// eslint-disable-next-line no-use-before-define
+		return drive.model<typeof schema>('Media')
+			.safe_access(
+				this.#weapp, this as unknown as string, expires,
+
+			)
+			.then(v => v.href)
+			.catch(
+				() => '',
+
+			)
+
+	}
+
+}
+
+
+class SecretSchemaType extends SchemaType {
+	/** This schema type's name, to defend against minifiers that mangle function names. */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	static schemaName: 'Secret'
+
+	constructor(_path: string, options: object) {
+		super(_path, options, 'SecretSchemaType')
+
+		this.select(false)
+
+		this.set(
+			function (src: string | URL): string {
+				if (detective.is_string(src)
+
+				) {
+					src = new URL(src)
+
+				}
+
+				if (src instanceof URL) {
+					src.search = ''
+
+					return src.href
+
+				}
+
+				return ''
+
+			},
+
+		)
+
+	}
+
+	cast(value: string, doc: THydratedDocumentType): Secret {
+		return new Secret(value, doc.weapp)
+
+	}
+
+
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+drive.Schema.Types.Secret = SecretSchemaType
 
 
 export const schema = new Schema<
