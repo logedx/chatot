@@ -17,7 +17,7 @@ export function checkpoint(...point: Array<number>): Array<express.RequestHandle
 	return [
 		retrieve_router.survive_token,
 
-		async function (req, res, next) {
+		function (req, res, next) {
 			let method = req.method
 			let original = req.originalUrl
 
@@ -27,7 +27,8 @@ export function checkpoint(...point: Array<number>): Array<express.RequestHandle
 			let has = scope_model.some(scope, ...point)
 
 			if (any || has) {
-				await checkpoint_model.default.create(
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
+				checkpoint_model.default.create(
 					{ weapp, user, method, original },
 
 				)
