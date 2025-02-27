@@ -24,7 +24,7 @@ declare global {
 			stamp?: stamp_model.THydratedDocumentType
 
 
-			usable_token?: token_model.TSurviveHydratedDocumentType
+			usable_token?: token_model.THydratedDocumentType
 			survive_token?: token_model.TSurviveHydratedDocumentType
 
 		}
