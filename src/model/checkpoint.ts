@@ -14,8 +14,8 @@ import * as weapp_model from './weapp.js'
 
 export type TRawDocType = storage.TRawDocType<
 	{
-		weapp: Types.ObjectId
-		user: Types.ObjectId
+		weapp: null | Types.ObjectId
+		user: null | Types.ObjectId
 		method: 'POST' | 'GET' | 'PUT' | 'DELETE'
 		original: string
 		expire: Date
@@ -58,6 +58,7 @@ export const schema = new Schema<
 		weapp: {
 			type: Schema.Types.ObjectId,
 			ref: () => weapp_model.default,
+			index: true,
 			default: null,
 
 		},
@@ -65,6 +66,7 @@ export const schema = new Schema<
 		user: {
 			type: Schema.Types.ObjectId,
 			ref: () => user_model.default,
+			index: true,
 			default: null,
 
 		},
