@@ -6,6 +6,7 @@ import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 import * as storage from '../lib/storage.js'
 
 import * as user_model from './user.js'
+import * as scope_model from './scope.js'
 import * as weapp_model from './weapp.js'
 
 
@@ -14,6 +15,7 @@ import * as weapp_model from './weapp.js'
 
 export type TRawDocType = storage.TRawDocType<
 	{
+		scope: number
 		weapp: null | Types.ObjectId
 		user: null | Types.ObjectId
 		method: 'POST' | 'GET' | 'PUT' | 'DELETE'
@@ -30,7 +32,11 @@ export type TPopulatePaths = {
 
 }
 
-export type TVirtuals = object
+export type TVirtuals = {
+	mode: scope_model.Mode
+
+}
+
 
 export type TQueryHelpers = object
 
@@ -55,6 +61,13 @@ export const schema = new Schema<
 
 >(
 	{
+		scope: {
+			type: Number,
+			required: true,
+			default: 0,
+
+		},
+
 		weapp: {
 			type: Schema.Types.ObjectId,
 			ref: () => weapp_model.default,
@@ -101,6 +114,13 @@ export const schema = new Schema<
 )
 
 
+schema.virtual('mode').get(
+	function (): TVirtuals['mode'] {
+		return scope_model.vtmod(this.scope)
+
+	},
+
+)
 
 
 export default drive.model('Checkpoint', schema)

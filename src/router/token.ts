@@ -21,7 +21,7 @@ export function checkpoint(...point: Array<number>): Array<express.RequestHandle
 			let method = req.method
 			let original = req.originalUrl
 
-			let { weapp, user, scope } = req.survive_token!
+			let { scope, weapp, user } = req.survive_token!
 
 			let any = point.length === 0 && scope > 0
 			let has = scope_model.some(scope, ...point)
@@ -29,7 +29,7 @@ export function checkpoint(...point: Array<number>): Array<express.RequestHandle
 			if (any || has) {
 				// eslint-disable-next-line @typescript-eslint/no-floating-promises
 				checkpoint_model.default.create(
-					{ weapp, user, method, original },
+					{ scope, weapp, user, method, original },
 
 				)
 
