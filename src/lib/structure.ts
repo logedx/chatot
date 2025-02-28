@@ -19,6 +19,14 @@ export type GetRequired<T> = {
 
 }
 
+export type Replace<T, U, V> = T extends U
+	? V
+	: T extends Array<infer A>
+	? Array<Replace<A, U, V>>
+	: T extends object
+	? { [K in keyof T]: Replace<T[K], U, V> }
+	: T
+
 export type Overwrite<T, U, O = Omit<T, keyof U> & Required<U>> = {
 	[K in keyof O]: Exclude<
 		K extends keyof U
@@ -54,12 +62,7 @@ export type UnionToTuple<
 
 
 
-export type PropertyTransformHandler = (v: unknown) => unknown
 
-export type PropertyTransformResult<T extends object, V, K extends keyof T> = {
-	[N in keyof T]: N extends K ? V : T[N]
-
-}
 
 
 export function clone<T>(target: T): T {
@@ -152,9 +155,13 @@ export function pick<T extends object, K extends keyof T>(
 	...name: Array<K>
 
 ): Pick<T, K> {
+	let key = new Set(name)
 	let value = {} as Pick<T, K>
 
-	for (let n of name) {
+
+	for (let n of Array.from(key)
+
+	) {
 		value[n] = clone(source[n])
 
 	}
@@ -180,66 +187,5 @@ export function omit<
 	}
 
 	return value
-
-}
-
-export function transform<
-	F extends PropertyTransformHandler = PropertyTransformHandler,
-	T extends object = object,
-	K extends keyof T = keyof T,
-	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-	R = PropertyTransformResult<T, ReturnType<F>, K>
-
->(
-	source: T,
-	key: Array<K>,
-	handle: F,
-): R {
-	let value = {} as Record<K, ReturnType<F>>
-
-	for (let v of key) {
-		value[v] = handle(source[v]) as ReturnType<F>
-
-	}
-
-	return { ...clone(source), ...value } as R
-
-}
-
-
-export class Transform {
-	static date<T extends object = object, K extends keyof T = keyof T>(
-		source: T,
-		...name: Array<K>
-
-	): PropertyTransformResult<T, Date, K> {
-		return transform(
-			source,
-
-			name,
-
-			(v): Date => {
-				if (detective.is_required_string(v)
-					|| detective.is_timestamp_number(v)
-
-				) {
-					v = new Date(v)
-
-				}
-
-				if (v instanceof Date && v.valueOf() > 0) {
-					return v
-
-				}
-
-				return new Date()
-
-			},
-
-
-		)
-
-
-	}
 
 }
