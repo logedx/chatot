@@ -92,6 +92,25 @@ export class Exhibit<T extends object> {
 
 	}
 
+	has(key: ExhibitKey<T, keyof T>): boolean {
+		if (detective.is_number(key)
+			&& detective.is_array(this.#value)
+
+		) {
+			return detective.is_undefined(this.#value[key]) === false
+
+		}
+
+		if (detective.is_object(this.#value)
+
+		) {
+			return detective.is_undefined(this.#value[key]) === false
+
+		}
+
+		return false
+
+	}
 
 	get(): T
 
@@ -139,7 +158,14 @@ export class Exhibit<T extends object> {
 	}
 
 	#del(key: PropertyKey): void {
-		if (detective.is_object(this.#value)
+		if (detective.is_array(this.#value)
+
+		) {
+			this.#value.splice(key as number, 1)
+
+		}
+
+		else if (detective.is_object(this.#value)
 
 		) {
 			delete this.#value[key]
@@ -188,6 +214,29 @@ export class Exhibit<T extends object> {
 		}
 
 		this.#value = { ...this.#value ?? {}, [key]: await value }
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+	async deplete<V = Exclude<ExhibitValue<T, keyof T>, undefined>>(
+		key: ExhibitKey<T, keyof T>,
+
+		fn: (v: V) => Promise<void>,
+
+	): Promise<void> {
+		if (this.has(key) === false
+
+		) {
+			return
+
+		}
+
+		await fn(
+			this.get(key) as V,
+
+		)
+
+		this.#del(key)
 
 	}
 
