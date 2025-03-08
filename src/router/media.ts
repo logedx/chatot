@@ -160,7 +160,9 @@ router.post(
 
 		)
 
-		res.json(doc.src)
+		uri.search = ''
+
+		res.json(uri.href)
 
 	},
 

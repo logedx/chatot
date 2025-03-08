@@ -175,9 +175,11 @@ class SecretSchemaType extends SchemaType {
 
 		this.select(false)
 
+		this.default('')
+
 		this.set(
 			function (src: string | URL): string {
-				if (detective.is_string(src)
+				if (detective.is_media_uri_string(src)
 
 				) {
 					src = new URL(src)
@@ -199,8 +201,18 @@ class SecretSchemaType extends SchemaType {
 
 	}
 
-	cast(value: string, doc: THydratedDocumentType): Secret {
-		return new Secret(value, doc.weapp)
+	cast(value: string, doc?: THydratedDocumentType): string | Secret {
+		if (doc?.isNew === true) {
+			return value
+
+		}
+
+		if (doc?.weapp) {
+			return new Secret(value, doc.weapp)
+
+		}
+
+		return value
 
 	}
 
@@ -293,7 +305,7 @@ export const schema = new Schema<
 
 
 		src: {
-			type: String,
+			type: Secret,
 			unique: true,
 			sparse: true,
 			trim: true,
@@ -499,6 +511,7 @@ schema.static(
 				{ weapp, src },
 
 			)
+				.select('+src')
 
 			reply.NotFound.asserts(doc, 'media')
 
