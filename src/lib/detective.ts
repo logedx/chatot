@@ -263,8 +263,22 @@ export function is_object_id_string(v: unknown): v is string {
 
 }
 
+export function is_mime_type_string(v: unknown): v is string {
+	return is_required_string(v)
+		// eslint-disable-next-line no-useless-escape
+		&& (/^[a-zA-Z0-9]+\/[a-zA-Z0-9\-\+\.]+$/).test(v)
+
+}
+
 export function is_dirname_string(v: unknown): v is string {
 	return is_required_string(v) && (/^(\/[0-9a-z-_]+)*\//).test(v)
+
+}
+
+export function is_data_url_string(v: unknown): v is string {
+	return is_required_string(v)
+		// eslint-disable-next-line no-useless-escape
+		&& (/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9\-\+\.]+)?(;base64)?,(.*)$/).test(v)
 
 }
 
