@@ -13,7 +13,8 @@
 		"./bundle/*": "./dist/src/bundle/*",
 		"./lib/*": "./dist/src/lib/*",
 		"./model/*": "./dist/src/model/*",
-		"./router/*": "./dist/src/router/*"
+		"./router/*": "./dist/src/router/*",
+		"./eslint.config.js": "./eslint.config.js"
 	},
 	"scripts": {
 		"prepare": "npx husky",
