@@ -96,7 +96,7 @@ export const user_unsafe: express.RequestHandler = async function user(req, res,
 }
 
 
-export const stamp: express.RequestHandler = async function notice(req, res, next) {
+export const stamp: express.RequestHandler = async function stamp(req, res, next) {
 	let { value } = req.params
 
 	let doc = await stamp_model.default
