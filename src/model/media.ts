@@ -237,6 +237,7 @@ export const schema = new Schema<
 		weapp: {
 			type: Schema.Types.ObjectId,
 			ref: () => weapp_model.default,
+			index: true,
 			required: true,
 
 		},
