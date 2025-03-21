@@ -7,6 +7,7 @@ import * as user_model from '../model/user.js'
 import * as stamp_model from '../model/stamp.js'
 import * as token_model from '../model/token.js'
 import * as weapp_model from '../model/weapp.js'
+import * as keyword_model from '../model/keyword.js'
 
 
 
@@ -20,6 +21,8 @@ declare global {
 			weapp?: weapp_model.THydratedDocumentType
 
 			user?: user_model.THydratedDocumentType
+
+			keyword?: keyword_model.THydratedDocumentType
 
 			stamp?: stamp_model.THydratedDocumentType
 
@@ -90,6 +93,26 @@ export const user_unsafe: express.RequestHandler = async function user(req, res,
 	reply.NotFound.asserts(doc, 'user')
 
 	req.user = doc
+
+	next()
+
+}
+
+
+export const keyword: express.RequestHandler = async function keyword(req, res, next) {
+	let { _id } = req.params
+	let { weapp } = req.survive_token!
+
+	let doc = await keyword_model.default
+		.findOne(
+			{ _id, weapp },
+
+		)
+
+
+	reply.NotFound.asserts(doc, 'keyword')
+
+	req.keyword = doc
 
 	next()
 
