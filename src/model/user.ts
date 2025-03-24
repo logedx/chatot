@@ -177,7 +177,16 @@ schema.index(
 schema.index(
 	{ weapp: 1, phone: 1 },
 
-	{ unique: true, sparse: true },
+	{
+		unique: true,
+
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		partialFilterExpression: {
+			$and: [{ weapp: { $exists: true } }, { phone: { $exists: true } }],
+
+		},
+
+	},
 
 )
 
