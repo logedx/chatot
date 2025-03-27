@@ -174,7 +174,7 @@ router.get(
 router.get(
 	'/user/:_id',
 
-	retrieve_router.survive_token,
+	...token_router.checkpoint(),
 
 	retrieve_router.user,
 
