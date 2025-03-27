@@ -218,8 +218,8 @@ export class Exhibit<T extends object> {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-	async deplete<V = Exclude<ExhibitValue<T, keyof T>, undefined>>(
-		key: ExhibitKey<T, keyof T>,
+	async deplete<K extends keyof T, V = Exclude<ExhibitValue<T, K>, undefined>>(
+		key: ExhibitKey<T, K>,
 
 		fn: (v: V) => Promise<void>,
 
