@@ -134,6 +134,7 @@ router.get(
 	async function retrieve_pagination(req, res) {
 		type Suspect = {
 			$or?: evidence.Keyword<user_model.TRawDocKeyword>
+			scope?: { $eq: null } | { $ne: null }
 
 			weapp: Types.ObjectId
 			active: true
@@ -152,6 +153,18 @@ router.get(
 
 		)
 
+		await suspect.infer_signed<'scope'>(
+			evidence.Text.is_boolean
+				.to(
+					v => v ? { $ne: null } : { $eq: null },
+
+				)
+				.signed('scope'),
+
+			{ quiet: true },
+
+		)
+
 		await suspect.set('weapp', weapp)
 		await suspect.set('active', true)
 
@@ -160,6 +173,7 @@ router.get(
 
 		let doc = await user_model.default
 			.find(pagin.find)
+			.select('+phone')
 			.sort(pagin.sort)
 			.skip(pagin.skip)
 			.limit(pagin.limit)
@@ -181,9 +195,12 @@ router.get(
 	async function retrieve(req, res) {
 		let doc = req.user!
 
-		let sensitive_doc = await doc.select_sensitive_fields('+phone')
+		let fields = await doc.select_sensitive_fields('+phone')
 
-		res.json(sensitive_doc)
+		res.json(
+			{ ...doc.toJSON(), ...fields.toJSON() },
+
+		)
 
 	},
 

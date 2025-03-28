@@ -212,7 +212,7 @@ router.get(
 		reply.NotFound.asserts(doc, 'user')
 		reply.NotFound.asserts(doc.scope, 'scope')
 
-		res.json(doc)
+		res.json(doc.scope)
 
 	},
 
