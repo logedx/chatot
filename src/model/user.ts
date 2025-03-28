@@ -29,7 +29,7 @@ export type TRawDocType = storage.TRawDocType<
 		wxopenid?: string
 		wxsession?: string
 
-		scope: null | scope_model.THydratedDocumentType
+		scope?: null | scope_model.THydratedDocumentType
 
 	}
 
