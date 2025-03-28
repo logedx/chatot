@@ -87,13 +87,15 @@ router.post(
 			if (await user_model.default.countDocuments({}) < 1
 
 			) {
-				scope = {
+				let v = {
 					value: scope_model.Role.无限,
 					deadline: '99年',
 					lock: true,
 					expired: moment().add(99, 'year')
 						.toDate(),
-				} as scope_model.THydratedDocumentType
+				}
+
+				scope = v as scope_model.THydratedDocumentType
 
 			}
 
@@ -125,6 +127,39 @@ router.post(
 	},
 
 )
+
+router.post(
+	'/user/:_id/scope',
+
+	...token_router.checkpoint(),
+
+	retrieve_router.user,
+
+	async function create_scope(req, res) {
+		let doc = req.user!
+
+		let fields = await doc.select_sensitive_fields('+scope')
+
+		if (detective.is_empty(fields.scope)
+
+		) {
+			let v = {
+				value: scope_model.Role.运营,
+
+			}
+
+			fields.scope = v as scope_model.THydratedDocumentType
+
+			await fields.save()
+
+		}
+
+		res.json()
+
+	},
+
+)
+
 
 router.get(
 	'/user',
