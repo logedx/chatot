@@ -198,8 +198,8 @@ router.put(
 
 	async function update(req, res) {
 		type Suspect = {
-			nickname: string
-			phone: string
+			nickname?: string
+			phone?: string
 
 		}
 
@@ -211,10 +211,14 @@ router.put(
 		await suspect.infer_signed<'nickname'>(
 			evidence.Text.required.signed('nickname'),
 
+			{ quiet: true },
+
 		)
 
 		await suspect.infer_signed<'phone'>(
 			evidence.Text.is_phone_number.signed('phone'),
+
+			{ quiet: true },
 
 		)
 
