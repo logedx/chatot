@@ -4,6 +4,7 @@ import express from 'express'
 import * as reply from '../lib/reply.js'
 
 import * as user_model from '../model/user.js'
+import * as scope_model from '../model/scope.js'
 import * as stamp_model from '../model/stamp.js'
 import * as token_model from '../model/token.js'
 import * as weapp_model from '../model/weapp.js'
@@ -21,6 +22,7 @@ declare global {
 			weapp?: weapp_model.THydratedDocumentType
 
 			user?: user_model.THydratedDocumentType
+			user_scope?: scope_model.THydratedDocumentType
 
 			keyword?: keyword_model.THydratedDocumentType
 
@@ -75,24 +77,29 @@ export const user: express.RequestHandler = async function user(req, res, next) 
 }
 
 
-export const user_unsafe: express.RequestHandler = async function user(req, res, next) {
+export const user_scope: express.RequestHandler = async function user_scope(req, res, next) {
 	let { _id } = req.params
 	let { weapp } = req.survive_token!
 
 	let doc = await user_model.default
 		.findOne(
-			{ _id, weapp },
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			{ _id, weapp, 'scope.lock': false },
 
 		)
-		.select(
-			['+wxopenid', '+wxsession', '+phone'],
+		.select<
+			Required<Pick<user_model.THydratedDocumentType, 'scope'>>
+
+		>(
+			['+scope'],
 
 		)
 
 
 	reply.NotFound.asserts(doc, 'user')
+	reply.NotFound.asserts(doc.scope, 'scope')
 
-	req.user = doc
+	req.user_scope = doc.scope
 
 	next()
 

@@ -33,9 +33,6 @@ export type TRawDocType = storage.TRawDocType<
 		lock: boolean
 
 		value: number
-		deadline: string
-
-		actived: Date
 		expired: Date
 
 	}
@@ -55,9 +52,11 @@ export type TQueryHelpers = object
 export type TInstanceMethods = {
 	delay(
 		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType
+		this: THydratedDocumentType,
 
-	): void
+		day: number
+
+	): Promise<void>
 
 }
 
@@ -65,11 +64,6 @@ export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TI
 
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
 
-
-/**
- * 有效期校验规则
- */
-const deadline_match = /^\d+[日|天|周|月|年]$/
 
 
 
@@ -98,24 +92,6 @@ export const schema = new Schema<
 
 		},
 
-		// 有效期
-		deadline: {
-			type: String,
-			required: true,
-			trim: true,
-			validate: deadline_match,
-			default: '1周',
-
-		},
-
-		// 认证时间
-		actived: {
-			type: Date,
-			required: true,
-			default: () => new Date(),
-
-		},
-
 		// 过期时间
 		expired: {
 			type: Date,
@@ -139,17 +115,20 @@ schema.index(
 
 schema.virtual('role').get(
 	function (): TVirtuals['role'] {
+
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
 		if (Role.财务 > this.value) {
 			return '管理'
 
 		}
 
+
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
 		if (Role.运营 > this.value) {
 			return '财务'
 
 		}
+
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
 		if (Role.无限 > this.value) {
@@ -174,8 +153,12 @@ schema.virtual('is_expire').get(
 
 schema.method(
 	{
-		delay() {
-			this.expired = delay(this.actived, this.deadline)
+		async delay(v) {
+			this.expired = moment().add(v, 'days')
+				.toDate()
+
+			await this.save()
+
 
 		},
 
@@ -185,32 +168,6 @@ schema.method(
 )
 
 export default schema
-
-
-export { deadline_match }
-
-
-
-/**
- * 认证时间顺延
- */
-export function delay(value: string | Date, deadline: string): Date {
-	let keys: Record<string, moment.unitOfTime.Base> = {
-		'日': 'day',
-		'天': 'day',
-		'周': 'week',
-		'月': 'month',
-		'年': 'year',
-
-	}
-
-	let n = deadline.slice(0, -1)
-	let d = deadline.slice(-1)
-
-	return moment(value).add(~~n, keys[d])
-		.toDate()
-
-}
 
 
 export function some(value: Role, ...role: Array<Role>): boolean {
@@ -227,6 +184,25 @@ export function some(value: Role, ...role: Array<Role>): boolean {
 
 }
 
+export function align(...mode: Array<Mode>): number {
+	let value = Object.values(Role)
+		.filter(detective.is_finite_number)
+		.reduce(
+			(a, b) => a | b,
+
+			0,
+
+		)
+
+	return mode.reduce(
+		(a, m) => a | chmod(value, m),
+
+		0,
+
+	)
+
+}
+
 export function mixed(value: Role, ...role: Array<Role>): Role {
 	if (value === Role.无限) {
 		return Role.无限
@@ -238,6 +214,30 @@ export function mixed(value: Role, ...role: Array<Role>): Role {
 		(a, b) => a | b,
 
 		value,
+
+	)
+
+}
+
+export function derive(value: Role, ...mode: Array<Mode>): number {
+	return mode.reduce(
+		(a, b) => a | chmod(value, b),
+
+		value,
+
+	)
+
+}
+
+export function pick(value: Role, ...mode: Array<Mode>): number {
+	return value & align(...mode)
+
+
+}
+
+export function exclude(value: Role, ...mode: Array<Mode>): number {
+	return value & (
+		value ^ align(...mode)
 
 	)
 

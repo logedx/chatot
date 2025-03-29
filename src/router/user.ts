@@ -88,11 +88,12 @@ router.post(
 
 			) {
 				let v = {
-					value: scope_model.Role.无限,
-					deadline: '99年',
 					lock: true,
+
+					value: scope_model.Role.无限,
 					expired: moment().add(99, 'year')
 						.toDate(),
+
 				}
 
 				scope = v as scope_model.THydratedDocumentType

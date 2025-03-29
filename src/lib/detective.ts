@@ -144,6 +144,11 @@ export function is_natural_number(v: unknown): v is number {
 
 }
 
+export function is_finite_number(v: unknown): v is number {
+	return is_real_number(v) && Infinity > v && v > -Infinity
+
+}
+
 export function is_signed_natural_number(v: unknown): v is number {
 	return is_number(v) && v % 1 === 0
 

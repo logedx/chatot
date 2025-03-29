@@ -17,21 +17,6 @@ import * as retrieve_router from './retrieve.js'
 
 
 
-export const value_evidence_chain = evidence.Chain
-	.infer<keyof typeof scope_model.Role>(
-		'is not a Role',
-
-		v => detective.is_object_key(v) && detective.is_object_keyof(scope_model.Role, v),
-
-	)
-	.to(
-		v => scope_model.Role[v],
-
-	)
-
-
-export const deadline_evidence_chain = evidence.Text.match(scope_model.deadline_match)
-
 
 export const router = express.Router()
 
@@ -109,6 +94,51 @@ router.post(
 	},
 
 )
+
+router.post(
+	'/scope/:_id/delay',
+
+	...token_router.checkpoint(
+		scope_model.Role.管理,
+
+		scope_model.chmod(
+			scope_model.Role.管理,
+
+			scope_model.Mode.管理,
+
+		),
+
+	),
+
+	retrieve_router.user_scope,
+
+	async function create_delay(req, res) {
+		type Suspect = {
+			days: number
+
+		}
+
+		let doc = req.user_scope!
+
+		let suspect = evidence.suspect<Suspect>(req.body)
+
+		await suspect.infer_signed<'days'>(
+			evidence.Digital.is_natural.signed('days'),
+
+		)
+
+		await doc.delay(
+			suspect.get('days'),
+
+		)
+
+		res.json()
+
+
+	},
+
+)
+
 
 router.get(
 	'/scope',
@@ -194,25 +224,10 @@ router.get(
 
 	),
 
-	async function retrieve(req, res) {
-		let { _id } = req.params
-		let { weapp } = req.survive_token!
+	retrieve_router.user_scope,
 
-		let doc = await user_model.default
-			.findOne(
-				{ _id, weapp },
-
-			)
-			.select(
-				['+wxphone', '+phone', '+scope'],
-
-			)
-
-
-		reply.NotFound.asserts(doc, 'user')
-		reply.NotFound.asserts(doc.scope, 'scope')
-
-		res.json(doc.scope)
+	function retrieve(req, res) {
+		res.json(req.user_scope)
 
 	},
 
@@ -233,11 +248,11 @@ router.put(
 
 	),
 
+	retrieve_router.user_scope,
+
 	async function update(req, res) {
 		type Suspect = {
-			value?: scope_model.Role
-
-			deadline?: string
+			value?: number
 
 		}
 
@@ -247,19 +262,16 @@ router.put(
 		let suspect = evidence.suspect<Suspect>(req.body)
 
 		await suspect.infer_signed<'value'>(
-			value_evidence_chain.signed('value'),
+			evidence.Digital.is_natural
+				.to(
+					v => v & scope_model.pick(v, scope_model.Mode.普通),
+
+				)
+				.signed('value'),
 
 			{ quiet: true },
 
 		)
-
-		await suspect.infer_signed<'deadline'>(
-			deadline_evidence_chain.signed('deadline'),
-
-			{ quiet: true },
-
-		)
-
 
 		let doc = await user_model.default
 			.findOne(
@@ -277,8 +289,6 @@ router.put(
 			doc.scope, suspect.get(),
 
 		)
-
-		doc.scope.delay()
 
 		await doc.save()
 		await token_model.default.findOneAndUpdate(
@@ -328,7 +338,7 @@ router.delete(
 		await token_model.default.findOneAndUpdate(
 			{ user: _id },
 
-			{ scope: [] },
+			{ scope: 0 },
 
 		)
 
