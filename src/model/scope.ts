@@ -4,6 +4,7 @@
 import moment from 'moment'
 import { Schema, Model, HydratedDocument } from 'mongoose'
 
+import * as reply from '../lib/reply.js'
 import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
 
@@ -33,10 +34,7 @@ export type TRawDocType = storage.TRawDocType<
 		lock: boolean
 
 		value: number
-		deadline: string
-
-		actived: Date
-		expired: Date
+		expire: Date
 
 	}
 
@@ -45,7 +43,6 @@ export type TRawDocType = storage.TRawDocType<
 export type TPopulatePaths = object
 
 export type TVirtuals = {
-	role: keyof typeof Role
 	is_expire: boolean
 
 }
@@ -55,9 +52,11 @@ export type TQueryHelpers = object
 export type TInstanceMethods = {
 	delay(
 		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType
+		this: THydratedDocumentType,
 
-	): void
+		to: Date
+
+	): Promise<void>
 
 }
 
@@ -65,11 +64,6 @@ export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TI
 
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
 
-
-/**
- * 有效期校验规则
- */
-const deadline_match = /^\d+[日|天|周|月|年]$/
 
 
 
@@ -98,26 +92,8 @@ export const schema = new Schema<
 
 		},
 
-		// 有效期
-		deadline: {
-			type: String,
-			required: true,
-			trim: true,
-			validate: deadline_match,
-			default: '1周',
-
-		},
-
-		// 认证时间
-		actived: {
-			type: Date,
-			required: true,
-			default: () => new Date(),
-
-		},
-
 		// 过期时间
-		expired: {
+		expire: {
 			type: Date,
 			required: true,
 			default: () => moment().add(1, 'w')
@@ -132,40 +108,14 @@ export const schema = new Schema<
 
 
 schema.index(
-	{ lock: 1, expired: 1 },
+	{ lock: 1, expire: 1 },
 
 )
 
-
-schema.virtual('role').get(
-	function (): TVirtuals['role'] {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-		if (Role.财务 > this.value) {
-			return '管理'
-
-		}
-
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-		if (Role.运营 > this.value) {
-			return '财务'
-
-		}
-
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-		if (Role.无限 > this.value) {
-			return '运营'
-
-		}
-
-		return '无限'
-
-	},
-
-)
 
 schema.virtual('is_expire').get(
 	function (): TVirtuals['is_expire'] {
-		return new Date() > this.expired
+		return new Date() > this.expire
 
 	},
 
@@ -174,8 +124,16 @@ schema.virtual('is_expire').get(
 
 schema.method(
 	{
-		delay() {
-			this.expired = delay(this.actived, this.deadline)
+		async delay(to) {
+			if (new Date() > to) {
+				throw new reply.Forbidden('invalid date')
+
+			}
+
+			this.expire = to
+
+			await this.save()
+
 
 		},
 
@@ -187,32 +145,6 @@ schema.method(
 export default schema
 
 
-export { deadline_match }
-
-
-
-/**
- * 认证时间顺延
- */
-export function delay(value: string | Date, deadline: string): Date {
-	let keys: Record<string, moment.unitOfTime.Base> = {
-		'日': 'day',
-		'天': 'day',
-		'周': 'week',
-		'月': 'month',
-		'年': 'year',
-
-	}
-
-	let n = deadline.slice(0, -1)
-	let d = deadline.slice(-1)
-
-	return moment(value).add(~~n, keys[d])
-		.toDate()
-
-}
-
-
 export function some(value: Role, ...role: Array<Role>): boolean {
 	if (value === Role.无限) {
 		return true
@@ -220,8 +152,26 @@ export function some(value: Role, ...role: Array<Role>): boolean {
 	}
 
 	return role.some(
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-		v => v === (v & value),
+		v => (v & value) > 0,
+
+	)
+
+}
+
+export function align(...mode: Array<Mode>): number {
+	let value = Object.values(Role)
+		.filter(detective.is_finite_number)
+		.reduce(
+			(a, b) => a | b,
+
+			0,
+
+		)
+
+	return mode.reduce(
+		(a, m) => a | chmod(value, m),
+
+		0,
 
 	)
 
@@ -238,6 +188,30 @@ export function mixed(value: Role, ...role: Array<Role>): Role {
 		(a, b) => a | b,
 
 		value,
+
+	)
+
+}
+
+export function derive(value: Role, ...mode: Array<Mode>): number {
+	return mode.reduce(
+		(a, b) => a | chmod(value, b),
+
+		value,
+
+	)
+
+}
+
+export function pick(value: Role, ...mode: Array<Mode>): number {
+	return value & align(...mode)
+
+
+}
+
+export function exclude(value: Role, ...mode: Array<Mode>): number {
+	return value & (
+		value ^ align(...mode)
 
 	)
 
@@ -264,29 +238,23 @@ export function vtmod(value: Role): Mode {
 
 	}
 
-	let vxmod = Object.values(Mode)
-		.filter(detective.is_number)
+	let vxmode = Object.values(Mode)
+		.filter(detective.is_finite_number)
 		.toSorted(
 			(a, b) => a - b,
 
 		)
 
-	let vscope = Math.floor(value)
-		.toString(2)
-		.split('')
-		.reverse()
+	return vxmode.reduce(
+		(a, b) => {
+			let v = value & align(b)
 
-	return vscope.reduce(
-		(a, b, i) => {
-			if (b === '0') {
-				return a
+			if (v > 0) {
+				return b
 
 			}
 
-			let v = vxmod[i % vxmod.length]
-
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-			return v > a ? v : a
+			return a
 
 		},
 
