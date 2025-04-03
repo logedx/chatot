@@ -275,8 +275,13 @@ export function is_mime_type_string(v: unknown): v is string {
 
 }
 
+export function is_path_string(v: unknown): v is string {
+	return is_required_string(v) && (/^\/([0-9a-z-_]+\/)*[0-9a-z-_]+$/).test(v)
+
+}
+
 export function is_dirname_string(v: unknown): v is string {
-	return is_required_string(v) && (/^(\/[0-9a-z-_]+)*\//).test(v)
+	return is_required_string(v) && (/^\/([0-9a-z-_]+\/)*$/).test(v)
 
 }
 

@@ -110,7 +110,7 @@ router.post(
 		)
 
 		await suspect.infer_signed<'folder'>(
-			evidence.Text.is_dirname.signed('folder'),
+			evidence.Text.is_path.signed('folder'),
 
 		)
 
