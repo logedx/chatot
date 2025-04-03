@@ -725,6 +725,13 @@ export class Text {
 		)
 
 
+	static is_path = Chain
+		.infer<string>(
+			'is not a path string', detective.is_path_string,
+
+		)
+
+
 	static is_dirname = Chain
 		.infer<string>(
 			'is not a dirname string', detective.is_dirname_string,
