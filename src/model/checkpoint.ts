@@ -1,6 +1,7 @@
 /**
  * 检查点模型
  */
+import * as axios from 'axios'
 import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
@@ -18,7 +19,7 @@ export type TRawDocType = storage.TRawDocType<
 		scope: number
 		weapp: null | Types.ObjectId
 		user: null | Types.ObjectId
-		method: 'POST' | 'GET' | 'PUT' | 'DELETE'
+		method: Uppercase<axios.Method>
 		original: string
 		expire: Date
 
@@ -88,8 +89,6 @@ export const schema = new Schema<
 			type: String,
 			required: true,
 			trim: true,
-			enum: ['POST', 'GET', 'PUT', 'DELETE'],
-
 			set: (v: string) => v.toUpperCase(),
 
 		},
