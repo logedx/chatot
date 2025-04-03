@@ -4,11 +4,11 @@
 import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
-import * as detective from '../lib/detective.js'
-import * as structure from '../lib/structure.js'
 
 import * as reply from '../lib/reply.js'
 import * as secret from '../lib/secret.js'
+import * as detective from '../lib/detective.js'
+import * as structure from '../lib/structure.js'
 
 import * as user_model from './user.js'
 import * as scope_model from './scope.js'
@@ -177,7 +177,7 @@ export const schema = new Schema<
 			type: Date,
 			expires: 0,
 			required: true,
-			default: () => delay(),
+			default: () => secret.delay(7200),
 
 		},
 
@@ -225,14 +225,14 @@ schema.method(
 	{
 		async replenish() {
 			if (
-				this.expire > delay(-3600)
+				this.expire > secret.delay(-3600)
 
 			) {
 				throw new reply.Unauthorized('value is expired')
 
 			}
 
-			this.expire = delay()
+			this.expire = secret.delay(7200)
 			this.refresh = secret.hex()
 
 			await this.save()
@@ -312,16 +312,3 @@ schema.static(
 
 
 export default drive.model('Token', schema)
-
-
-/**
- * 获取延迟时间
- */
-export function delay(second = 7200): Date {
-	let d = new Date()
-
-	d.setSeconds(d.getSeconds() + second)
-
-	return d
-
-}

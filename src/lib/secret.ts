@@ -21,6 +21,21 @@ export function hex(length = 32): string {
 
 }
 
+/**
+ * generate a delay time
+ */
+export function delay(seconds: number): Date {
+	let v = new Date()
+
+	v.setSeconds(
+		v.getSeconds() + seconds,
+
+	)
+
+	return v
+
+}
+
 
 type CryptoPipelineCreateHandler = (
 	value: Buffer,
