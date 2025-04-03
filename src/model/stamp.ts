@@ -2,7 +2,10 @@
  * 邮票模型
  */
 import config from 'config'
+import moment from 'moment'
 import { Schema, Model, HydratedDocument, Mixed } from 'mongoose'
+
+import * as axios from 'axios'
 
 import * as storage from '../lib/storage.js'
 
@@ -32,7 +35,11 @@ export type TRawDocType = storage.TRawDocType<
 
 export type TPopulatePaths = object
 
-export type TVirtuals = object
+export type TVirtuals = {
+	lave: number
+	method: '*' | Uppercase<axios.Method>
+
+}
 
 export type TQueryHelpers = object
 
@@ -41,7 +48,8 @@ export type TInstanceMethods = {
 		// eslint-disable-next-line no-use-before-define
 		this: THydratedDocumentType
 
-	): Promise<TRawDocType['amber']>
+	// eslint-disable-next-line no-use-before-define
+	): Promise<THydratedDocumentType>
 
 }
 
@@ -53,7 +61,8 @@ export type TStaticMethods = {
 		value: string,
 		symbol: string,
 
-	): Promise<TRawDocType['amber']>
+	// eslint-disable-next-line no-use-before-define
+	): Promise<THydratedDocumentType>
 
 	from(
 		// eslint-disable-next-line no-use-before-define
@@ -95,7 +104,6 @@ export const schema = new Schema<
 			unique: true,
 			required: true,
 			trim: true,
-			default: () => secret.hex(),
 
 		},
 
@@ -103,7 +111,6 @@ export const schema = new Schema<
 		symbol: {
 			type: String,
 			required: true,
-			select: false,
 			trim: true,
 
 		},
@@ -113,7 +120,6 @@ export const schema = new Schema<
 			type: Date,
 			expires: 0,
 			required: true,
-			default: () => secret.delay(600),
 
 		},
 
@@ -137,14 +143,43 @@ export const schema = new Schema<
 
 )
 
+
+schema.virtual('lave').get(
+	function (): TVirtuals['lave'] {
+		return 0 - moment().diff(this.expire, 'seconds')
+
+	},
+
+)
+
+
+schema.virtual('method').get(
+	function (): TVirtuals['method'] {
+		let symbol = this.symbol ?? ''
+
+		let [, v] = symbol.split('#')
+
+		if (detective.is_string(v)
+
+		) {
+			return v.toUpperCase() as Uppercase<axios.Method>
+
+		}
+
+		return '*'
+
+
+	},
+
+)
+
+
 schema.method(
 	{
-		async eternal() {
+		eternal() {
 			this.expire = new Date(2077, 0, 1)
 
-			await this.save()
-
-			return this.amber
+			return this.save()
 
 		},
 
@@ -170,7 +205,7 @@ schema.static(
 
 		async from(value) {
 			let doc = await this.findOne(
-				{ value },
+				{ value, expire: { $gte: new Date() } },
 
 			)
 
