@@ -113,7 +113,7 @@ export const schema = new Schema<
 			type: Date,
 			expires: 0,
 			required: true,
-			default: () => delay(),
+			default: () => secret.delay(600),
 
 		},
 
@@ -189,18 +189,6 @@ schema.static(
 
 export default drive.model('Stamp', schema)
 
-/**
- * 过期时间顺延
- */
-export function delay(): Date {
-	let d = new Date()
-
-	d.setMinutes(d.getMinutes() + 10)
-
-	return d
-
-}
-
 export type Mailer = {
 	symbol: string
 
@@ -233,7 +221,7 @@ export function is_mailer(v: unknown): v is Mailer {
 export function encrypt(
 	symbol: string,
 
-	expire = delay(),
+	expire: Date,
 
 	amber: unknown = null,
 

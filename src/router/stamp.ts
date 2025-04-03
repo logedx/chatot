@@ -26,7 +26,7 @@ export function symbol_evidence_chain(value: string): evidence.Chain<stamp_model
 export function symbol_encrypt(
 	value: string,
 
-	expire = stamp_model.delay(),
+	expire = secret.delay(600),
 
 	amber: unknown = null,
 

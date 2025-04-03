@@ -6,6 +6,8 @@ import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
 
+import * as secret from '../lib/secret.js'
+
 import * as user_model from './user.js'
 import * as scope_model from './scope.js'
 import * as weapp_model from './weapp.js'
@@ -104,7 +106,7 @@ export const schema = new Schema<
 			type: Date,
 			expires: 0,
 			required: true,
-			default: () => delay(),
+			default: () => secret.delay(86400 * 365),
 
 		},
 
@@ -123,16 +125,3 @@ schema.virtual('mode').get(
 
 
 export default drive.model('Checkpoint', schema)
-
-
-/**
- * 获取延迟时间
- */
-export function delay(): Date {
-	let d = new Date()
-
-	d.setFullYear(d.getFullYear() + 1)
-
-	return d
-
-}
