@@ -1,7 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
 
-import cors from 'cors'
 import morgan from 'morgan'
 import express from 'express'
 import compression from 'compression'
@@ -69,7 +68,6 @@ export const pem_name = __pem_name
 export const pem_filename = __pem_filename
 
 export const base_behavior_bundle: HandlerBundle = [
-	cors(),
 	compression(),
 	express.json(),
 
