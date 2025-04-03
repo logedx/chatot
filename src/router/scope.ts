@@ -30,7 +30,7 @@ router.options(
 
 	),
 
-	stamp_router.symbol_encrypt('/scope#post'),
+	stamp_router.symbol_encrypt('/scope', 'post'),
 
 )
 
@@ -41,7 +41,7 @@ router.post(
 
 	async function create(req, res) {
 		type Suspect = {
-			value: stamp_model.TRawDocType['amber']
+			value: stamp_model.THydratedDocumentType
 
 		}
 
@@ -49,7 +49,7 @@ router.post(
 		let suspect = evidence.suspect<Suspect>(req.body)
 
 		await suspect.infer_signed<'value'>(
-			stamp_router.symbol_evidence_chain('/scope#post').signed('value'),
+			stamp_router.symbol_evidence_chain('/scope', 'post').signed('value'),
 
 		)
 

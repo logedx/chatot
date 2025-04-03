@@ -1,8 +1,12 @@
 import express from 'express'
 
+import * as axios from 'axios'
+
 import * as secret from '../lib/secret.js'
 import * as evidence from '../lib/evidence.js'
+import * as structure from '../lib/structure.js'
 
+import * as media_model from '../model/media.js'
 import * as stamp_model from '../model/stamp.js'
 
 import * as token_router from './token.js'
@@ -14,9 +18,9 @@ import * as retrieve_router from './retrieve.js'
 
 export const cypher_decrypt_evidence_chain = evidence.Text.required.to(stamp_model.decrypt)
 
-export function symbol_evidence_chain(value: string): evidence.Chain<stamp_model.TRawDocType['amber']> {
+export function symbol_evidence_chain(value: string, method: axios.Method): evidence.Chain<stamp_model.THydratedDocumentType> {
 	return evidence.Text.required.to(
-		v => stamp_model.default.eternal(v, value),
+		v => stamp_model.default.eternal(v, `${value}#${method.toLowerCase()}`),
 
 	)
 
@@ -26,16 +30,33 @@ export function symbol_evidence_chain(value: string): evidence.Chain<stamp_model
 export function symbol_encrypt(
 	value: string,
 
-	expire = secret.delay(600),
+	method: axios.Method,
 
-	amber: unknown = null,
+	option?: {
+		expire?: number,
+		amber?: stamp_model.TRawDocType['amber']
+
+	},
 
 ): express.RequestHandler {
-	return function (req, res) {
-		let cypher = stamp_model.encrypt(value, expire, amber)
+	// eslint-disable-next-line @typescript-eslint/no-shadow
+	return function symbol_encrypt(req, res) {
+		let expire = option?.expire ?? 600
 
-		res.setHeader('Access-Control-Max-Age', 600)
-		res.setHeader('Access-Control-Allow-Methods', 'POST')
+		let cypher = stamp_model.encrypt(
+			`${value}#${method.toLowerCase()}`, secret.delay(expire), option?.amber ?? null,
+
+		)
+
+		res.set(
+			'Access-Control-Max-Age', `${expire}`,
+
+		)
+
+		res.set(
+			'Access-Control-Allow-Methods', method.toUpperCase(),
+
+		)
 
 		res.json(cypher)
 
@@ -65,6 +86,8 @@ router.post(
 		let suspect = evidence.suspect<Suspect>(req.body)
 
 
+		await suspect.set('value', secret.hex)
+
 		await suspect.infer_signed<'path'>(
 			evidence.Text.required.signed('path'),
 
@@ -77,8 +100,6 @@ router.post(
 
 		)
 
-		await suspect.set('value', secret.hex)
-
 
 		let unlimited = await weapp.to_unlimited(
 			suspect.get('path'), suspect.get('value'),
@@ -90,14 +111,28 @@ router.post(
 
 		)
 
-
-		await stamp_model.default.create(
+		let doc = await stamp_model.default.create(
 			{ src: media.src, value: suspect.get('value'), ...suspect.get('mailer') },
 
 		)
 
 
-		res.json(media.src)
+		let uri = await media.safe_access()
+
+		res.set(
+			'X-Access-URI', uri.href,
+
+		)
+
+		res.set(
+			'X-Oss-Process', uri.searchParams.toString(),
+
+		)
+
+		res.json(
+			structure.omit(doc.toObject(), 'symbol'),
+
+		)
 
 
 	},
@@ -105,17 +140,88 @@ router.post(
 )
 
 
-router.get(
+router.options(
 	'/stamp/:value',
 
 	retrieve_router.survive_token,
 
-	async function retrieve(req, res) {
+	async function query(req, res) {
 		let { value } = req.params
+		let { weapp } = req.survive_token!
 
 		let doc = await stamp_model.default.from(value)
 
-		res.json(doc)
+		let uri = await media_model.default.safe_access(weapp, doc.src)
+
+
+		res.set(
+			'X-Access-URI', uri.href,
+
+		)
+
+		res.set(
+			'X-Oss-Process', uri.searchParams.toString(),
+
+		)
+
+		res.set(
+			'Access-Control-Max-Age', `${doc.lave}`,
+
+		)
+
+		res.set(
+			'Access-Control-Allow-Methods', doc.method,
+
+		)
+
+		res.json(
+			structure.omit(doc.toObject(), 'symbol'),
+
+		)
+
+	},
+
+)
+
+
+router.get(
+	'/stamp/:_id',
+
+	retrieve_router.survive_token,
+
+	retrieve_router.stamp,
+
+	async function retrieve(req, res) {
+		let doc = req.stamp!
+		let { weapp } = req.survive_token!
+
+		let uri = await media_model.default.safe_access(weapp, doc.src)
+
+
+		res.set(
+			'X-Access-URI', uri.href,
+
+		)
+
+		res.set(
+			'X-Oss-Process', uri.searchParams.toString(),
+
+		)
+
+		res.set(
+			'Access-Control-Max-Age', `${doc.lave}`,
+
+		)
+
+		res.set(
+			'Access-Control-Allow-Methods', doc.method,
+
+		)
+
+		res.json(
+			structure.omit(doc.toObject(), 'symbol'),
+
+		)
 
 	},
 

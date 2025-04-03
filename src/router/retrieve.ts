@@ -127,11 +127,11 @@ export const keyword: express.RequestHandler = async function keyword(req, res, 
 
 
 export const stamp: express.RequestHandler = async function stamp(req, res, next) {
-	let { value } = req.params
+	let { _id } = req.params
 
 	let doc = await stamp_model.default
 		.findOne(
-			{ value },
+			{ _id, expire: { $gte: new Date() } },
 
 		)
 
