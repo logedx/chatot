@@ -92,23 +92,41 @@ export class Exhibit<T extends object> {
 
 	}
 
-	has(key: ExhibitKey<T, keyof T>): boolean {
-		if (detective.is_number(key)
-			&& detective.is_array(this.#value)
+	has(
+		key: ExhibitKey<T, keyof T>,
+		and?: { empty?: boolean },
 
-		) {
-			return detective.is_undefined(this.#value[key]) === false
+	): boolean {
+		let a = detective.is_array(this.#value)
+			&& detective.is_number(key)
+
+		let b = detective.is_object_legitimism(this.#value)
+				&& detective.is_required_string(key)
+
+		if (a === false && b === false) {
+			return false
 
 		}
 
-		if (detective.is_object(this.#value)
+
+		let v = (this.#value as Record<PropertyKey, unknown>)[key]
+
+		if (detective.is_undefined(v)
 
 		) {
-			return detective.is_undefined(this.#value[key]) === false
+			return false
 
 		}
 
-		return false
+		if (detective.is_exist(and?.empty)
+
+		) {
+			return detective.is_empty(v) === and.empty
+
+		}
+
+		return true
+
 
 	}
 
@@ -175,12 +193,12 @@ export class Exhibit<T extends object> {
 	}
 
 	#set(key: PropertyKey, value?: unknown): void {
-		this.#value = {
-			...this.#value ?? {},
-
-			[key]: value,
+		if (detective.is_object(this.#value) === false) {
+			this.#value = {}
 
 		}
+
+		(this.#value as Record<PropertyKey, unknown>)[key] = value
 
 	}
 
@@ -189,7 +207,14 @@ export class Exhibit<T extends object> {
 
 		value: T[N] | Promise<T[N]> | ((v: P) => T[N]) | ((v: P) => Promise<T[N]>),
 
+		when?: boolean,
+
 	): Promise<void> {
+		if (when === false) {
+			return
+
+		}
+
 		if (detective.is_any_function(value)
 
 		) {
@@ -200,20 +225,28 @@ export class Exhibit<T extends object> {
 		if (detective.is_number(key)
 
 		) {
-			if (detective.is_array(this.#value)
-
-			) {
-				this.#value[key] = await value
-
-				return
+			if (detective.is_array(this.#value) === false) {
+				this.#value = []
 
 			}
 
-			throw new reply.BadRequest('value has been exist')
+			(this.#value as Array<unknown>)[key] = await value
+
+			return
 
 		}
 
-		this.#value = { ...this.#value ?? {}, [key]: await value }
+		if (detective.is_required_string(key)
+
+		) {
+			this.#set(key, await value)
+
+			return
+
+		}
+
+
+		throw new reply.BadRequest('key is invalid')
 
 	}
 
@@ -221,7 +254,7 @@ export class Exhibit<T extends object> {
 	async deplete<K extends keyof T, V = Exclude<ExhibitValue<T, K>, undefined>>(
 		key: ExhibitKey<T, K>,
 
-		fn: (v: V) => Promise<void>,
+		fn: (v: V) => void | Promise<void>,
 
 	): Promise<void> {
 		if (this.has(key) === false
@@ -237,6 +270,14 @@ export class Exhibit<T extends object> {
 		)
 
 		this.#del(key)
+
+	}
+
+	inject(target: object): void {
+		Object.assign(
+			target, this.get(),
+
+		)
 
 	}
 
