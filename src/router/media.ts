@@ -173,16 +173,14 @@ router.delete(
 	'/media',
 
 	...token_router.checkpoint(
-		scope_model.Role.运营,
-		scope_model.Role.管理,
-
-		scope_model.chmod(
+		scope_model.derive(
 			scope_model.Role.运营,
 
 			scope_model.Mode.管理,
 
 		),
-		scope_model.chmod(
+
+		scope_model.derive(
 			scope_model.Role.管理,
 
 			scope_model.Mode.管理,

@@ -1,36 +1,18 @@
 import express from 'express'
-import { Types } from 'mongoose'
 
 import * as reply from '../lib/reply.js'
 import * as evidence from '../lib/evidence.js'
-import * as detective from '../lib/detective.js'
 
 import * as user_model from '../model/user.js'
 import * as token_model from '../model/token.js'
 import * as scope_model from '../model/scope.js'
 import * as stamp_model from '../model/stamp.js'
 
-import * as user_router from './user.js'
 import * as token_router from './token.js'
 import * as stamp_router from './stamp.js'
 import * as retrieve_router from './retrieve.js'
 
 
-
-export const value_evidence_chain = evidence.Chain
-	.infer<keyof typeof scope_model.Role>(
-		'is not a Role',
-
-		v => detective.is_object_key(v) && detective.is_object_keyof(scope_model.Role, v),
-
-	)
-	.to(
-		v => scope_model.Role[v],
-
-	)
-
-
-export const deadline_evidence_chain = evidence.Text.match(scope_model.deadline_match)
 
 
 export const router = express.Router()
@@ -39,8 +21,6 @@ router.options(
 	'/scope',
 
 	...token_router.checkpoint(
-		scope_model.Role.管理,
-
 		scope_model.chmod(
 			scope_model.Role.管理,
 
@@ -110,81 +90,11 @@ router.post(
 
 )
 
-router.get(
-	'/scope',
-
-	...token_router.checkpoint(
-		scope_model.Role.管理,
-
-		scope_model.chmod(
-			scope_model.Role.管理,
-
-			scope_model.Mode.管理,
-
-		),
-
-	),
-
-	async function retrieve_pagination(req, res) {
-		type Suspect = {
-			$or?: evidence.Keyword<user_model.TRawDocKeyword>
-
-			// eslint-disable-next-line @typescript-eslint/naming-convention
-			'scope.expired'?: detective.Expired
-
-			weapp: Types.ObjectId
-
-			// eslint-disable-next-line @typescript-eslint/naming-convention
-			'scope.lock': false
-
-		}
-
-		let { weapp } = req.survive_token!
-
-		let pagin = evidence.pagination<Suspect>()
-		let suspect = evidence.suspect<Suspect>(req.query)
-
-
-		await suspect.infer_signed<'$or', 'keyword'>(
-			user_router.in_keyword_evidence_chain.signed('keyword'),
-
-			{ rename: '$or', quiet: true },
-
-		)
-
-		await suspect.infer_signed<'scope.expired', 'expired'>(
-			evidence.Switch.is_expired.signed('expired'),
-
-			{ rename: 'scope.expired', quiet: true },
-
-		)
-
-		await suspect.set('weapp', weapp)
-		await suspect.set('scope.lock', false)
-
-
-		await pagin.linker(suspect)
-
-		let doc = await user_model.default
-			.find(pagin.find)
-			.select('+scope')
-			.sort(pagin.sort)
-			.skip(pagin.skip)
-			.limit(pagin.limit)
-
-		res.json(doc)
-
-
-	},
-
-)
 
 router.get(
 	'/scope/:_id',
 
 	...token_router.checkpoint(
-		scope_model.Role.管理,
-
 		scope_model.chmod(
 			scope_model.Role.管理,
 
@@ -194,25 +104,10 @@ router.get(
 
 	),
 
-	async function retrieve(req, res) {
-		let { _id } = req.params
-		let { weapp } = req.survive_token!
+	retrieve_router.user_scope,
 
-		let doc = await user_model.default
-			.findOne(
-				{ _id, weapp },
-
-			)
-			.select(
-				['+wxphone', '+phone', '+scope'],
-
-			)
-
-
-		reply.NotFound.asserts(doc, 'user')
-		reply.NotFound.asserts(doc.scope, 'scope')
-
-		res.json(doc)
+	function retrieve(req, res) {
+		res.json(req.user_scope)
 
 	},
 
@@ -222,8 +117,6 @@ router.put(
 	'/scope/:_id',
 
 	...token_router.checkpoint(
-		scope_model.Role.管理,
-
 		scope_model.chmod(
 			scope_model.Role.管理,
 
@@ -233,58 +126,50 @@ router.put(
 
 	),
 
+	retrieve_router.user_scope,
+
 	async function update(req, res) {
 		type Suspect = {
-			value?: scope_model.Role
-
-			deadline?: string
+			value?: number
+			expire?: Date
 
 		}
 
-		let { _id } = req.params
-		let { weapp } = req.survive_token!
+
+		let doc = req.user_scope!
+
+		let { user } = req.survive_token!
 
 		let suspect = evidence.suspect<Suspect>(req.body)
 
 		await suspect.infer_signed<'value'>(
-			value_evidence_chain.signed('value'),
+			evidence.Digital.is_natural
+				.to(
+					v => v & scope_model.pick(v, scope_model.Mode.普通, scope_model.Mode.管理),
+
+				)
+				.signed('value'),
 
 			{ quiet: true },
 
 		)
 
-		await suspect.infer_signed<'deadline'>(
-			deadline_evidence_chain.signed('deadline'),
+		await suspect.infer_signed<'expire'>(
+			evidence.Text.is_date.signed('expire'),
 
 			{ quiet: true },
 
 		)
 
 
-		let doc = await user_model.default
-			.findOne(
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				{ _id, weapp, 'scope.lock': false },
+		suspect.inject(doc)
 
-			)
-			.select('+scope')
+		await doc.$parent()!.save()
 
-
-		reply.NotFound.asserts(doc, 'user')
-		reply.NotFound.asserts(doc.scope, 'scope')
-
-		Object.assign(
-			doc.scope, suspect.get(),
-
-		)
-
-		doc.scope.delay()
-
-		await doc.save()
 		await token_model.default.findOneAndUpdate(
-			{ user: _id },
+			{ user },
 
-			{ scope: doc.scope.value },
+			{ scope: doc.value },
 
 		)
 
@@ -299,8 +184,6 @@ router.delete(
 	'/scope/:_id',
 
 	...token_router.checkpoint(
-		scope_model.Role.管理,
-
 		scope_model.chmod(
 			scope_model.Role.管理,
 
@@ -328,7 +211,7 @@ router.delete(
 		await token_model.default.findOneAndUpdate(
 			{ user: _id },
 
-			{ scope: [] },
+			{ scope: 0 },
 
 		)
 

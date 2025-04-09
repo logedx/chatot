@@ -87,13 +87,16 @@ router.post(
 			if (await user_model.default.countDocuments({}) < 1
 
 			) {
-				scope = {
-					value: scope_model.Role.无限,
-					deadline: '99年',
+				let v = {
 					lock: true,
-					expired: moment().add(99, 'year')
+
+					value: scope_model.Role.无限,
+					expire: moment().add(99, 'year')
 						.toDate(),
-				} as scope_model.THydratedDocumentType
+
+				}
+
+				scope = v as scope_model.THydratedDocumentType
 
 			}
 
@@ -126,6 +129,47 @@ router.post(
 
 )
 
+router.post(
+	'/user/:_id/scope',
+
+	...token_router.checkpoint(
+		scope_model.chmod(
+			scope_model.Role.管理,
+
+			scope_model.Mode.管理,
+
+		),
+
+	),
+
+	retrieve_router.user,
+
+	async function create_scope(req, res) {
+		let doc = req.user!
+
+		let fields = await doc.select_sensitive_fields('+scope')
+
+		if (detective.is_empty(fields.scope)
+
+		) {
+			let v = {
+				value: scope_model.Role.运营,
+
+			}
+
+			fields.scope = v as scope_model.THydratedDocumentType
+
+			await fields.save()
+
+		}
+
+		res.json()
+
+	},
+
+)
+
+
 router.get(
 	'/user',
 
@@ -134,6 +178,10 @@ router.get(
 	async function retrieve_pagination(req, res) {
 		type Suspect = {
 			$or?: evidence.Keyword<user_model.TRawDocKeyword>
+
+			scope?: null | { $ne: null }
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			'scope.lock'?: false | { $ne: true }
 
 			weapp: Types.ObjectId
 			active: true
@@ -152,14 +200,48 @@ router.get(
 
 		)
 
+		await suspect.infer_signed<'scope'>(
+			evidence.Text.is_boolean
+				.to(
+					v => v ? { $ne: null } : null,
+
+				)
+				.signed('scope'),
+
+			{ quiet: true },
+
+		)
+
 		await suspect.set('weapp', weapp)
 		await suspect.set('active', true)
+
+		await suspect.set(
+			'scope.lock',
+
+			{ $ne: true },
+
+			suspect.has('scope') === false,
+
+		)
+
+		await suspect.set(
+			'scope.lock',
+
+			false,
+
+			suspect.has(
+				'scope', { empty: false },
+
+			),
+
+		)
 
 
 		await pagin.linker(suspect)
 
 		let doc = await user_model.default
 			.find(pagin.find)
+			.select('+phone')
 			.sort(pagin.sort)
 			.skip(pagin.skip)
 			.limit(pagin.limit)
@@ -181,9 +263,12 @@ router.get(
 	async function retrieve(req, res) {
 		let doc = req.user!
 
-		let sensitive_doc = await doc.select_sensitive_fields('+phone')
+		let fields = await doc.select_sensitive_fields('+phone')
 
-		res.json(sensitive_doc)
+		res.json(
+			{ ...doc.toJSON(), ...fields.toJSON() },
+
+		)
 
 	},
 
