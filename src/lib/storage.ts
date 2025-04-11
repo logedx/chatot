@@ -135,24 +135,22 @@ export async function mongodb(): Promise<typeof mongoose> {
  * ali_oss
  */
 export function ali_oss(): alioss {
-	if (connect.ali_oss === null) {
-		// eslint-disable-next-line new-cap
-		connect.ali_oss = new alioss(
-			{
-				secure: true,
-				region: `oss-${aliopen_endpoint}`,
+	// eslint-disable-next-line new-cap
+	connect.ali_oss ??= new alioss(
+		{
+			secure: true,
+			region: `oss-${aliopen_endpoint}`,
 
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				accessKeyId: aliopen_access_key_id,
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			accessKeyId: aliopen_access_key_id,
 
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				accessKeySecret: aliopen_access_key_secret,
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			accessKeySecret: aliopen_access_key_secret,
 
-			},
+		},
 
-		)
+	)
 
-	}
 
 	return connect.ali_oss
 
