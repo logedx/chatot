@@ -31,8 +31,8 @@ export type TRawDocType = storage.TRawDocType<
 		bucket: string
 
 
-		src?: string
-		hash?: string
+		src: string
+		hash: string
 
 		linker: Types.Array<
 			{
@@ -138,29 +138,77 @@ const drive = await storage.mongodb()
 
 
 export class Secret extends String {
-	#weapp: Types.ObjectId
-
-	constructor(src: string | URL, weapp: Types.ObjectId) {
-		super(src)
-
-		this.#weapp = weapp
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	valueOf(): string {
+		return super.valueOf()
 
 	}
 
-	safe_access(expires = 1800): Promise<string> {
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	toBSON(): string {
+		return super.valueOf()
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	toString(): string {
+		return super.toString()
+
+	}
+
+	async track(): Promise<THydratedDocumentType> {
 		// eslint-disable-next-line no-use-before-define
-		return drive.model<typeof schema>('Media')
-			.safe_access(
-				this.#weapp, this as unknown as string, expires,
+		let doc = await drive.model<typeof schema>('Media')
+			.findOne(
+				{ src: this.valueOf() },
 
 			)
-			.then(v => v.href)
-			.catch(
-				() => '',
 
-			)
+		reply.NotFound.asserts(doc, 'media')
+
+		return doc
 
 	}
+
+	async safe_access(expires = 1800): Promise<string> {
+		try {
+			let doc = await this.track()
+
+			let uri = await doc.safe_access(expires)
+
+			return uri.href
+
+		}
+
+		catch {
+			// 
+
+		}
+
+		return ''
+
+	}
+
+
+	static cast(src: string | URL): string {
+		if (detective.is_media_uri_string(src)
+
+		) {
+			src = new URL(src)
+
+		}
+
+		if (src instanceof URL) {
+			src.search = ''
+
+			return src.href
+
+		}
+
+		return ''
+
+	}
+
 
 }
 
@@ -179,21 +227,7 @@ class SecretSchemaType extends SchemaType {
 
 		this.set(
 			function (src: string | URL): string {
-				if (detective.is_media_uri_string(src)
-
-				) {
-					src = new URL(src)
-
-				}
-
-				if (src instanceof URL) {
-					src.search = ''
-
-					return src.href
-
-				}
-
-				return ''
+				return Secret.cast(src)
 
 			},
 
@@ -201,18 +235,8 @@ class SecretSchemaType extends SchemaType {
 
 	}
 
-	cast(value: string, doc?: THydratedDocumentType): string | Secret {
-		if (doc?.isNew === true) {
-			return value
-
-		}
-
-		if (doc?.weapp) {
-			return new Secret(value, doc.weapp)
-
-		}
-
-		return value
+	cast(value: string): Secret {
+		return new Secret(value)
 
 	}
 
@@ -304,12 +328,16 @@ export const schema = new Schema<
 
 		},
 
-
 		src: {
-			type: Secret,
+			type: String,
 			unique: true,
 			sparse: true,
 			trim: true,
+
+			set(v: string | URL): string {
+				return Secret.cast(v)
+
+			},
 
 		},
 
@@ -513,7 +541,6 @@ schema.static(
 				{ weapp, src },
 
 			)
-				.select('+src')
 
 			reply.NotFound.asserts(doc, 'media')
 
