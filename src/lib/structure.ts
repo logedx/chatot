@@ -125,17 +125,65 @@ export function get<T>(
 	_default?: T,
 
 ): T {
-	let nk = key.toString().toLowerCase()
+	key = key.toString().toLowerCase()
 
-	for (let [k, v] of Object.entries(source)
+
+	let value: unknown = source
+
+	for (let nk of key.split('.')
 
 	) {
-		if (nk === k.toLowerCase()
+		if (detective.is_object(value) === false
 
 		) {
-			return clone(v) as T
+			break
 
 		}
+
+
+		if (detective.is_array(value)
+
+		) {
+			value = clone(value[Number(nk)])
+
+			if (detective.is_undefined(value)
+
+			) {
+				break
+
+			}
+
+			continue
+
+		}
+
+
+
+		let v = Object.entries(value)
+			.find(
+				([k]) => k.toLowerCase() === nk,
+
+			)
+
+
+		if (detective.is_undefined(v)
+
+		) {
+			value = v
+
+			break
+
+		}
+
+		value = v[1]
+
+	}
+
+
+	if (detective.is_undefined(value) === false
+
+	) {
+		return value as T
 
 	}
 
