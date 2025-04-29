@@ -73,6 +73,8 @@ router.get(
 
 	async function retrieve_pagination(req, res) {
 		type Suspect = {
+			weapp: Types.ObjectId
+
 			model?: string
 			name?: string
 			value?: RegExp
@@ -82,8 +84,13 @@ router.get(
 		}
 
 
+		let { weapp } = req.survive_token!
+
 		let pagin = evidence.pagination<Suspect>()
 		let suspect = evidence.suspect<Suspect>(req.query)
+
+
+		await suspect.set('weapp', weapp)
 
 		await suspect.infer_signed<'model'>(
 			evidence.Text.required.signed('model'),
