@@ -18,9 +18,13 @@ import * as retrieve_router from './retrieve.js'
 
 export const cypher_decrypt_evidence_chain = evidence.Text.required.to(stamp_model.decrypt)
 
-export function symbol_evidence_chain(value: string, method: axios.Method): evidence.Chain<stamp_model.THydratedDocumentType> {
+export function symbol_evidence_chain(
+	pathname: `/${string}`,
+	method: Lowercase<axios.Method>,
+
+): evidence.Chain<stamp_model.THydratedDocumentType> {
 	return evidence.Text.required.to(
-		v => stamp_model.default.eternal(v, `${value}#${method.toLowerCase()}`),
+		v => stamp_model.default.from(v, `${pathname}#${method}`),
 
 	)
 
@@ -28,9 +32,8 @@ export function symbol_evidence_chain(value: string, method: axios.Method): evid
 }
 
 export function symbol_encrypt(
-	value: string,
-
-	method: axios.Method,
+	pathname: `/${string}`,
+	method: Lowercase<axios.Method>,
 
 	option?: {
 		expire?: number,
@@ -44,7 +47,7 @@ export function symbol_encrypt(
 		let expire = option?.expire ?? 600
 
 		let cypher = stamp_model.encrypt(
-			`${value}#${method.toLowerCase()}`, secret.delay(expire), option?.amber ?? null,
+			`${pathname}#${method}`, secret.delay(expire), option?.amber ?? null,
 
 		)
 

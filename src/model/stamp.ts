@@ -21,7 +21,7 @@ import * as detective from '../lib/detective.js'
 export type TRawDocType = storage.TRawDocType<
 	{
 		value: string
-		symbol: string
+		symbol: `${string}#${Lowercase<axios.Method>}`
 
 		expire: Date
 
@@ -54,21 +54,12 @@ export type TInstanceMethods = {
 }
 
 export type TStaticMethods = {
-	eternal(
-		// eslint-disable-next-line no-use-before-define
-		this: TModel,
-
-		value: string,
-		symbol: string,
-
-	// eslint-disable-next-line no-use-before-define
-	): Promise<THydratedDocumentType>
-
 	from(
 		// eslint-disable-next-line no-use-before-define
 		this: TModel,
 
 		value: string,
+		symbol?: TRawDocType['symbol'],
 
 		// eslint-disable-next-line no-use-before-define
 	): Promise<THydratedDocumentType>
@@ -190,22 +181,9 @@ schema.method(
 
 schema.static(
 	{
-		async eternal(value, symbol) {
+		async from(value, symbol) {
 			let doc = await this.findOne(
 				{ value, symbol, expire: { $gte: new Date() } },
-
-			)
-
-			reply.NotFound.asserts(doc, 'stamp')
-
-			return doc.eternal()
-
-
-		},
-
-		async from(value) {
-			let doc = await this.findOne(
-				{ value, expire: { $gte: new Date() } },
 
 			)
 
@@ -225,13 +203,14 @@ schema.static(
 export default drive.model('Stamp', schema)
 
 export type Mailer = {
-	symbol: string
+	symbol: TRawDocType['symbol']
 
 	expire: Date
 
 	amber: unknown
 
 	[index: number]: number
+
 }
 
 
@@ -254,7 +233,7 @@ export function is_mailer(v: unknown): v is Mailer {
  * 加密
  */
 export function encrypt(
-	symbol: string,
+	symbol: TRawDocType['symbol'],
 
 	expire: Date,
 
