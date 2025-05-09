@@ -536,7 +536,7 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 	}
 
 	async verify(value: unknown): Promise<T> {
-		let error = new reply.BadRequest(this.message)
+		let chain: Array<reply.Exception> = []
 
 		try {
 			if (detective.is_exist(this.#linker)
@@ -561,27 +561,40 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 			if (detective.is_error(e)
 
 			) {
-				let stack = e.stack ?? ''
-
-				error.push('message', e.message)
-				error.push(
-					'stack', stack.split('\n'),
-
-				)
+				// eslint-disable-next-line no-ex-assign
+				e = new reply.BadRequest(e.message)
 
 			}
 
 			if (e instanceof reply.Exception) {
-				for (let [k, v] of e.data) {
-					error.push(k, v)
-
-				}
+				chain.unshift(e)
 
 			}
 
 		}
 
-		throw error
+
+		let [e, ...other] = chain
+
+		for (let ee of other) {
+			let message = ee.message
+			let stack = ee.stack ?? ''
+
+			for (let [k, v] of ee.data) {
+				e.push(k, v)
+
+			}
+
+			e.push(
+				message, stack.split('\n'),
+
+			)
+
+
+		}
+
+
+		throw e
 
 
 	}
