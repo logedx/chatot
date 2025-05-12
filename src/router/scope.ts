@@ -54,7 +54,9 @@ router.post(
 		)
 
 
-		let doc = await user_model.default.findById(user)
+		let doc = await user_model.default
+			.findById(user)
+			.select('+scope')
 
 
 		reply.NotFound.asserts(doc, 'user')
