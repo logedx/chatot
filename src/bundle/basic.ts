@@ -25,7 +25,7 @@ const bundle: app.HandlerBundle = [
 
 export default bundle
 
-export function create_app(...other: app.HandlerBundle): express.Application {
-	return app.create(...bundle, ...other)
+export function create_app(...handler: app.HandlerBundle): express.Application {
+	return app.create(...handler, ...bundle)
 
 }
