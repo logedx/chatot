@@ -3,7 +3,7 @@
  */
 import config from 'config'
 import moment from 'moment'
-import { Schema, Model, HydratedDocument, Mixed } from 'mongoose'
+import { Schema, Model, HydratedDocument } from 'mongoose'
 
 import * as axios from 'axios'
 
@@ -27,7 +27,7 @@ export type TRawDocType = storage.TRawDocType<
 
 		src: string
 
-		amber: null | Mixed
+		amber: unknown
 
 	}
 

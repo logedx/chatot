@@ -9,6 +9,7 @@ import * as stamp from '../router/stamp.js'
 import * as token from '../router/token.js'
 import * as weapp from '../router/weapp.js'
 import * as keyword from '../router/keyword.js'
+import * as authorize from '../router/authorize.js'
 
 
 const bundle: app.HandlerBundle = [
@@ -19,6 +20,7 @@ const bundle: app.HandlerBundle = [
 	token.router,
 	weapp.router,
 	keyword.router,
+	authorize.router,
 
 ]
 
