@@ -22,8 +22,8 @@ router.post(
 		type Suspect = {
 			weapp: Types.ObjectId
 
-			model: string
 			name: string
+			label: string
 			value: string
 
 			letter: string
@@ -37,13 +37,13 @@ router.post(
 
 		await suspect.set('weapp', weapp)
 
-		await suspect.infer_signed<'model'>(
-			evidence.Text.required.signed('model'),
+		await suspect.infer_signed<'name'>(
+			evidence.Text.required.signed('name'),
 
 		)
 
-		await suspect.infer_signed<'name'>(
-			evidence.Text.required.signed('name'),
+		await suspect.infer_signed<'label'>(
+			evidence.Text.optional.signed('label'),
 
 		)
 
@@ -75,8 +75,8 @@ router.get(
 		type Suspect = {
 			weapp: Types.ObjectId
 
-			model?: string
 			name?: string
+			label?: string
 			value?: RegExp
 
 			letter?: string
@@ -92,15 +92,15 @@ router.get(
 
 		await suspect.set('weapp', weapp)
 
-		await suspect.infer_signed<'model'>(
-			evidence.Text.required.signed('model'),
+		await suspect.infer_signed<'name'>(
+			evidence.Text.required.signed('name'),
 
 			{ quiet: true },
 
 		)
 
-		await suspect.infer_signed<'name'>(
-			evidence.Text.required.signed('name'),
+		await suspect.infer_signed<'label'>(
+			evidence.Text.required.signed('label'),
 
 			{ quiet: true },
 

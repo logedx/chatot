@@ -16,8 +16,8 @@ import * as weapp_model from './weapp.js'
 export type TRawDocType = storage.TRawDocType<
 	{
 		weapp: Types.ObjectId
-		model: string
 		name: string
+		label: string
 		value: string
 		letter: string
 
@@ -43,7 +43,6 @@ export type TStaticMethods = {
 
 		doc: {
 			weapp: Types.ObjectId
-			model: string
 			name: string
 			value: string
 
@@ -117,30 +116,22 @@ export const schema = new Schema<
 
 		},
 
-		model: {
-			type: String,
-			required: true,
-			trim: true,
-
-			validate(v: string): boolean {
-				let k = v.toLowerCase()
-
-				let name = drive.modelNames()
-
-				return name.some(
-					vv => vv.toLowerCase() === k,
-
-				)
-
-			},
-
-		},
-
 		name: {
 			type: String,
+			index: true,
 			required: true,
 			lowercase: true,
 			trim: true,
+
+			validate: /^[a-z]+(\.[a-z0-9]+)*$/,
+
+		},
+
+		label: {
+			type: String,
+			lowercase: true,
+			trim: true,
+			default: '',
 
 		},
 
@@ -160,7 +151,7 @@ export const schema = new Schema<
 
 
 schema.index(
-	{ weapp: 1, model: 1, name: 1, value: 1 },
+	{ weapp: 1, name: 1, label: 1, value: 1 },
 
 	{ unique: true, sparse: true },
 
