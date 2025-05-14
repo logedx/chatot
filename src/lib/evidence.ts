@@ -487,10 +487,11 @@ export class Exhibit<T extends object> {
 export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 	#message = ''
 
-	#signed?: K
-
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	#infer?: Infer<any, any>
+	#infer: Infer<any, any>
+
+
+	#signed?: K
 
 	// eslint-disable-next-line no-use-before-define
 	#linker?: Chain<unknown, undefined | PropertyKey>
@@ -516,10 +517,11 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 	constructor(
 		message: string,
 
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		infer: Infer<any, any>,
+
 		option?: {
 			signed?: K
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			infer?: Infer<any, any>
 			linker?: Chain<unknown, undefined | PropertyKey>
 
 		},
@@ -528,10 +530,25 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 	) {
 		this.#message = message
 
+		this.#infer = infer
+
 		this.#signed = option?.signed
 		this.#linker = option?.linker
 
-		this.#infer = option?.infer
+
+	}
+
+	#buckle<R = unknown>(
+		message: string,
+
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		infer: Infer<any, any>,
+
+	): Chain<R, K> {
+		return new Chain<R, K>(
+			message, infer, { signed: this.#signed, linker: this },
+
+		)
 
 	}
 
@@ -546,14 +563,9 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 			}
 
-			if (detective.is_exist(this.#infer)
+			value = await this.#infer(value)
 
-			) {
-				value = await this.#infer(value)
-
-				return value as T
-
-			}
+			return value as T
 
 		}
 
@@ -601,52 +613,54 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 	signed<N extends undefined | PropertyKey>(name: N): Chain<T, N> {
 		return new Chain<T, N>(
-			this.#message,
+			this.#message, this.#infer, { signed: name, linker: this.#linker },
 
-			{ signed: name, infer: this.#infer, linker: this.#linker },
+		)
+
+	}
+
+	and<R = T>(
+		message: string,
+
+		fn: Infer<T, boolean>,
+
+	): Chain<R, K> {
+		return this.#buckle<R>(
+			message,
+
+			async (v: T): Promise<T> => {
+				await Chain.test(v, message, fn)
+
+				return v
+
+			},
 
 		)
 
 	}
 
 	to<R = unknown>(fn: Infer<T, R>): Chain<R, K> {
-		if (detective.is_undefined(this.#infer)
-
-		) {
-			throw new Error('infer is not exist')
-
-		}
-
-		return new Chain<R, K>(
-			this.#message,
-
-			{ signed: this.#signed, infer: fn, linker: this },
-
-		)
+		return this.#buckle<R>(this.#message, fn)
 
 	}
 
-	infer(fn: Infer<T, boolean>): this {
-		if (detective.is_exist(this.#infer)
+	static async test(
+		value: unknown,
+		message: string,
 
-		) {
-			throw new Error('infer has been exist')
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		fn: Infer<any, boolean>,
 
-		}
+	): Promise<void> {
+		let vv = await fn(value)
 
-		this.#infer = async (v: T): Promise<T> => {
-			let vv = await fn(v)
-
-			if (vv) {
-				return v
-
-			}
-
-			throw new Error(this.#message)
+		if (vv === true) {
+			return
 
 		}
 
-		return this
+		throw new Error(message)
+
 
 	}
 
@@ -656,7 +670,18 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 		fn: Infer<unknown, boolean>,
 
 	): Chain<T> {
-		return new Chain<T>(message).infer(fn)
+		return new Chain<T>(
+			message,
+
+			async (v: T): Promise<T> => {
+				await Chain.test(v, message, fn)
+
+				return v
+
+			},
+
+
+		)
 
 	}
 
