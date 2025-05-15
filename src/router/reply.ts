@@ -158,17 +158,16 @@ export const finish: express.ErrorRequestHandler = function finish(
 
 	}
 
-
-	// set locals, only providing error in develop
-	if (NODE_ENV === 'production') {
-		stack = ''
-
-	}
-
 	res.status(e.errno ?? 500)
 		.json(
-			{ name: e.name, message: e.message, stack: stack.split('\n') },
+			{
+				name: e.name,
+				message: e.message,
+				stack: (e as reply.Exception).mute().collect(),
+
+			},
 
 		)
+
 
 }

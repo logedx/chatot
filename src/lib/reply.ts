@@ -95,6 +95,8 @@ export function stdio_(req: express.Request, e: NodeJS.ErrnoException): void {
 
 
 export class Exception extends Error implements NodeJS.ErrnoException {
+	#mute = false
+
 	#data: Array<[string, unknown]> = []
 
 	get data(): Array<[string, unknown]> {
@@ -102,7 +104,14 @@ export class Exception extends Error implements NodeJS.ErrnoException {
 
 	}
 
-	push(name: string, data: unknown): void {
+	mute(): this {
+		this.#mute = true
+
+		return this
+
+	}
+
+	push(name: string, data: unknown): this {
 		if (detective.is_undefined(data)
 
 		) {
@@ -114,6 +123,20 @@ export class Exception extends Error implements NodeJS.ErrnoException {
 			[name, data],
 
 		)
+
+		return this
+
+	}
+
+	collect(): Array<string> {
+		if (this.#mute || detective.is_empty(this.stack)
+
+		) {
+			return []
+
+		}
+
+		return this.stack.split('\n')
 
 	}
 

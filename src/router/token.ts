@@ -19,7 +19,10 @@ export function checkpoint(...point: Array<number>): Array<express.RequestHandle
 
 		function (req, res, next) {
 			let method = req.method
+			let headers = req.headers
 			let original = req.originalUrl
+
+			let data = req.survive_token!.toObject()
 
 			let { scope, weapp, user } = req.survive_token!
 
@@ -39,7 +42,12 @@ export function checkpoint(...point: Array<number>): Array<express.RequestHandle
 			}
 
 			else {
-				throw new reply.Unauthorized('permission denied')
+				let e = new reply.Unauthorized('permission denied')
+
+				e.push('headers', headers)
+				e.push('data', data)
+
+				throw e
 
 			}
 
