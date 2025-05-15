@@ -2,7 +2,7 @@
  * 检查点模型
  */
 import * as axios from 'axios'
-import { Schema, Model, Types, HydratedDocument } from 'mongoose'
+import { Schema, Model, Types, HydratedDocument, Document } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
 
@@ -24,6 +24,7 @@ export type TRawDocType = storage.TRawDocType<
 		method: Uppercase<axios.Method>
 		original: string
 		expire: Date
+		context: null | Schema.Types.Mixed
 
 	}
 
@@ -43,9 +44,18 @@ export type TVirtuals = {
 
 export type TQueryHelpers = object
 
-export type TInstanceMethods = object
+export type TInstanceMethods = {
+	hold(
+		// eslint-disable-next-line no-use-before-define
+		this: THydratedDocumentType,
 
-export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals >
+		context: unknown,
+
+	): Promise<void>
+
+}
+
+export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
 
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
 
@@ -110,6 +120,12 @@ export const schema = new Schema<
 
 		},
 
+		context: {
+			type: Schema.Types.Mixed,
+			default: null,
+
+		},
+
 	},
 
 )
@@ -118,6 +134,26 @@ export const schema = new Schema<
 schema.virtual('mode').get(
 	function (): TVirtuals['mode'] {
 		return scope_model.vtmod(this.scope)
+
+	},
+
+)
+
+
+schema.method(
+	{
+		async hold(context) {
+			if (context instanceof Document) {
+				context = context.toObject()
+
+			}
+
+			await this.updateOne(
+				{ context: context as Schema.Types.Mixed },
+
+			)
+
+		},
 
 	},
 

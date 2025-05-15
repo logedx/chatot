@@ -9,6 +9,7 @@ import * as stamp_model from '../model/stamp.js'
 import * as token_model from '../model/token.js'
 import * as weapp_model from '../model/weapp.js'
 import * as keyword_model from '../model/keyword.js'
+import * as checkpoint_model from '../model/checkpoint.js'
 
 
 
@@ -27,6 +28,7 @@ declare global {
 			keyword?: keyword_model.THydratedDocumentType
 
 			stamp?: stamp_model.THydratedDocumentType
+			checkpoint?: checkpoint_model.THydratedDocumentType
 
 
 			usable_token?: token_model.THydratedDocumentType
