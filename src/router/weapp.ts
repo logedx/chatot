@@ -154,7 +154,9 @@ router.delete(
 
 	async function delete_(req, res) {
 		let doc = req.weapp!
+		let ctx = req.checkpoint!
 
+		await ctx.hold(doc)
 		await doc.deleteOne()
 
 		res.json()

@@ -199,6 +199,8 @@ router.delete(
 		let { _id } = req.params
 		let { weapp } = req.survive_token!
 
+		let ctx = req.checkpoint!
+
 		let doc = await user_model.default.findOneAndUpdate(
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			{ _id, weapp, 'scope.lock': false },
@@ -210,6 +212,7 @@ router.delete(
 
 		reply.NotFound.asserts(doc, 'user')
 
+		await ctx.hold(doc.scope)
 		await token_model.default.findOneAndUpdate(
 			{ user: _id },
 
