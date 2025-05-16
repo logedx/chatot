@@ -5,7 +5,7 @@ import * as detective from './detective.js'
 
 
 export type GetProperty<T, V> = {
-	[K in keyof T as T extends V ? K : never]: T[K]
+	[K in keyof T as T[K] extends V ? K : never]: T[K]
 
 }
 
