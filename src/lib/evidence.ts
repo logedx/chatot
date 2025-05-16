@@ -553,7 +553,7 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 	}
 
 	async verify(value: unknown): Promise<T> {
-		let chain: Array<reply.Exception> = []
+		let error: null| reply.Exception = null
 
 		try {
 			if (detective.is_exist(this.#linker)
@@ -579,34 +579,21 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 			}
 
 			if (e instanceof reply.Exception) {
-				chain.unshift(e)
+				error = e
 
 			}
 
 		}
 
 
-		let [e, ...other] = chain
+		if (detective.is_exist(error)
 
-		for (let ee of other) {
-			let message = ee.message
-			let stack = ee.stack ?? ''
-
-			for (let [k, v] of ee.data) {
-				e.push(k, v)
-
-			}
-
-			e.push(
-				message, stack.split('\n'),
-
-			)
-
+		) {
+			throw error
 
 		}
 
-
-		throw e
+		throw new reply.BadRequest(this.#message)
 
 
 	}
