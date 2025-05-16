@@ -146,10 +146,10 @@ export const finish: express.ErrorRequestHandler = function finish(
 
 	}
 
-	if (detective.is_exist(res.stdio)
+	if (detective.is_function(res.stdio)
 
 	) {
-		res?.stdio(e)
+		res.stdio(e)
 
 	}
 
