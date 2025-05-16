@@ -1,6 +1,6 @@
 import config from 'config'
 import alioss from 'ali-oss'
-import mongoose from 'mongoose'
+import mongoose, { HydratedDocument, Query } from 'mongoose'
 
 import * as structure from './structure.js'
 
@@ -33,12 +33,46 @@ export type TExtendRawDocType = {
 
 }
 
-export type TRawDocType<T> = T & TExtendRawDocType
+export type TRawDocType<T extends object = object> = T & TExtendRawDocType
 
 export type TRawDocTypeOverwrite<T, U extends keyof T> = structure.Overwrite<
 	T, { [k in U]-?: T[k] }
 
 >
+
+export type TInstanceMethods<T, M = unknown> = M & {
+	select_sensitive_fields<
+		F = keyof structure.GetPartial<T>,
+		O = Pick<T, F & keyof T>,
+		H = HydratedDocument<T, TInstanceMethods<T, M>>
+
+	>(
+		...fields: Array<`+${F & string}`>
+
+	): Promise<
+		structure.Overwrite<
+			H,
+
+			Required<O>
+
+		>
+
+	>
+
+	select_every_fields<
+		H = HydratedDocument<T, TInstanceMethods<T, M>>
+
+	>(): Promise<
+		Required<H>
+
+	>
+
+}
+
+export type TStaticMethods<T, M = unknown> = M & {
+	select_every_fields(): Array<`+${keyof T & string}`>
+
+}
 
 
 export async function mongodb(): Promise<typeof mongoose> {
@@ -118,6 +152,60 @@ export async function mongodb(): Promise<typeof mongoose> {
 				},
 
 			)
+
+			schema.method(
+				'select_sensitive_fields',
+
+				function (...fields: Array<`+${string}`>) {
+					return this.model().findById(this._id)
+						.select(fields)
+
+				},
+
+			)
+
+			schema.method(
+				'select_every_fields',
+
+				function (
+					this: HydratedDocument<
+						unknown,
+
+						{
+							select_sensitive_fields(...fields: Array<string>): Query<unknown, unknown>
+
+						}
+
+					>,
+
+				) {
+					let fields = Object.entries(this.schema.paths)
+						.map(
+							([k]) => `+${k}`,
+
+						)
+
+					return this.select_sensitive_fields(...fields)
+
+				},
+
+			)
+
+			schema.static(
+				'select_every_fields',
+
+				function () {
+					return Object.entries(this.schema.paths)
+						.map(
+							([k]) => `+${k}`,
+
+						)
+
+				},
+
+			)
+
+
 
 		},
 

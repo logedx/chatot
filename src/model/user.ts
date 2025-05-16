@@ -3,10 +3,8 @@
  */
 import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 
-import * as reply from '../lib/reply.js'
 import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
-import * as structure from '../lib/structure.js'
 
 import * as scope_model from './scope.js'
 import * as weapp_model from './weapp.js'
@@ -46,32 +44,30 @@ export type TVirtuals = object
 
 export type TQueryHelpers = object
 
-export type TInstanceMethods = {
-	shine(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
+export type TInstanceMethods = storage.TInstanceMethods<
+	TRawDocType,
 
-	): Promise<void>
+	{
+		shine(
+			// eslint-disable-next-line no-use-before-define
+			this: THydratedDocumentType,
 
-	overcast(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
+		): Promise<void>
 
-	): Promise<void>
+		overcast(
+			// eslint-disable-next-line no-use-before-define
+			this: THydratedDocumentType,
 
-	select_sensitive_fields<T extends keyof structure.GetPartial<TRawDocType>>(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
+		): Promise<void>
 
-		...select: Array<`+${T}`>
-
-	): Promise<
-		// eslint-disable-next-line no-use-before-define
-		storage.TRawDocTypeOverwrite<THydratedDocumentType, T>
+	}
 
 	>
 
-}
+export type TStaticMethods = storage.TStaticMethods<
+	TRawDocType
+
+>
 
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
 
@@ -91,7 +87,8 @@ export const schema = new Schema<
 	TModel,
 	TInstanceMethods,
 	TQueryHelpers,
-	TVirtuals
+	TVirtuals,
+	TStaticMethods
 
 >(
 	{
@@ -213,20 +210,6 @@ schema.method(
 			this.active = false
 
 			await this.save()
-
-		},
-
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore
-		async select_sensitive_fields(...select) {
-			const model = this.model()
-
-
-			let doc = await model.findById(this._id).select(select)
-
-			reply.NotFound.asserts(doc, 'user')
-
-			return doc
 
 		},
 

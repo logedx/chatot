@@ -10,7 +10,6 @@ import * as weapp from '../lib/weapp.js'
 import * as wepay from '../lib/wepay.js'
 import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
-import * as structure from '../lib/structure.js'
 
 
 
@@ -42,86 +41,79 @@ export type TVirtuals = object
 
 export type TQueryHelpers = object
 
-export type TInstanceMethods = {
-	select_sensitive_fields<T extends keyof structure.GetPartial<TRawDocType>>(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
+export type TInstanceMethods = storage.TInstanceMethods<
+	TRawDocType,
 
-		...select: Array<`+${T}`>
-
-	): Promise<
-		// eslint-disable-next-line no-use-before-define
-		storage.TRawDocTypeOverwrite<THydratedDocumentType, T>
-
-	>
-
-	get_access_token(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-	): Promise<string>
-
-	get_wx_session(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-		code: string,
-
-	): Promise<weapp.WxSession>
-
-	to_phone_number(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-		code: string,
-
-	): Promise<string>
-
-	to_unlimited(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-		path: string,
-		scene: string,
-
-	): Promise<weapp.Unlimited>
-
-	to_ali_oss(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-	): ali_oss
-
-	to_api_v3_option(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-	): Promise<
-		storage.TRawDocTypeOverwrite<
+	{
+		get_access_token(
 			// eslint-disable-next-line no-use-before-define
-			THydratedDocumentType,
+			this: THydratedDocumentType,
 
-			'mchid' | 'v3key' | 'sign' | 'evidence' | 'verify'
+		): Promise<string>
+
+		get_wx_session(
+			// eslint-disable-next-line no-use-before-define
+			this: THydratedDocumentType,
+
+			code: string,
+
+		): Promise<weapp.WxSession>
+
+		to_phone_number(
+			// eslint-disable-next-line no-use-before-define
+			this: THydratedDocumentType,
+
+			code: string,
+
+		): Promise<string>
+
+		to_unlimited(
+			// eslint-disable-next-line no-use-before-define
+			this: THydratedDocumentType,
+
+			path: string,
+			scene: string,
+
+		): Promise<weapp.Unlimited>
+
+		to_ali_oss(
+			// eslint-disable-next-line no-use-before-define
+			this: THydratedDocumentType,
+
+		): ali_oss
+
+		to_api_v3_option(
+			// eslint-disable-next-line no-use-before-define
+			this: THydratedDocumentType,
+
+		): Promise<
+			storage.TRawDocTypeOverwrite<
+				// eslint-disable-next-line no-use-before-define
+				THydratedDocumentType,
+
+				'mchid' | 'v3key' | 'sign' | 'evidence' | 'verify'
+
+			>
+
 
 		>
 
+		get_transactions_api_v3(
+			// eslint-disable-next-line no-use-before-define
+			this: THydratedDocumentType,
 
-	>
+		): Promise<wepay.Transactions>
 
-	get_transactions_api_v3(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
+		get_refund_api_v3(
+			// eslint-disable-next-line no-use-before-define
+			this: THydratedDocumentType,
 
-	): Promise<wepay.Transactions>
-
-	get_refund_api_v3(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-	): Promise<wepay.Refund>
+		): Promise<wepay.Refund>
 
 
-}
+	}
+
+>
 
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
 
@@ -263,20 +255,6 @@ schema.index(
 
 schema.method(
 	{
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore
-		async select_sensitive_fields(...select) {
-			const model = this.model()
-
-
-			let doc = await model.findById(this._id).select(select)
-
-			reply.NotFound.asserts(doc, 'weapp')
-
-			return doc
-
-		},
-
 		async get_access_token() {
 			let doc = await this.select_sensitive_fields('+secret', '+token', '+refresh', '+expired')
 
