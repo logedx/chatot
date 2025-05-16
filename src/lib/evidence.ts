@@ -1201,7 +1201,7 @@ export class Pagination<T extends object = Record<PropertyKey, never>> {
 
 	}
 
-	static postpone<T extends object>(
+	static increase<T extends object>(
 		value: Array<T>,
 
 		key: keyof structure.GetProperty<T, number>,
