@@ -36,22 +36,7 @@ export type TQueryHelpers = object
 
 export type TInstanceMethods = object
 
-export type TStaticMethods = {
-	quiet_create(
-		// eslint-disable-next-line no-use-before-define
-		this: TModel,
-
-		doc: {
-			weapp: Types.ObjectId
-			name: string
-			value: string
-
-		},
-
-	// eslint-disable-next-line no-use-before-define
-	): Promise<null | THydratedDocumentType>
-
-}
+export type TStaticMethods = object
 
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals >
 
@@ -104,7 +89,8 @@ export const schema = new Schema<
 	TModel,
 	TInstanceMethods,
 	TQueryHelpers,
-	TVirtuals
+	TVirtuals,
+	TStaticMethods
 
 >(
 	{
@@ -154,22 +140,6 @@ schema.index(
 	{ weapp: 1, name: 1, label: 1, value: 1 },
 
 	{ unique: true, sparse: true },
-
-)
-
-
-schema.static(
-	{
-		quiet_create(doc) {
-			return this.create(doc)
-				.catch(
-					() => null,
-
-				)
-
-		},
-
-	},
 
 )
 
