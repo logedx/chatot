@@ -13,6 +13,8 @@ export type TPointQueryHelpers = object
 
 export type TPointInstanceMethods = object
 
+export type TStaticMethods = object
+
 
 export type TPointHydratedDocumentType = HydratedDocument<TPointRawDocType, TPointVirtuals >
 
@@ -31,7 +33,8 @@ export const point = new Schema<
 	TPointModel,
 	TPointInstanceMethods,
 	TPointQueryHelpers,
-	TPointVirtuals
+	TPointVirtuals,
+	TStaticMethods
 
 >(
 	{

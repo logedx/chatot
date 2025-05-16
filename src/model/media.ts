@@ -395,194 +395,222 @@ schema.virtual('pathname').get(
 
 
 schema.method(
-	{
-		async safe_push(body) {
-			class SizeTrackingStream extends stream.Transform implements stream.Transform {
-				#hash = crypto.createHash('md5')
+	'safe_push',
 
-				#value = 0
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['safe_push']>
+	async function (body) {
+		class SizeTrackingStream extends stream.Transform implements stream.Transform {
+			#hash = crypto.createHash('md5')
 
-				get hash(): string {
-					return this.#hash.digest('hex')
+			#value = 0
 
-				}
+			get hash(): string {
+				return this.#hash.digest('hex')
 
-				get value(): number {
-					return this.#value
+			}
 
-				}
+			get value(): number {
+				return this.#value
 
-				_transform(
-					chunk: unknown,
-					encoding: BufferEncoding,
-					callback: stream.TransformCallback,
+			}
 
-				): void {
-					if (detective.is_buffer(chunk)
+			_transform(
+				chunk: unknown,
+				encoding: BufferEncoding,
+				callback: stream.TransformCallback,
+
+			): void {
+				if (detective.is_buffer(chunk)
 						|| detective.is_array_buffer(chunk)
 
-					) {
-						this.#hash.update(chunk as Buffer)
-						this.#value = this.#value + chunk.byteLength
-
-					}
-
-					this.push(chunk)
-
-					callback()
+				) {
+					this.#hash.update(chunk as Buffer)
+					this.#value = this.#value + chunk.byteLength
 
 				}
 
-			}
+				this.push(chunk)
 
-			let size = new SizeTrackingStream()
-
-			let doc = await this.populate<TPopulatePaths>('weapp')
-
-			let client = doc.weapp.to_ali_oss()
-
-			let result = await client.append(
-				this.pathname,
-
-				body.pipe(size),
-
-				{ mime: this.mime },
-
-			)
-
-			this.size = size.value
-			this.hash = size.hash
-
-			this.src = result.url
-
-			try {
-				return await this.save()
+				callback()
 
 			}
 
-			catch (e) {
-				await this.deleteOne()
+		}
 
-				throw e
+		let size = new SizeTrackingStream()
 
-			}
+		let doc = await this.populate<TPopulatePaths>('weapp')
 
+		let client = doc.weapp.to_ali_oss()
 
-		},
+		let result = await client.append(
+			this.pathname,
 
-		async safe_delete() {
-			let doc = await this.populate<TPopulatePaths>('weapp')
+			body.pipe(size),
 
-			let client = doc.weapp.to_ali_oss()
+			{ mime: this.mime },
 
-			await client.delete(this.pathname)
+		)
 
+		this.size = size.value
+		this.hash = size.hash
+
+		this.src = result.url
+
+		try {
+			return await this.save()
+
+		}
+
+		catch (e) {
 			await this.deleteOne()
 
-		},
+			throw e
 
-		async safe_access(expires = 1800) {
-			let doc = await this.populate<TPopulatePaths>('weapp')
-
-			let client = doc.weapp.to_ali_oss()
-
-			return new URL(
-				client.signatureUrl(
-					this.pathname,
-
-					{
-						expires,
-
-					},
-
-				),
-
-			)
-
-		},
+		}
 
 
 	},
+
+
+)
+
+schema.method(
+	'safe_delete',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['safe_delete']>
+	async function () {
+		let doc = await this.populate<TPopulatePaths>('weapp')
+
+		let client = doc.weapp.to_ali_oss()
+
+		await client.delete(this.pathname)
+
+		await this.deleteOne()
+
+	},
+
+
+)
+
+schema.method(
+	'safe_access',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['safe_access']>
+	async function (expires = 1800) {
+		let doc = await this.populate<TPopulatePaths>('weapp')
+
+		let client = doc.weapp.to_ali_oss()
+
+		return new URL(
+			client.signatureUrl(
+				this.pathname,
+
+				{
+					expires,
+
+				},
+
+			),
+
+		)
+
+	},
+
 
 )
 
 
-schema.static(
-	{
-		async safe_delete(weapp, ...src) {
-			src = src.map(
-				v => {
-					let uri = new URL(v)
+schema.static<'safe_delete'>(
+	'safe_delete',
 
-					uri.search = ''
+	async function (weapp, ...src) {
+		src = src.map(
+			v => {
+				let uri = new URL(v)
 
-					return uri.href
+				uri.search = ''
 
-				},
+				return uri.href
 
-			)
+			},
 
-			let doc = await this.find(
-				{ weapp, src },
+		)
 
-			)
+		let doc = await this.find(
+			{ weapp, src },
 
-			let p = doc.map(
-				v => v.safe_delete(),
+		)
 
-			)
+		let p = doc.map(
+			v => v.safe_delete(),
 
-			return Promise.allSettled(p)
+		)
 
-		},
-
-		async safe_access(weapp, src, expires = 1800) {
-			let doc = await this.findOne(
-				{ weapp, src },
-
-			)
-
-			reply.NotFound.asserts(doc, 'media')
-
-			return doc.safe_access(expires)
-
-		},
-
-
-		async safe_to_link(name, model, query) {
-			let doc = await this.findOne(query)
-
-			if (detective.is_empty(doc)
-
-			) {
-				return null
-
-			}
-
-			name = name.toLowerCase()
-			model = model.toLowerCase()
-
-			let some = doc.linker.some(
-				v => name === v.name.toLowerCase() && model === v.model.toLowerCase(),
-
-			)
-
-			if (some) {
-				return doc
-
-			}
-
-			doc.linker.push(
-				{ name, model },
-
-			)
-
-			return doc.save()
-
-
-		},
+		return Promise.allSettled(p)
 
 	},
+
+
+)
+
+schema.static<'safe_access'>(
+	'safe_access',
+
+	async function (weapp, src, expires = 1800) {
+		let doc = await this.findOne(
+			{ weapp, src },
+
+		)
+
+		reply.NotFound.asserts(doc, 'media')
+
+		return doc.safe_access(expires)
+
+	},
+
+
+)
+
+schema.static<'safe_to_link'>(
+	'safe_to_link',
+
+	async function (name, model, query) {
+		let doc = await this.findOne(query)
+
+		if (detective.is_empty(doc)
+
+		) {
+			return null
+
+		}
+
+		name = name.toLowerCase()
+		model = model.toLowerCase()
+
+		let some = doc.linker.some(
+			v => name === v.name.toLowerCase() && model === v.model.toLowerCase(),
+
+		)
+
+		if (some) {
+			return doc
+
+		}
+
+		doc.linker.push(
+			{ name, model },
+
+		)
+
+		return doc.save()
+
+
+	},
+
 
 )
 

@@ -220,71 +220,104 @@ schema.virtual('mode').get(
 
 )
 
+schema.method(
+	'replenish',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['replenish']>
+	async function () {
+		if (
+			this.expire > secret.delay(-3600)
+
+		) {
+			throw new reply.Unauthorized('value is expired')
+
+		}
+
+		this.expire = secret.delay(7200)
+		this.refresh = secret.hex()
+
+		await this.save()
+
+		return this
+
+	},
+
+
+)
 
 schema.method(
-	{
-		async replenish() {
-			if (
-				this.expire > secret.delay(-3600)
+	'to_user',
 
-			) {
-				throw new reply.Unauthorized('value is expired')
-
-			}
-
-			this.expire = secret.delay(7200)
-			this.refresh = secret.hex()
-
-			await this.save()
-
-			return this
-		},
-
-		async to_user() {
-			let doc = await this.populate<
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['to_user']>
+	async function () {
+		let doc = await this.populate<
 				Pick<TPopulatePaths, 'user'>
 
 			>('user')
 
 
-			reply.NotFound.asserts(doc.user, 'user is not exist')
+		reply.NotFound.asserts(doc.user, 'user is not exist')
 
-			return doc.user
+		return doc.user
 
-		},
-
-		async to_weapp() {
-			let doc = await this.populate<
-				Pick<TPopulatePaths, 'weapp'>
-
-			>('weapp')
+	},
 
 
-			reply.NotFound.asserts(doc.weapp, 'weapp is not exist')
+)
 
-			return doc.weapp
+schema.method(
+	'to_weapp',
 
-		},
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['to_weapp']>
+	async function () {
+		let doc = await this.populate<
+			Pick<TPopulatePaths, 'weapp'>
 
-		to_usable() {
-			if (this.is_usable) {
-				return this as TSurviveHydratedDocumentType
+		>('weapp')
 
-			}
 
-			throw new reply.Unauthorized('authentication failed')
+		reply.NotFound.asserts(doc.weapp, 'weapp is not exist')
 
-		},
+		return doc.weapp
 
-		to_survive() {
-			if (this.is_survive) {
-				return this as TSurviveHydratedDocumentType
+	},
 
-			}
 
-			throw new reply.Unauthorized('authentication failed')
+)
 
-		},
+schema.method(
+	'to_usable',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['to_usable']>
+	function () {
+		if (this.is_usable) {
+			return this as TSurviveHydratedDocumentType
+
+		}
+
+		throw new reply.Unauthorized('authentication failed')
+
+	},
+
+
+)
+
+schema.method(
+	'to_survive',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['to_survive']>
+	function () {
+		if (this.is_survive) {
+			return this as TSurviveHydratedDocumentType
+
+		}
+
+		throw new reply.Unauthorized('authentication failed')
 
 	},
 
@@ -292,21 +325,21 @@ schema.method(
 )
 
 
-schema.static(
-	{
-		async replenish(refresh) {
-			let doc = await this.findOne(
-				{ refresh },
+schema.static<'replenish'>(
+	'replenish',
 
-			)
+	async function (refresh) {
+		let doc = await this.findOne(
+			{ refresh },
 
-			reply.NotFound.asserts(doc, 'token')
+		)
 
-			return doc.replenish()
+		reply.NotFound.asserts(doc, 'token')
 
-		},
+		return doc.replenish()
 
 	},
+
 
 )
 

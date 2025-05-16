@@ -196,24 +196,34 @@ schema.index(
 
 
 schema.method(
-	{
-		async shine() {
-			let doc = await this.select_sensitive_fields('+phone')
+	'shine',
 
-			doc.active = detective.is_phone_number_string(doc.phone)
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['shine']>
+	async function () {
+		let doc = await this.select_sensitive_fields('+phone')
 
-			await doc.save()
+		doc.active = detective.is_phone_number_string(doc.phone)
 
-		},
-
-		async overcast() {
-			this.active = false
-
-			await this.save()
-
-		},
+		await doc.save()
 
 	},
+
+
+)
+
+schema.method(
+	'overcast',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['overcast']>
+	async function () {
+		this.active = false
+
+		await this.save()
+
+	},
+
 
 )
 

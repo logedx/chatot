@@ -166,36 +166,37 @@ schema.virtual('method').get(
 
 
 schema.method(
-	{
-		eternal() {
-			this.expire = new Date(2077, 0, 1)
+	'eternal',
 
-			return this.save()
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['eternal']>
+	function () {
+		this.expire = new Date(2077, 0, 1)
 
-		},
+		return this.save()
 
 	},
+
 
 )
 
 
-schema.static(
-	{
-		async from(value, symbol) {
-			let doc = await this.findOne(
-				{ value, symbol, expire: { $gte: new Date() } },
+schema.static<'from'>(
+	'from',
 
-			)
+	async function (value, symbol) {
+		let doc = await this.findOne(
+			{ value, symbol, expire: { $gte: new Date() } },
 
-			reply.NotFound.asserts(doc, 'stamp')
+		)
 
-			return doc
+		reply.NotFound.asserts(doc, 'stamp')
 
-
-		},
+		return doc
 
 
 	},
+
 
 )
 

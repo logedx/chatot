@@ -60,6 +60,8 @@ export type TInstanceMethods = {
 
 }
 
+export type TStaticMethods = object
+
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
 
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
@@ -72,7 +74,8 @@ export const schema = new Schema<
 	TModel,
 	TInstanceMethods,
 	TQueryHelpers,
-	TVirtuals
+	TVirtuals,
+	TStaticMethods
 
 >(
 	{
@@ -123,19 +126,20 @@ schema.virtual('is_expire').get(
 
 
 schema.method(
-	{
-		async delay(to) {
-			if (new Date() > to) {
-				throw new reply.Forbidden('invalid date')
+	'delay',
 
-			}
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['delay']>
+	async function (to) {
+		if (new Date() > to) {
+			throw new reply.Forbidden('invalid date')
 
-			this.expire = to
+		}
 
-			await this.save()
+		this.expire = to
 
+		await this.save()
 
-		},
 
 	},
 

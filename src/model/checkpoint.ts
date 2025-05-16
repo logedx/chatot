@@ -55,6 +55,8 @@ export type TInstanceMethods = {
 
 }
 
+export type TStaticMethods = object
+
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
 
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
@@ -70,7 +72,8 @@ export const schema = new Schema<
 	TModel,
 	TInstanceMethods,
 	TQueryHelpers,
-	TVirtuals
+	TVirtuals,
+	TStaticMethods
 
 >(
 	{
@@ -141,21 +144,23 @@ schema.virtual('mode').get(
 
 
 schema.method(
-	{
-		async hold(context) {
-			if (context instanceof Document) {
-				context = context.toObject()
+	'hold',
 
-			}
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['hold']>
+	async function (context) {
+		if (context instanceof Document) {
+			context = context.toObject()
 
-			await this.updateOne(
-				{ context: context as Schema.Types.Mixed },
+		}
 
-			)
+		await this.updateOne(
+			{ context: context as Schema.Types.Mixed },
 
-		},
+		)
 
 	},
+
 
 )
 

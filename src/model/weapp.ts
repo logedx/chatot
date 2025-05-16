@@ -115,6 +115,8 @@ export type TInstanceMethods = storage.TInstanceMethods<
 
 >
 
+export type TStaticMethods = object
+
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
 
 export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
@@ -132,7 +134,8 @@ export const schema = new Schema<
 	TModel,
 	TInstanceMethods,
 	TQueryHelpers,
-	TVirtuals
+	TVirtuals,
+	TStaticMethods
 
 >(
 	{
@@ -252,102 +255,159 @@ schema.index(
 )
 
 
+schema.method(
+	'get_access_token',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['get_access_token']>
+	async function () {
+		let doc = await this.select_sensitive_fields('+secret', '+token', '+refresh', '+expired')
+
+		if (doc.token && doc.expired > new Date()
+
+		) {
+			return doc.token
+
+		}
+
+		if (doc.secret) {
+			let result = await weapp.get_access_token(doc.appid, doc.secret)
+
+			await doc.updateOne(result)
+
+			return result.token
+
+		}
+
+		throw new reply.NotFound('access token is not exist')
+
+	},
+
+
+)
 
 schema.method(
-	{
-		async get_access_token() {
-			let doc = await this.select_sensitive_fields('+secret', '+token', '+refresh', '+expired')
+	'get_wx_session',
 
-			if (doc.token && doc.expired > new Date()
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['get_wx_session']>
+	async function (code) {
+		let doc = await this.select_sensitive_fields('+secret')
 
-			) {
-				return doc.token
-
-			}
-
-			if (doc.secret) {
-				let result = await weapp.get_access_token(doc.appid, doc.secret)
-
-				await doc.updateOne(result)
-
-				return result.token
-
-			}
-
-			throw new reply.NotFound('access token is not exist')
-
-		},
-
-		async get_wx_session(code) {
-			let doc = await this.select_sensitive_fields('+secret')
-
-			return weapp.get_wx_session(doc.appid, doc.secret, code)
+		return weapp.get_wx_session(doc.appid, doc.secret, code)
 
 
-		},
+	},
 
-		async to_unlimited(path, scene) {
-			let token = await this.get_access_token()
 
-			return weapp.get_unlimited(token, path, scene)
+)
 
-		},
+schema.method(
+	'to_unlimited',
 
-		async to_phone_number(code) {
-			let token = await this.get_access_token()
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['to_unlimited']>
+	async function (path, scene) {
+		let token = await this.get_access_token()
 
-			return weapp.get_phone_number(token, code)
+		return weapp.get_unlimited(token, path, scene)
 
-		},
+	},
 
-		to_ali_oss() {
-			const client = storage.ali_oss()
 
-			client.useBucket(this.bucket)
+)
 
-			return client
+schema.method(
+	'to_phone_number',
 
-		},
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['to_phone_number']>
+	async function (code) {
+		let token = await this.get_access_token()
 
-		to_api_v3_option() {
-			return this.select_sensitive_fields('+mchid', '+v3key', '+sign', '+evidence', '+verify')
+		return weapp.get_phone_number(token, code)
 
-		},
+	},
 
-		async get_transactions_api_v3() {
-			let option = await this.to_api_v3_option()
 
-			let trans = new wepay.Transactions(option)
 
-			trans.on(
-				'update',
+)
 
-				async (name, ctx) => {
-					if (detective.is_string(ctx)
+schema.method(
+	'to_ali_oss',
 
-					) {
-						ctx = Buffer.from(ctx)
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['to_ali_oss']>
+	function () {
+		const client = storage.ali_oss()
 
-					}
+		client.useBucket(this.bucket)
 
-					await this.updateOne(
-						{ [name]: ctx },
+		return client
 
-					)
+	},
 
-				},
-			)
 
-			return trans
+)
 
-		},
+schema.method(
+	'to_api_v3_option',
 
-		async get_refund_api_v3() {
-			let option = await this.to_api_v3_option()
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['to_api_v3_option']>
+	function () {
+		return this.select_sensitive_fields('+mchid', '+v3key', '+sign', '+evidence', '+verify')
 
-			return new wepay.Refund(option)
+	},
 
-		},
+
+)
+
+schema.method(
+	'get_transactions_api_v3',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['get_transactions_api_v3']>
+	async function () {
+		let option = await this.to_api_v3_option()
+
+		let trans = new wepay.Transactions(option)
+
+		trans.on(
+			'update',
+
+			async (name, ctx) => {
+				if (detective.is_string(ctx)
+
+				) {
+					ctx = Buffer.from(ctx)
+
+				}
+
+				await this.updateOne(
+					{ [name]: ctx },
+
+				)
+
+			},
+		)
+
+		return trans
+
+	},
+
+
+)
+
+schema.method(
+	'get_refund_api_v3',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['get_refund_api_v3']>
+	async function () {
+		let option = await this.to_api_v3_option()
+
+		return new wepay.Refund(option)
 
 	},
 
