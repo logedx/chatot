@@ -5,18 +5,20 @@ import * as secret from './secret.js'
 import * as detective from './detective.js'
 
 
-export function stdio(id: string, e: unknown): void {
+export function stdio (id: string, e: unknown): void
+{
 	console.warn(
 		chalk.grey(`▼ [${id}]`),
 
 	)
 
 
-	if (e instanceof Exception) {
-		for (let [name, data] of e.data) {
-			if (detective.is_undefined(data)
-
-			) {
+	if (e instanceof Exception)
+	{
+		for (let [name, data] of e.data)
+		{
+			if (detective.is_undefined(data) )
+			{
 				data = null
 
 			}
@@ -50,7 +52,8 @@ export function stdio(id: string, e: unknown): void {
 
 	}
 
-	if (e instanceof Error) {
+	if (e instanceof Error)
+	{
 		console.group()
 
 		console.error(
@@ -76,7 +79,8 @@ export function stdio(id: string, e: unknown): void {
 
 }
 
-export function stdio_(req: express.Request, e: NodeJS.ErrnoException): void {
+export function stdio_ (req: express.Request, e: NodeJS.ErrnoException): void
+{
 	let id = secret.hex(8)
 
 	let date = new Date().toISOString()
@@ -94,27 +98,30 @@ export function stdio_(req: express.Request, e: NodeJS.ErrnoException): void {
 }
 
 
-export class Exception extends Error implements NodeJS.ErrnoException {
+export class Exception extends Error implements NodeJS.ErrnoException
+{
 	#mute = false
 
 	#data: Array<[string, unknown]> = []
 
-	get data(): Array<[string, unknown]> {
+	get data (): Array<[string, unknown]>
+	{
 		return this.#data
 
 	}
 
-	mute(): this {
+	mute (): this
+	{
 		this.#mute = true
 
 		return this
 
 	}
 
-	push(name: string, data: unknown): this {
-		if (detective.is_undefined(data)
-
-		) {
+	push (name: string, data: unknown): this
+	{
+		if (detective.is_undefined(data) )
+		{
 			data = null
 
 		}
@@ -128,10 +135,10 @@ export class Exception extends Error implements NodeJS.ErrnoException {
 
 	}
 
-	collect(): Array<string> {
-		if (this.#mute || detective.is_empty(this.stack)
-
-		) {
+	collect (): string[]
+	{
+		if (this.#mute || detective.is_empty(this.stack) )
+		{
 			return []
 
 		}
@@ -146,7 +153,8 @@ export class Exception extends Error implements NodeJS.ErrnoException {
 /**
  * 请求参数有误。
  */
-export class BadRequest extends Exception {
+export class BadRequest extends Exception
+{
 	readonly name = 'BadRequest'
 
 	readonly errno = 400
@@ -158,7 +166,8 @@ export class BadRequest extends Exception {
 /**
  * 当前请求需要用户验证。
  */
-export class Unauthorized extends Exception {
+export class Unauthorized extends Exception
+{
 	readonly name = 'Unauthorized'
 
 	readonly errno = 401
@@ -169,7 +178,8 @@ export class Unauthorized extends Exception {
 /**
  * 服务器已经理解请求，但是拒绝执行它。
  */
-export class Forbidden extends Exception {
+export class Forbidden extends Exception
+{
 	readonly name = 'Forbidden'
 
 	readonly errno = 403
@@ -180,7 +190,8 @@ export class Forbidden extends Exception {
 /**
  * 请求失败，请求所希望得到的资源未被在服务器上发现。
  */
-export class NotFound extends Exception {
+export class NotFound extends Exception
+{
 	readonly name = 'NotFound'
 
 	readonly errno = 404
@@ -189,21 +200,20 @@ export class NotFound extends Exception {
 
 	static asserts<T>(value: T, condition: boolean, message: string): asserts value is Exclude<T, null | undefined>
 
-	static asserts<T>(value: T, ...x: [string] | [boolean, string]): asserts value is Exclude<T, null | undefined> {
+	static asserts<T>(value: T, ...x: [string] | [boolean, string]): asserts value is Exclude<T, null | undefined>
+	{
 		let [condition, message] = x
 
-		if (detective.is_string(condition)
-
-		) {
+		if (detective.is_string(condition) )
+		{
 			message = condition
 
 			condition = true
 
 		}
 
-		if (condition === false || detective.is_empty(value)
-
-		) {
+		if (condition === false || detective.is_empty(value) )
+		{
 			throw new NotFound(`${message} is not found`)
 
 		}
@@ -216,7 +226,8 @@ export class NotFound extends Exception {
 /**
  * 请求行中指定的请求方法不能被用于请求相应的资源。
  */
-export class MethodNotAllowed extends Exception {
+export class MethodNotAllowed extends Exception
+{
 	readonly name = 'MethodNotAllowed'
 
 	readonly errno = 405
@@ -227,7 +238,8 @@ export class MethodNotAllowed extends Exception {
 /**
  * 请求超时。
  */
-export class RequestTimeout extends Exception {
+export class RequestTimeout extends Exception
+{
 	readonly name = 'RequestTimeout'
 
 	readonly errno = 408
@@ -238,7 +250,8 @@ export class RequestTimeout extends Exception {
 /**
  * 由于和被请求的资源的当前状态之间存在冲突，请求无法完成。
  */
-export class Conflict extends Exception {
+export class Conflict extends Exception
+{
 	readonly name = 'Conflict'
 
 	readonly errno = 409
@@ -249,7 +262,8 @@ export class Conflict extends Exception {
 /**
  * 被请求的资源在服务器上已经不再可用，而且没有任何已知的转发地址。
  */
-export class Gone extends Exception {
+export class Gone extends Exception
+{
 	readonly name = 'Gone'
 
 	readonly errno = 410
@@ -261,7 +275,8 @@ export class Gone extends Exception {
  * 服务器拒绝在没有定义 Content-Length 头的情况下接受请求。
  * 在添加了表明请求消息体长度的有效 Content-Length 头之后，客户端可以再次提交该请求。
  */
-export class Lengthrequired extends Exception {
+export class Lengthrequired extends Exception
+{
 	readonly name = 'Lengthrequired'
 
 	readonly errno = 411
@@ -272,7 +287,8 @@ export class Lengthrequired extends Exception {
 /**
  * 服务器拒绝处理当前请求，因为该请求提交的实体数据大小超过了服务器愿意或者能够处理的范围。
  */
-export class PayloadTooLarge extends Exception {
+export class PayloadTooLarge extends Exception
+{
 	readonly name = 'PayloadTooLarge'
 
 	readonly errno = 413
@@ -283,7 +299,8 @@ export class PayloadTooLarge extends Exception {
 /**
  * 对于当前请求的方法和所请求的资源，请求中提交的实体并不是服务器中所支持的格式，因此请求被拒绝。
  */
-export class UnsupportedMediaType extends Exception {
+export class UnsupportedMediaType extends Exception
+{
 	readonly name = 'UnsupportedMediaType'
 
 	readonly errno = 415
@@ -294,7 +311,8 @@ export class UnsupportedMediaType extends Exception {
 /**
  * 服务器不愿意冒着风险去处理可能重播的请求。
  */
-export class TooEarly extends Exception {
+export class TooEarly extends Exception
+{
 	readonly name = 'TooEarly'
 
 	readonly errno = 425
@@ -305,7 +323,8 @@ export class TooEarly extends Exception {
 /**
  * 用户在给定的时间内发送了太多请求（“限制请求速率”）。
  */
-export class TooManyRequests extends Exception {
+export class TooManyRequests extends Exception
+{
 	readonly name = 'TooManyRequests'
 
 	readonly errno = 429

@@ -19,12 +19,12 @@ export type TRawDocType = storage.TRawDocType<
 
 		active: boolean
 
-		avatar: string
+		avatar  : string
 		nickname: string
 
 		phone?: string
 
-		wxopenid?: string
+		wxopenid? : string
 		wxsession?: string
 
 		scope?: null | scope_model.THydratedDocumentType
@@ -48,21 +48,15 @@ export type TInstanceMethods = storage.TInstanceMethods<
 	TRawDocType,
 
 	{
-		shine(
-			// eslint-disable-next-line no-use-before-define
-			this: THydratedDocumentType,
+		// eslint-disable-next-line no-use-before-define
+		shine(this: THydratedDocumentType): Promise<void>
 
-		): Promise<void>
-
-		overcast(
-			// eslint-disable-next-line no-use-before-define
-			this: THydratedDocumentType,
-
-		): Promise<void>
+		// eslint-disable-next-line no-use-before-define
+		overcast(this: THydratedDocumentType): Promise<void>
 
 	}
 
-	>
+>
 
 export type TStaticMethods = storage.TStaticMethods<
 	TRawDocType
@@ -93,68 +87,68 @@ export const schema = new Schema<
 >(
 	{
 		weapp: {
-			type: Schema.Types.ObjectId,
-			ref: () => weapp_model.default,
-			index: true,
+			type    : Schema.Types.ObjectId,
+			ref     : () => weapp_model.default,
+			index   : true,
 			required: true,
 
 		},
 
 		active: {
-			type: Boolean,
+			type    : Boolean,
 			required: true,
-			default: false,
+			default : false,
 
 		},
 
 		avatar: {
-			type: String,
-			trim: true,
+			type   : String,
+			trim   : true,
 			default: '',
 
 		},
 
 		nickname: {
-			type: String,
-			trim: true,
+			type   : String,
+			trim   : true,
 			default: '',
 
 		},
 
 		phone: {
-			type: String,
-			index: true,
-			sparse: true,
-			select: false,
+			type     : String,
+			index    : true,
+			sparse   : true,
+			select   : false,
 			lowercase: true,
-			trim: true,
+			trim     : true,
 
 		},
 
 		// 微信标识符
 		wxopenid: {
-			type: String,
-			unique: true,
-			select: false,
+			type    : String,
+			unique  : true,
+			select  : false,
 			required: true,
-			trim: true,
+			trim    : true,
 
 		},
 
 		// 微信会话
 		wxsession: {
-			type: String,
-			unique: true,
-			select: false,
+			type    : String,
+			unique  : true,
+			select  : false,
 			required: true,
-			trim: true,
+			trim    : true,
 
 		},
 
 		// 权限范围
 		scope: {
-			type: scope_model.default,
-			select: false,
+			type   : scope_model.default,
+			select : false,
 			default: null,
 
 		},
@@ -200,7 +194,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['shine']>
-	async function () {
+	async function ()
+	{
 		let doc = await this.select_sensitive_fields('+phone')
 
 		doc.active = detective.is_phone_number_string(doc.phone)
@@ -217,7 +212,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['overcast']>
-	async function () {
+	async function ()
+	{
 		this.active = false
 
 		await this.save()

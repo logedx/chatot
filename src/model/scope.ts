@@ -11,19 +11,26 @@ import * as detective from '../lib/detective.js'
 
 
 
-export enum Mode {
-	'普通', '管理', '接口', '系统'
+export enum Mode
+{
+	// eslint-disable-next-line id-match
+	普通, 管理, 接口, 系统,
 
 }
 
-export enum Role {
-	'普通' = 0b0_0000_0000_0000,
-	'管理' = 0b0_0000_0000_0001,
-	'财务' = 0b0_0000_0001_0000,
-	'运营' = 0b0_0001_0000_0000,
+export enum Role
+{
+	// eslint-disable-next-line id-match
+	普通 = 0b0_0000_0000_0000,
+	// eslint-disable-next-line id-match
+	管理 = 0b0_0000_0000_0001,
+	// eslint-disable-next-line id-match
+	财务 = 0b0_0000_0001_0000,
+	// eslint-disable-next-line id-match
+	运营 = 0b0_0001_0000_0000,
 
-	// eslint-disable-next-line @typescript-eslint/prefer-literal-enum-member
-	'无限' = Infinity,
+	// eslint-disable-next-line @typescript-eslint/prefer-literal-enum-member, id-match
+	无限 = Infinity,
 
 }
 
@@ -33,7 +40,7 @@ export type TRawDocType = storage.TRawDocType<
 	{
 		lock: boolean
 
-		value: number
+		value : number
 		expire: Date
 
 	}
@@ -50,13 +57,8 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	delay(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-		to: Date
-
-	): Promise<void>
+	// eslint-disable-next-line no-use-before-define
+	delay(this: THydratedDocumentType, to: Date): Promise<void>
 
 }
 
@@ -81,25 +83,25 @@ export const schema = new Schema<
 	{
 		// 锁定
 		lock: {
-			type: Boolean,
+			type    : Boolean,
 			required: true,
-			default: false,
+			default : false,
 
 		},
 
 		// 范围
 		value: {
-			type: Number,
+			type    : Number,
 			required: true,
-			default: 0,
+			default : 0,
 
 		},
 
 		// 过期时间
 		expire: {
-			type: Date,
+			type    : Date,
 			required: true,
-			default: () => moment().add(1, 'w')
+			default : () => moment().add(1, 'w')
 				.toDate(),
 
 		},
@@ -117,7 +119,8 @@ schema.index(
 
 
 schema.virtual('is_expire').get(
-	function (): TVirtuals['is_expire'] {
+	function (): TVirtuals['is_expire']
+	{
 		return new Date() > this.expire
 
 	},
@@ -130,8 +133,10 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['delay']>
-	async function (to) {
-		if (new Date() > to) {
+	async function (to)
+	{
+		if (new Date() > to)
+		{
 			throw new reply.Forbidden('invalid date')
 
 		}
@@ -150,7 +155,8 @@ export default schema
 
 
 
-export function align(...mode: Array<Mode>): number {
+export function align (...mode: Mode[]): number
+{
 	let value = Object.values(Role)
 		.filter(detective.is_finite_number)
 		.reduce(
@@ -169,10 +175,12 @@ export function align(...mode: Array<Mode>): number {
 
 }
 
-export function some(value: Role, ...role: Array<Role>): boolean {
+export function some (value: Role, ...role: Role[]): boolean
+{
 	value = Math.abs(value)
 
-	if (value === Role.无限) {
+	if (value === Role.无限)
+	{
 		return true
 
 	}
@@ -184,10 +192,12 @@ export function some(value: Role, ...role: Array<Role>): boolean {
 
 }
 
-export function mixed(value: Role, ...role: Array<Role>): Role {
+export function mixed (value: Role, ...role: Role[]): Role
+{
 	value = Math.abs(value)
 
-	if (value === Role.无限) {
+	if (value === Role.无限)
+	{
 		return Role.无限
 
 	}
@@ -202,13 +212,15 @@ export function mixed(value: Role, ...role: Array<Role>): Role {
 
 }
 
-export function pick(value: Role, ...mode: Array<Mode>): number {
+export function pick (value: Role, ...mode: Mode[]): number
+{
 	return value & align(...mode)
 
 
 }
 
-export function exclude(value: Role, ...mode: Array<Mode>): number {
+export function exclude (value: Role, ...mode: Mode[]): number
+{
 	value = Math.abs(value)
 
 	return value & (
@@ -218,7 +230,8 @@ export function exclude(value: Role, ...mode: Array<Mode>): number {
 
 }
 
-export function derive(value: Role, ...mode: Array<Mode>): number {
+export function derive (value: Role, ...mode: Mode[]): number
+{
 	value = Math.abs(value)
 
 	return mode.reduce(
@@ -230,10 +243,12 @@ export function derive(value: Role, ...mode: Array<Mode>): number {
 
 }
 
-export function chmod(value: Role, mode: Mode): Role {
+export function chmod (value: Role, mode: Mode): Role
+{
 	value = Math.abs(value)
 
-	if (value === Role.无限) {
+	if (value === Role.无限)
+	{
 		return Role.无限
 
 	}
@@ -242,15 +257,18 @@ export function chmod(value: Role, mode: Mode): Role {
 
 }
 
-export function vtmod(value: Role): Mode {
+export function vtmod (value: Role): Mode
+{
 	value = Math.abs(value)
 
-	if (value <= Role.普通) {
+	if (value <= Role.普通)
+	{
 		return Mode.普通
 
 	}
 
-	if (value === Role.无限) {
+	if (value === Role.无限)
+	{
 		return Mode.系统
 
 	}
@@ -263,10 +281,12 @@ export function vtmod(value: Role): Mode {
 		)
 
 	return vxmode.reduce(
-		(a, b) => {
+		(a, b) =>
+		{
 			let v = value & align(b)
 
-			if (v > 0) {
+			if (v > 0)
+			{
 				return b
 
 			}

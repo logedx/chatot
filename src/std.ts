@@ -5,13 +5,15 @@ import fs from 'node:fs/promises'
 
 
 
-export function draw(name: Array<string>, version: string, _indent = 2): string {
+export function draw (name: string[], version: string, _indent = 2): string
+{
 	return `${indent(name, _indent)} v${version}`
 
 }
 
 
-export function indent(text: Array<string>, value = 0): string {
+export function indent (text: string[], value = 0): string
+{
 	return text
 		.map(
 			v => v.padStart(value + v.length, ' '),
@@ -22,19 +24,19 @@ export function indent(text: Array<string>, value = 0): string {
 }
 
 
-export async function retrieve_art_font(filename: string): Promise<Array<string>> {
-	try {
-		let font: Array<string> = []
+export async function retrieve_art_font (filename: string): Promise<string[]>
+{
+	try
+	{
+		let font: string[] = []
 
 		let file = await fs.open(filename)
 
 
-		for await (let v of file.readLines()
-
-		) {
-			if (v.startsWith('```app:name')
-
-			) {
+		for await (let v of file.readLines() )
+		{
+			if (v.startsWith('```app:name') )
+			{
 				font.push(v)
 
 				continue
@@ -42,14 +44,14 @@ export async function retrieve_art_font(filename: string): Promise<Array<string>
 			}
 
 
-			if (font.length > 0) {
+			if (font.length > 0)
+			{
 				font.push(v)
 
 			}
 
-			if (v.startsWith('```')
-
-			) {
+			if (v.startsWith('```') )
+			{
 				break
 
 			}
@@ -61,20 +63,23 @@ export async function retrieve_art_font(filename: string): Promise<Array<string>
 
 	}
 
-	catch {
+	catch
+	{
 		return []
 
 	}
 
 }
 
-export async function retrieve_art_font_from_readme(dir: string): Promise<Array<string>> {
+export async function retrieve_art_font_from_readme (dir: string): Promise<string[]>
+{
 	let font = await retrieve_art_font(
 		path.resolve(dir, 'README.md'),
 
 	)
 
-	if (font.length > 0) {
+	if (font.length > 0)
+	{
 		return font
 
 	}

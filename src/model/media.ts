@@ -24,19 +24,19 @@ export type TRawDocType = storage.TRawDocType<
 		size: number
 		mime: string
 
-		folder: string
+		folder  : string
 		filename: string
 
-		store: 'alioss'
+		store : 'alioss'
 		bucket: string
 
 
-		src: string
+		src : string
 		hash: string
 
 		linker: Types.Array<
 			{
-				name: string
+				name : string
 				model: string
 
 			}
@@ -61,40 +61,22 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	safe_push(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-		body: stream.Readable,
+	// eslint-disable-next-line no-use-before-define
+	safe_push(this: THydratedDocumentType, body: stream.Readable): Promise<THydratedDocumentType>
 
 	// eslint-disable-next-line no-use-before-define
-	): Promise<THydratedDocumentType>
+	safe_delete(this: THydratedDocumentType): Promise<void>
 
-	safe_delete(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-	): Promise<void>
-
-	safe_access(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-		expires?: number,
-
-	): Promise<URL>
+	// eslint-disable-next-line no-use-before-define
+	safe_access(this: THydratedDocumentType, expires?: number): Promise<URL>
 
 }
 
 export type TStaticMethods = {
-	safe_delete(
-		// eslint-disable-next-line no-use-before-define
-		this: TModel,
-
-		weapp: Types.ObjectId,
-		...src: Array<string>
-
-	): Promise<
+	safe_delete
+	// eslint-disable-next-line no-use-before-define
+	(this: TModel, weapp: Types.ObjectId, ...src: string[])
+	: Promise<
 		Array<
 			PromiseSettledResult<void>
 
@@ -102,17 +84,12 @@ export type TStaticMethods = {
 
 	>
 
-	safe_access(
-		// eslint-disable-next-line no-use-before-define
-		this: TModel,
+	safe_access
+	// eslint-disable-next-line no-use-before-define
+	(this: TModel, weapp: Types.ObjectId, src: string, expires?: number,): Promise<URL>
 
-		weapp: Types.ObjectId,
-		src: string,
-		expires?: number,
-
-	): Promise<URL>
-
-	safe_to_link(
+	safe_to_link
+	(
 		// eslint-disable-next-line no-use-before-define
 		this: TModel,
 
@@ -121,8 +98,10 @@ export type TStaticMethods = {
 
 		query: { hash: string } | { src: string }
 
+	)
 	// eslint-disable-next-line no-use-before-define
-	): Promise<null | THydratedDocumentType>
+	: Promise<null | THydratedDocumentType>
+
 }
 
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
@@ -137,26 +116,31 @@ const drive = await storage.mongodb()
 
 
 
-export class Secret extends String {
+export class Secret extends String
+{
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	valueOf(): string {
+	valueOf (): string
+	{
 		return super.valueOf()
 
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	toBSON(): string {
+	toBSON (): string
+	{
 		return super.valueOf()
 
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	toString(): string {
+	toString (): string
+	{
 		return super.toString()
 
 	}
 
-	async track(): Promise<THydratedDocumentType> {
+	async track (): Promise<THydratedDocumentType>
+	{
 		// eslint-disable-next-line no-use-before-define
 		let doc = await drive.model<typeof schema>('Media')
 			.findOne(
@@ -170,8 +154,10 @@ export class Secret extends String {
 
 	}
 
-	async safe_access(expires = 1800): Promise<string> {
-		try {
+	async safe_access (expires = 1800): Promise<string>
+	{
+		try
+		{
 			let doc = await this.track()
 
 			let uri = await doc.safe_access(expires)
@@ -180,7 +166,8 @@ export class Secret extends String {
 
 		}
 
-		catch {
+		catch
+		{
 			// 
 
 		}
@@ -190,15 +177,16 @@ export class Secret extends String {
 	}
 
 
-	static cast(src: string | URL): string {
-		if (detective.is_media_uri_string(src)
-
-		) {
+	static cast (src: string | URL): string
+	{
+		if (detective.is_media_uri_string(src) )
+		{
 			src = new URL(src)
 
 		}
 
-		if (src instanceof URL) {
+		if (src instanceof URL)
+		{
 			src.search = ''
 
 			return src.href
@@ -213,12 +201,14 @@ export class Secret extends String {
 }
 
 
-class SecretSchemaType extends SchemaType {
+class SecretSchemaType extends SchemaType
+{
 	/** This schema type's name, to defend against minifiers that mangle function names. */
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	static schemaName: 'Secret'
 
-	constructor(_path: string, options: object) {
+	constructor (_path: string, options: object)
+	{
 		super(_path, options, 'SecretSchemaType')
 
 		this.select(false)
@@ -226,7 +216,8 @@ class SecretSchemaType extends SchemaType {
 		this.default('')
 
 		this.set(
-			function (src: string | URL): string {
+			function (src: string | URL): string
+			{
 				return Secret.cast(src)
 
 			},
@@ -235,7 +226,8 @@ class SecretSchemaType extends SchemaType {
 
 	}
 
-	cast(value: string): Secret {
+	cast (value: string): Secret
+	{
 		return new Secret(value)
 
 	}
@@ -259,28 +251,29 @@ export const schema = new Schema<
 >(
 	{
 		weapp: {
-			type: Schema.Types.ObjectId,
-			ref: () => weapp_model.default,
-			index: true,
+			type    : Schema.Types.ObjectId,
+			ref     : () => weapp_model.default,
+			index   : true,
 			required: true,
 
 		},
 
 		size: {
-			type: Number,
+			type    : Number,
 			required: true,
-			min: 0,
-			default: 0,
+			min     : 0,
+			default : 0,
 
 		},
 
 		mime: {
-			type: String,
-			required: true,
+			type     : String,
+			required : true,
 			lowercase: true,
-			trim: true,
+			trim     : true,
 
-			set(v: string) {
+			set (v: string)
+			{
 				let name = Date.now().toString(36)
 				let extension = mime_types.extension(v)
 
@@ -293,48 +286,49 @@ export const schema = new Schema<
 		},
 
 		folder: {
-			type: String,
+			type    : String,
 			required: true,
-			trim: true,
-			set: (v: string) => v.replace(/\\/g, '/')
+			trim    : true,
+			set     : (v: string) => v.replace(/\\/g, '/')
 				.replace(/\/{2,}/g, '/')
 				.replace(/^([^/])/g, '/$1'),
 
 		},
 
 		filename: {
-			type: String,
-			unique: true,
+			type    : String,
+			unique  : true,
 			required: true,
-			trim: true,
+			trim    : true,
 
 			validate: (v: string) => (/^[0-9a-z]+\.[a-z]+$/).test(v),
 
 		},
 
 		store: {
-			type: String,
+			type    : String,
 			required: true,
-			trim: true,
-			enum: ['alioss'],
-			default: 'alioss',
+			trim    : true,
+			enum    : ['alioss'],
+			default : 'alioss',
 
 		},
 
 		bucket: {
-			type: String,
+			type    : String,
 			required: true,
-			trim: true,
+			trim    : true,
 
 		},
 
 		src: {
-			type: String,
+			type  : String,
 			unique: true,
 			sparse: true,
-			trim: true,
+			trim  : true,
 
-			set(v: string | URL): string {
+			set (v: string | URL): string
+			{
 				return Secret.cast(v)
 
 			},
@@ -342,28 +336,29 @@ export const schema = new Schema<
 		},
 
 		hash: {
-			type: String,
+			type  : String,
 			unique: true,
 			sparse: true,
-			trim: true,
+			trim  : true,
 
 		},
 
 		linker: [
 			{
 				name: {
-					type: String,
-					required: true,
+					type     : String,
+					required : true,
 					lowercase: true,
-					trim: true,
+					trim     : true,
 
 				},
 
 				model: {
-					type: String,
+					type    : String,
 					required: true,
-					trim: true,
-					validate(v: string): boolean {
+					trim    : true,
+					validate (v: string): boolean
+					{
 						let k = v.toLowerCase()
 
 						let name = drive.modelNames()
@@ -386,7 +381,8 @@ export const schema = new Schema<
 
 
 schema.virtual('pathname').get(
-	function (): TVirtuals['pathname'] {
+	function (): TVirtuals['pathname']
+	{
 		return path.join(this.folder, this.filename).replace(/\\/g, '/')
 
 	},
@@ -399,32 +395,36 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['safe_push']>
-	async function (body) {
-		class SizeTrackingStream extends stream.Transform implements stream.Transform {
+	async function (body)
+	{
+		class SizeTrackingStream extends stream.Transform implements stream.Transform
+		{
 			#hash = crypto.createHash('md5')
 
 			#value = 0
 
-			get hash(): string {
+			get hash (): string
+			{
 				return this.#hash.digest('hex')
 
 			}
 
-			get value(): number {
+			get value (): number
+			{
 				return this.#value
 
 			}
 
-			_transform(
+			_transform (
 				chunk: unknown,
 				encoding: BufferEncoding,
 				callback: stream.TransformCallback,
 
-			): void {
+			): void
+			{
 				if (detective.is_buffer(chunk)
-						|| detective.is_array_buffer(chunk)
-
-				) {
+					|| detective.is_array_buffer(chunk) )
+				{
 					this.#hash.update(chunk as Buffer)
 					this.#value = this.#value + chunk.byteLength
 
@@ -458,12 +458,14 @@ schema.method(
 
 		this.src = result.url
 
-		try {
+		try
+		{
 			return await this.save()
 
 		}
 
-		catch (e) {
+		catch (e)
+		{
 			await this.deleteOne()
 
 			throw e
@@ -481,7 +483,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['safe_delete']>
-	async function () {
+	async function ()
+	{
 		let doc = await this.populate<TPopulatePaths>('weapp')
 
 		let client = doc.weapp.to_ali_oss()
@@ -500,7 +503,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['safe_access']>
-	async function (expires = 1800) {
+	async function (expires = 1800)
+	{
 		let doc = await this.populate<TPopulatePaths>('weapp')
 
 		let client = doc.weapp.to_ali_oss()
@@ -527,9 +531,11 @@ schema.method(
 schema.static<'safe_delete'>(
 	'safe_delete',
 
-	async function (weapp, ...src) {
+	async function (weapp, ...src)
+	{
 		src = src.map(
-			v => {
+			v =>
+			{
 				let uri = new URL(v)
 
 				uri.search = ''
@@ -560,7 +566,8 @@ schema.static<'safe_delete'>(
 schema.static<'safe_access'>(
 	'safe_access',
 
-	async function (weapp, src, expires = 1800) {
+	async function (weapp, src, expires = 1800)
+	{
 		let doc = await this.findOne(
 			{ weapp, src },
 
@@ -578,12 +585,12 @@ schema.static<'safe_access'>(
 schema.static<'safe_to_link'>(
 	'safe_to_link',
 
-	async function (name, model, query) {
+	async function (name, model, query)
+	{
 		let doc = await this.findOne(query)
 
-		if (detective.is_empty(doc)
-
-		) {
+		if (detective.is_empty(doc) )
+		{
 			return null
 
 		}
@@ -596,7 +603,8 @@ schema.static<'safe_to_link'>(
 
 		)
 
-		if (some) {
+		if (some)
+		{
 			return doc
 
 		}

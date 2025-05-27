@@ -8,12 +8,14 @@ import * as reply from '../../src/lib/reply.js'
 describe(
 	'lib: reply.stdio',
 
-	function () {
+	function ()
+	{
 		it(
 			'should write some messages to console',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let id = Date.now().toString()
 
 				let e = new Error('test')
@@ -53,12 +55,14 @@ describe(
 describe(
 	'lib: reply.Exception',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.Exception('test')
 
 				chai.expect(e).instanceof(Error)
@@ -80,12 +84,14 @@ describe(
 describe(
 	'lib: reply.BadRequest',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.BadRequest('test')
 
 				chai.expect(e).instanceof(Error)
@@ -109,12 +115,14 @@ describe(
 describe(
 	'lib: reply.Unauthorized',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.Unauthorized('test')
 
 				chai.expect(e).instanceof(Error)
@@ -138,12 +146,14 @@ describe(
 describe(
 	'lib: reply.Forbidden',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.Forbidden('test')
 
 				chai.expect(e).instanceof(Error)
@@ -167,12 +177,14 @@ describe(
 describe(
 	'lib: reply.NotFound',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.NotFound('test')
 
 				chai.expect(e).instanceof(Error)
@@ -196,12 +208,14 @@ describe(
 describe(
 	'lib: reply.MethodNotAllowed',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.MethodNotAllowed('test')
 
 				chai.expect(e).instanceof(Error)
@@ -225,12 +239,14 @@ describe(
 describe(
 	'lib: reply.RequestTimeout',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.RequestTimeout('test')
 
 				chai.expect(e).instanceof(Error)
@@ -254,12 +270,14 @@ describe(
 describe(
 	'lib: reply.Conflict',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.Conflict('test')
 
 				chai.expect(e).instanceof(Error)
@@ -283,12 +301,14 @@ describe(
 describe(
 	'lib: reply.Gone',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.Gone('test')
 
 				chai.expect(e).instanceof(Error)
@@ -312,12 +332,14 @@ describe(
 describe(
 	'lib: reply.Lengthrequired',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.Lengthrequired('test')
 
 				chai.expect(e).instanceof(Error)
@@ -341,12 +363,14 @@ describe(
 describe(
 	'lib: reply.PayloadTooLarge',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.PayloadTooLarge('test')
 
 				chai.expect(e).instanceof(Error)
@@ -370,12 +394,14 @@ describe(
 describe(
 	'lib: reply.UnsupportedMediaType',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.UnsupportedMediaType('test')
 
 				chai.expect(e).instanceof(Error)
@@ -399,12 +425,14 @@ describe(
 describe(
 	'lib: reply.TooEarly',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.TooEarly('test')
 
 				chai.expect(e).instanceof(Error)
@@ -428,12 +456,14 @@ describe(
 describe(
 	'lib: reply.TooManyRequests',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let e = new reply.TooManyRequests('test')
 
 				chai.expect(e).instanceof(Error)

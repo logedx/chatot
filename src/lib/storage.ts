@@ -41,15 +41,15 @@ export type TRawDocTypeOverwrite<T, U extends keyof T> = structure.Overwrite<
 >
 
 export type TInstanceMethods<T, M = unknown> = M & {
-	select_sensitive_fields<
+	select_sensitive_fields
+	<
 		F = keyof structure.GetPartial<T>,
 		O = Pick<T, F & keyof T>,
-		H = HydratedDocument<T, TInstanceMethods<T, M>>
+		H = HydratedDocument<T, TInstanceMethods<T, M>>,
 
-	>(
-		...fields: Array<`+${F & string}`>
-
-	): Promise<
+	>
+	(...fields: Array<`+${F & string}`>)
+	: Promise<
 		structure.Overwrite<
 			H,
 
@@ -59,10 +59,13 @@ export type TInstanceMethods<T, M = unknown> = M & {
 
 	>
 
-	select_every_fields<
-		H = HydratedDocument<T, TInstanceMethods<T, M>>
+	select_every_fields
+	<
+		H = HydratedDocument<T, TInstanceMethods<T, M>>,
 
-	>(): Promise<
+	>
+	()
+	: Promise<
 		Required<H>
 
 	>
@@ -75,21 +78,24 @@ export type TStaticMethods<T, M = unknown> = M & {
 }
 
 
-export async function mongodb(): Promise<typeof mongoose> {
-	if (connect.mongodb) {
+export async function mongodb (): Promise<typeof mongoose>
+{
+	if (connect.mongodb)
+	{
 		return connect.mongodb
 
 	}
 
 
 	mongoose.plugin(
-		function (schema): void {
+		function (schema): void
+		{
 			schema.set(
 				'toJSON',
 
 				{
-					virtuals: true,
-					minimize: false,
+					virtuals  : true,
+					minimize  : false,
 					// eslint-disable-next-line @typescript-eslint/naming-convention
 					versionKey: false,
 
@@ -101,8 +107,8 @@ export async function mongodb(): Promise<typeof mongoose> {
 				'toObject',
 
 				{
-					virtuals: true,
-					minimize: false,
+					virtuals  : true,
+					minimize  : false,
 					// eslint-disable-next-line @typescript-eslint/naming-convention
 					versionKey: false,
 
@@ -124,8 +130,10 @@ export async function mongodb(): Promise<typeof mongoose> {
 			)
 
 			schema.virtual('updated_hex').get(
-				function (): string {
-					if (this.updated instanceof Date) {
+				function (): string
+				{
+					if (this.updated instanceof Date)
+					{
 						let value = this.updated.valueOf()
 
 						return value.toString(16)
@@ -139,8 +147,10 @@ export async function mongodb(): Promise<typeof mongoose> {
 			)
 
 			schema.virtual('created_hex').get(
-				function (): string {
-					if (this.created instanceof Date) {
+				function (): string
+				{
+					if (this.created instanceof Date)
+					{
 						let value = this.created.valueOf()
 
 						return value.toString(16)
@@ -156,7 +166,8 @@ export async function mongodb(): Promise<typeof mongoose> {
 			schema.method(
 				'select_sensitive_fields',
 
-				function (...fields: Array<`+${string}`>) {
+				function (...fields: Array<`+${string}`>)
+				{
 					return this.model().findById(this._id)
 						.select(fields)
 
@@ -167,18 +178,20 @@ export async function mongodb(): Promise<typeof mongoose> {
 			schema.method(
 				'select_every_fields',
 
-				function (
+				function
+				(
 					this: HydratedDocument<
 						unknown,
 
 						{
-							select_sensitive_fields(...fields: Array<string>): Query<unknown, unknown>
+							select_sensitive_fields(...fields: string[]): Query<unknown, unknown>
 
 						}
 
 					>,
 
-				) {
+				)
+				{
 					let fields = Object.entries(this.schema.paths)
 						.map(
 							([k]) => `+${k}`,
@@ -194,7 +207,8 @@ export async function mongodb(): Promise<typeof mongoose> {
 			schema.static(
 				'select_every_fields',
 
-				function () {
+				function ()
+				{
 					return Object.entries(this.schema.paths)
 						.map(
 							([k]) => `+${k}`,
@@ -222,7 +236,8 @@ export async function mongodb(): Promise<typeof mongoose> {
 /**
  * ali_oss
  */
-export function ali_oss(): alioss {
+export function ali_oss (): alioss
+{
 	// eslint-disable-next-line new-cap
 	connect.ali_oss ??= new alioss(
 		{

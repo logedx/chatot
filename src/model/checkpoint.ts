@@ -18,13 +18,13 @@ import * as weapp_model from './weapp.js'
 
 export type TRawDocType = storage.TRawDocType<
 	{
-		scope: number
-		weapp: null | Types.ObjectId
-		user: null | Types.ObjectId
-		method: Uppercase<axios.Method>
+		scope   : number
+		weapp   : null | Types.ObjectId
+		user    : null | Types.ObjectId
+		method  : Uppercase<axios.Method>
 		original: string
-		expire: Date
-		context: null | Schema.Types.Mixed
+		expire  : Date
+		context : null | Schema.Types.Mixed
 
 	}
 
@@ -32,7 +32,7 @@ export type TRawDocType = storage.TRawDocType<
 
 export type TPopulatePaths = {
 	weapp: null | weapp_model.THydratedDocumentType
-	user: null | user_model.THydratedDocumentType
+	user : null | user_model.THydratedDocumentType
 
 }
 
@@ -45,13 +45,9 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	hold(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-		context: unknown,
-
-	): Promise<void>
+	hold
+	// eslint-disable-next-line no-use-before-define
+	(this: THydratedDocumentType, context: unknown): Promise<void>
 
 }
 
@@ -78,53 +74,53 @@ export const schema = new Schema<
 >(
 	{
 		scope: {
-			type: Number,
+			type    : Number,
 			required: true,
-			default: 0,
+			default : 0,
 
 		},
 
 		weapp: {
-			type: Schema.Types.ObjectId,
-			ref: () => weapp_model.default,
-			index: true,
+			type   : Schema.Types.ObjectId,
+			ref    : () => weapp_model.default,
+			index  : true,
 			default: null,
 
 		},
 
 		user: {
-			type: Schema.Types.ObjectId,
-			ref: () => user_model.default,
-			index: true,
+			type   : Schema.Types.ObjectId,
+			ref    : () => user_model.default,
+			index  : true,
 			default: null,
 
 		},
 
 		method: {
-			type: String,
+			type    : String,
 			required: true,
-			trim: true,
-			set: (v: string) => v.toUpperCase(),
+			trim    : true,
+			set     : (v: string) => v.toUpperCase(),
 
 		},
 
 		original: {
-			type: String,
+			type    : String,
 			required: true,
-			trim: true,
+			trim    : true,
 
 		},
 
 		expire: {
-			type: Date,
-			expires: 0,
+			type    : Date,
+			expires : 0,
 			required: true,
-			default: () => secret.delay(86400 * 365),
+			default : () => secret.delay(86400 * 365),
 
 		},
 
 		context: {
-			type: Schema.Types.Mixed,
+			type   : Schema.Types.Mixed,
 			default: null,
 
 		},
@@ -135,7 +131,8 @@ export const schema = new Schema<
 
 
 schema.virtual('mode').get(
-	function (): TVirtuals['mode'] {
+	function (): TVirtuals['mode']
+	{
 		return scope_model.vtmod(this.scope)
 
 	},
@@ -148,8 +145,10 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['hold']>
-	async function (context) {
-		if (context instanceof Document) {
+	async function (context)
+	{
+		if (context instanceof Document)
+		{
 			context = context.toObject()
 
 		}

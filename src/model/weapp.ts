@@ -16,18 +16,18 @@ import * as detective from '../lib/detective.js'
 
 export type TRawDocType = storage.TRawDocType<
 	{
-		appid: string
+		appid : string
 		bucket: string
 
-		secret?: string
-		mchid?: string
-		v3key?: string
-		sign?: string
+		secret?  : string
+		mchid?   : string
+		v3key?   : string
+		sign?    : string
 		evidence?: string
-		verify?: string
-		token?: string
-		refresh?: string
-		expired?: Date
+		verify?  : string
+		token?   : string
+		refresh? : string
+		expired? : Date
 
 		closed: Date
 
@@ -45,48 +45,26 @@ export type TInstanceMethods = storage.TInstanceMethods<
 	TRawDocType,
 
 	{
-		get_access_token(
-			// eslint-disable-next-line no-use-before-define
-			this: THydratedDocumentType,
+		// eslint-disable-next-line no-use-before-define
+		get_access_token(this: THydratedDocumentType): Promise<string>
 
-		): Promise<string>
+		// eslint-disable-next-line no-use-before-define
+		get_wx_session(this: THydratedDocumentType, code: string): Promise<weapp.WxSession>
 
-		get_wx_session(
-			// eslint-disable-next-line no-use-before-define
-			this: THydratedDocumentType,
+		// eslint-disable-next-line no-use-before-define
+		to_phone_number(this: THydratedDocumentType, code: string): Promise<string>
 
-			code: string,
+		to_unlimited
+		// eslint-disable-next-line no-use-before-define
+		(this: THydratedDocumentType, path: string, scene: string): Promise<weapp.Unlimited>
 
-		): Promise<weapp.WxSession>
+		// eslint-disable-next-line no-use-before-define
+		to_ali_oss(this: THydratedDocumentType): ali_oss
 
-		to_phone_number(
-			// eslint-disable-next-line no-use-before-define
-			this: THydratedDocumentType,
-
-			code: string,
-
-		): Promise<string>
-
-		to_unlimited(
-			// eslint-disable-next-line no-use-before-define
-			this: THydratedDocumentType,
-
-			path: string,
-			scene: string,
-
-		): Promise<weapp.Unlimited>
-
-		to_ali_oss(
-			// eslint-disable-next-line no-use-before-define
-			this: THydratedDocumentType,
-
-		): ali_oss
-
-		to_api_v3_option(
-			// eslint-disable-next-line no-use-before-define
-			this: THydratedDocumentType,
-
-		): Promise<
+		to_api_v3_option
+		// eslint-disable-next-line no-use-before-define
+		(this: THydratedDocumentType)
+		: Promise<
 			storage.TRawDocTypeOverwrite<
 				// eslint-disable-next-line no-use-before-define
 				THydratedDocumentType,
@@ -98,17 +76,11 @@ export type TInstanceMethods = storage.TInstanceMethods<
 
 		>
 
-		get_transactions_api_v3(
-			// eslint-disable-next-line no-use-before-define
-			this: THydratedDocumentType,
+		// eslint-disable-next-line no-use-before-define
+		get_transactions_api_v3(this: THydratedDocumentType): Promise<wepay.Transactions>
 
-		): Promise<wepay.Transactions>
-
-		get_refund_api_v3(
-			// eslint-disable-next-line no-use-before-define
-			this: THydratedDocumentType,
-
-		): Promise<wepay.Refund>
+		// eslint-disable-next-line no-use-before-define
+		get_refund_api_v3(this: THydratedDocumentType): Promise<wepay.Refund>
 
 
 	}
@@ -141,105 +113,105 @@ export const schema = new Schema<
 	{
 		// 微信小程序APPID
 		appid: {
-			type: String,
-			unique: true,
+			type    : String,
+			unique  : true,
 			required: true,
-			trim: true,
+			trim    : true,
 
 		},
 
 		// Object storage Service Bucket
 		bucket: {
-			type: String,
-			unique: true,
+			type    : String,
+			unique  : true,
 			required: true,
-			trim: true,
+			trim    : true,
 
 		},
 
 		// 微信小程序SECRET
 		secret: {
-			type: String,
-			select: false,
+			type    : String,
+			select  : false,
 			required: true,
-			trim: true,
+			trim    : true,
 
 		},
 
 		// 微信支付MCHID
 		mchid: {
-			type: String,
-			select: false,
-			trim: true,
+			type   : String,
+			select : false,
+			trim   : true,
 			default: '',
 
 		},
 
 		// API v3密钥
 		v3key: {
-			type: String,
-			select: false,
-			trim: true,
+			type   : String,
+			select : false,
+			trim   : true,
 			default: '',
 
 		},
 
 		// 微信支付商户私钥
 		sign: {
-			type: String,
-			select: false,
-			trim: true,
+			type   : String,
+			select : false,
+			trim   : true,
 			default: '',
 
 		},
 
 		// 微信支付商户证书
 		evidence: {
-			type: String,
-			select: false,
-			trim: true,
+			type   : String,
+			select : false,
+			trim   : true,
 			default: '',
 
 		},
 
 		// 微信支付平台证书
 		verify: {
-			type: String,
-			select: false,
-			trim: true,
+			type   : String,
+			select : false,
+			trim   : true,
 			default: '',
 
 		},
 
 		// 微信接口调用令牌 
 		token: {
-			type: String,
-			select: false,
-			trim: true,
+			type   : String,
+			select : false,
+			trim   : true,
 			default: '',
 
 		},
 
 		// 微信接口调用令牌刷新令牌
 		refresh: {
-			type: String,
-			select: false,
-			trim: true,
+			type   : String,
+			select : false,
+			trim   : true,
 			default: '',
 
 		},
 
 		// 微信接口调用令牌过期时间
 		expired: {
-			type: Date,
-			select: false,
+			type   : Date,
+			select : false,
 			default: null,
 
 		},
 
 		// 关停日期
 		closed: {
-			type: Date,
+			type   : Date,
 			default: null,
 
 		},
@@ -260,17 +232,18 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['get_access_token']>
-	async function () {
+	async function ()
+	{
 		let doc = await this.select_sensitive_fields('+secret', '+token', '+refresh', '+expired')
 
-		if (doc.token && doc.expired > new Date()
-
-		) {
+		if (doc.token && doc.expired > new Date() )
+		{
 			return doc.token
 
 		}
 
-		if (doc.secret) {
+		if (doc.secret)
+		{
 			let result = await weapp.get_access_token(doc.appid, doc.secret)
 
 			await doc.updateOne(result)
@@ -291,7 +264,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['get_wx_session']>
-	async function (code) {
+	async function (code)
+	{
 		let doc = await this.select_sensitive_fields('+secret')
 
 		return weapp.get_wx_session(doc.appid, doc.secret, code)
@@ -307,7 +281,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['to_unlimited']>
-	async function (path, scene) {
+	async function (path, scene)
+	{
 		let token = await this.get_access_token()
 
 		return weapp.get_unlimited(token, path, scene)
@@ -322,7 +297,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['to_phone_number']>
-	async function (code) {
+	async function (code)
+	{
 		let token = await this.get_access_token()
 
 		return weapp.get_phone_number(token, code)
@@ -338,7 +314,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['to_ali_oss']>
-	function () {
+	function ()
+	{
 		const client = storage.ali_oss()
 
 		client.useBucket(this.bucket)
@@ -355,7 +332,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['to_api_v3_option']>
-	function () {
+	function ()
+	{
 		return this.select_sensitive_fields('+mchid', '+v3key', '+sign', '+evidence', '+verify')
 
 	},
@@ -368,7 +346,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['get_transactions_api_v3']>
-	async function () {
+	async function ()
+	{
 		let option = await this.to_api_v3_option()
 
 		let trans = new wepay.Transactions(option)
@@ -376,10 +355,10 @@ schema.method(
 		trans.on(
 			'update',
 
-			async (name, ctx) => {
-				if (detective.is_string(ctx)
-
-				) {
+			async (name, ctx) =>
+			{
+				if (detective.is_string(ctx) )
+				{
 					ctx = Buffer.from(ctx)
 
 				}
@@ -404,7 +383,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['get_refund_api_v3']>
-	async function () {
+	async function ()
+	{
 		let option = await this.to_api_v3_option()
 
 		return new wepay.Refund(option)

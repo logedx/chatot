@@ -30,7 +30,8 @@ router.get(
 
 	),
 
-	async function retrieve_pagination(req, res) {
+	async function retrieve_pagination (req, res)
+	{
 		type Suspect = {
 			closed?: detective.Expired
 
@@ -75,7 +76,8 @@ router.get(
 
 	retrieve_router.weapp,
 
-	function retrieve(req, res) {
+	function retrieve (req, res)
+	{
 		res.json(req.weapp)
 
 	},
@@ -97,11 +99,12 @@ router.put(
 
 	retrieve_router.weapp,
 
-	async function update(req, res) {
+	async function update (req, res)
+	{
 		type Suspect = {
 			secret: string
-			mchid: string
-			v3key: string
+			mchid : string
+			v3key : string
 
 		}
 
@@ -152,7 +155,8 @@ router.delete(
 
 	retrieve_router.weapp,
 
-	async function delete_(req, res) {
+	async function delete_ (req, res)
+	{
 		let doc = req.weapp!
 		let ctx = req.checkpoint!
 
@@ -180,7 +184,8 @@ router.get(
 
 	retrieve_router.weapp,
 
-	async function retrieve_user_pagination(req, res) {
+	async function retrieve_user_pagination (req, res)
+	{
 		type Suspect = {
 			$or?: evidence.Keyword<user_model.TRawDocKeyword>
 

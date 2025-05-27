@@ -18,12 +18,13 @@ const wxopen_api = axios.create(
 
 type WxopenAPIErrorResult = {
 	errcode: number
-	errmsg: string
+	errmsg : string
 
 }
 
 
-function is_wxopen_api_error_result(v: unknown): v is WxopenAPIErrorResult {
+function is_wxopen_api_error_result (v: unknown): v is WxopenAPIErrorResult
+{
 	return detective.is_object(v)
 		&& detective.is_number(v.errcode)
 		&& detective.is_string(v.errmsg)
@@ -32,13 +33,13 @@ function is_wxopen_api_error_result(v: unknown): v is WxopenAPIErrorResult {
 }
 
 wxopen_api.interceptors.response.use(
-	res => {
+	res =>
+	{
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		let { data } = res
 
-		if (is_wxopen_api_error_result(data) === true
-
-		) {
+		if (is_wxopen_api_error_result(data) === true)
+		{
 			let e = new reply.BadRequest('wxopen api request failed')
 
 			e.push('data', data)
@@ -52,29 +53,31 @@ wxopen_api.interceptors.response.use(
 
 	},
 
-	res => {
+	res =>
+	{
 		let error = new reply.BadRequest()
 
-		if (res instanceof Error) {
+		if (res instanceof Error)
+		{
 			error.message = res.message
 
 		}
 
-		if (isAxiosError(res)
-
-		) {
-			if (res.response) {
+		if (isAxiosError(res) )
+		{
+			if (res.response)
+			{
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				let { data } = res.response
 
-				if (data instanceof Error) {
+				if (data instanceof Error)
+				{
 					error.message = data.message
 
 				}
 
-				if (is_wxopen_api_error_result(data)
-
-				) {
+				if (is_wxopen_api_error_result(data) )
+				{
 					error.message = data.errmsg
 
 				}
@@ -92,17 +95,18 @@ wxopen_api.interceptors.response.use(
 
 
 export type AccessToken = {
-	token: string
+	token  : string
 	expired: Date
 }
 
 /**
  * 获取授权方接口调用令牌
  */
-export async function get_access_token(appid: string, secret: string): Promise<AccessToken> {
+export async function get_access_token (appid: string, secret: string): Promise<AccessToken>
+{
 	type Result = {
 		access_token: string
-		expires_in: string
+		expires_in  : string
 	}
 
 
@@ -130,30 +134,27 @@ export async function get_access_token(appid: string, secret: string): Promise<A
 
 
 export type WxSession = {
-	openid: string
+	openid : string
 	unionid: string
-	value: string
+	value  : string
 }
 
 /**
  * 小程序登录
  */
-export async function get_wx_session(
-	appid: string,
-	secret: string,
-	js_code: string,
-
-): Promise<WxSession> {
+export async function get_wx_session
+(appid: string, secret: string, js_code: string): Promise<WxSession>
+{
 	type Params = {
-		appid: string
-		secret: string
-		js_code: string
+		appid     : string
+		secret    : string
+		js_code   : string
 		grant_type: string
 	}
 
 	type Result = {
-		openid: string
-		unionid: string
+		openid     : string
+		unionid    : string
 		session_key: string
 	}
 
@@ -174,7 +175,7 @@ export async function get_wx_session(
 }
 
 export type Unlimited = {
-	body: http.IncomingMessage
+	body    : http.IncomingMessage
 	filename: string
 }
 
@@ -182,28 +183,30 @@ export type Unlimited = {
  * 获取小程序码，适用于需要的码数量极多的业务场景。
  * 通过该接口生成的小程序码，永久有效，数量暂无限制。
  */
-export async function get_unlimited(
+export async function get_unlimited
+(
 	access_token: string,
 	page: string,
 	scene: string,
 	option?: { width: number, auto_color: boolean, line_color: object },
 
-): Promise<Unlimited> {
-	if (page.startsWith('/')
-
-	) {
+)
+: Promise<Unlimited>
+{
+	if (page.startsWith('/') )
+	{
 		page = page.slice(1)
 
 	}
 
 	let request = await wxopen_api.request<http.IncomingMessage>(
 		{
-			method: 'post',
+			method      : 'post',
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			responseType: 'stream',
-			url: '/wxa/getwxacodeunlimit',
-			data: { scene, page, ...option },
-			params: { access_token },
+			url         : '/wxa/getwxacodeunlimit',
+			data        : { scene, page, ...option },
+			params      : { access_token },
 
 		},
 
@@ -212,19 +215,20 @@ export async function get_unlimited(
 	let body = request.data
 	let mime = `${request.headers['content-type']}`
 
-	if (mime.includes('application/json')
-
-	) {
+	if (mime.includes('application/json') )
+	{
 		let result = await new Promise<WxopenAPIErrorResult>(
-			(resolve, reject) => {
-				let chunks: Array<Buffer> = []
+			(resolve, reject) =>
+			{
+				let chunks: Buffer[] = []
 
 
 				body
 					.on(
 						'data',
 
-						(chunk: Buffer) => {
+						(chunk: Buffer) =>
+						{
 							chunks.push(chunk)
 
 						},
@@ -233,8 +237,10 @@ export async function get_unlimited(
 					.on(
 						'end',
 
-						() => {
-							try {
+						() =>
+						{
+							try
+							{
 								let parse = Buffer.concat(chunks).toString()
 
 								let data = JSON.parse(parse) as WxopenAPIErrorResult
@@ -243,14 +249,17 @@ export async function get_unlimited(
 
 							}
 
-							catch (e) {
-								if (e instanceof Error) {
+							catch (e)
+							{
+								if (e instanceof Error)
+								{
 									reject(e)
 
 									return
+
 								}
 
-								reject(new Error('unknown error'))
+								reject(new Error('unknown error') )
 
 							}
 
@@ -270,9 +279,8 @@ export async function get_unlimited(
 	let filename = Date.now().toString(36)
 	let extension = mime_types.extension(mime)
 
-	if (detective.is_required_string(extension)
-
-	) {
+	if (detective.is_required_string(extension) )
+	{
 		filename = `${filename}.${extension}`
 
 	}
@@ -287,22 +295,22 @@ export async function get_unlimited(
 /**
  * 换取用户手机号
  */
-export async function get_phone_number(
-	access_token: string,
-	code: string,
-
-): Promise<string> {
+export async function get_phone_number
+(access_token: string, code: string): Promise<string>
+{
 	type Result = {
 		phone_info: {
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			phoneNumber: string
+			phoneNumber    : string
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			purePhoneNumber: string
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			countryCode: string
+			countryCode    : string
+
 			watermark: {
 				timestamp: number
-				appid: string
+				appid    : string
+
 			}
 
 		}
@@ -330,14 +338,17 @@ export async function get_phone_number(
  * 发送订阅消息
  */
 // eslint-disable-next-line max-params
-export async function send_notice_message(
+export async function send_notice_message
+(
 	access_token: string,
 	touser: string,
 	template_id: string,
 	page: string,
 	data: Record<string, { value: string }>,
 
-): Promise<void> {
+)
+: Promise<void>
+{
 	await wxopen_api.post(
 		'/cgi-bin/message/subscribe/send',
 

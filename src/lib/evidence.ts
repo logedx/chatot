@@ -11,13 +11,13 @@ export type InferAlias<T extends object, K extends keyof T> = Exclude<keyof T, K
 
 export type InferOption<T extends object, K extends keyof T> = {
 	rename?: K
-	alias?: InferAlias<T, K>
-	quiet?: true
+	alias? : InferAlias<T, K>
+	quiet? : true
 
 }
 
 export type InferQuietOption<T extends object, K extends keyof T> = {
-	quiet: true
+	quiet : true
 	alias?: InferAlias<T, K>
 
 }
@@ -28,11 +28,8 @@ export type InferPartialQuietOption<T extends object, K extends keyof T> = {
 
 }
 
-export type InferRenameOption<T extends object, K extends keyof T> = {
-	rename: K
-
-} & (
-		K extends keyof structure.GetPartial<T>
+export type InferRenameOption<T extends object, K extends keyof T> = { rename: K }
+	& (K extends keyof structure.GetPartial<T>
 		? InferQuietOption<T, K>
 		: InferPartialQuietOption<T, K>
 
@@ -42,68 +39,69 @@ export type InferRenameOption<T extends object, K extends keyof T> = {
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ExhibitKey<T, N extends keyof T> = T extends Array<any> ? number : N
+export type ExhibitKey<T, N extends keyof T> = T extends any[] ? number : N
 
 
 export type ExhibitValue<T, N extends keyof T> = T extends Array<infer A> ? A : T[N]
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ExhibitExpectValue<T> = T extends Array<any> ? T : Partial<T>
+export type ExhibitExpectValue<T> = T extends any[] ? T : Partial<T>
 
 
 
 export type PaginSuspect = {
-	skip: number
+	skip : number
 	limit: number
-	sort: string
+	sort : string
 
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type PaginLinker<T extends object> = T extends Array<any> ? never : T
+export type PaginLinker<T extends object> = T extends any[] ? never : T
 
 export type Keyword<
 	T extends string,
-	L extends string = structure.GetUnionLastElement<T>
+	L extends string = structure.GetUnionLastElement<T>,
 
 > = [T] extends [never]
 	? []
-
 	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-	: [...Keyword<Exclude<T, L>>, { [k in L]: RegExp },]
+	: [...Keyword<Exclude<T, L>>, { [k in L]: RegExp }]
 
 
 
 
-export class Exhibit<T extends object> {
+export class Exhibit<T extends object>
+{
 	#source: unknown
 
 	#value?: unknown
 
 	#so: boolean | Record<PropertyKey, true> = false
 
-	constructor(source: unknown) {
+	constructor (source: unknown)
+	{
 		this.#source = source
 
 	}
 
-	get source(): unknown {
+	get source (): unknown
+	{
 		return structure.clone(this.#source)
 
 	}
 
-	has(
-		key: ExhibitKey<T, keyof T>,
-		and?: { empty?: boolean },
-
-	): boolean {
+	has
+	(key: ExhibitKey<T, keyof T>, and?: { empty?: boolean }): boolean
+	{
 		let a = detective.is_array(this.#value)
 			&& detective.is_number(key)
 
 		let b = detective.is_object_legitimism(this.#value)
-				&& detective.is_required_string(key)
+			&& detective.is_required_string(key)
 
-		if (a === false && b === false) {
+		if (a === false && b === false)
+		{
 			return false
 
 		}
@@ -111,16 +109,14 @@ export class Exhibit<T extends object> {
 
 		let v = (this.#value as Record<PropertyKey, unknown>)[key]
 
-		if (detective.is_undefined(v)
-
-		) {
+		if (detective.is_undefined(v) )
+		{
 			return false
 
 		}
 
-		if (detective.is_exist(and?.empty)
-
-		) {
+		if (detective.is_exist(and?.empty) )
+		{
 			return detective.is_empty(v) === and.empty
 
 		}
@@ -130,17 +126,18 @@ export class Exhibit<T extends object> {
 
 	}
 
-	get(): T
+	get (): T
 
-	get<N extends keyof T>(key: ExhibitKey<T, N>, _default?: ExhibitValue<T, N>): ExhibitValue<T, N>
+	get
+	<N extends keyof T>(key: ExhibitKey<T, N>, _default?: ExhibitValue<T, N>): ExhibitValue<T, N>
 
-	get<N extends keyof T>(key?: ExhibitKey<T, N>, _default?: ExhibitValue<T, N>): T | ExhibitValue<T, N> {
-		if (detective.is_undefined(key)
-
-		) {
-			if (detective.is_exist(this.#value)
-
-			) {
+	get
+	<N extends keyof T>(key?: ExhibitKey<T, N>, _default?: ExhibitValue<T, N>): T | ExhibitValue<T, N>
+	{
+		if (detective.is_undefined(key) )
+		{
+			if (detective.is_exist(this.#value) )
+			{
 				return structure.clone(this.#value) as T
 
 			}
@@ -150,23 +147,20 @@ export class Exhibit<T extends object> {
 		}
 
 		if (detective.is_number(key)
-			&& detective.is_array(this.#value)
-
-		) {
+			&& detective.is_array(this.#value) )
+		{
 			return structure.clone(this.#value[key]) as ExhibitValue<T, N>
 
 		}
 
-		if (detective.is_object(this.#value)
-
-		) {
+		if (detective.is_object(this.#value) )
+		{
 			return structure.clone(this.#value[key as N]) as ExhibitValue<T, N>
 
 		}
 
-		if (detective.is_undefined(_default)
-
-		) {
+		if (detective.is_undefined(_default) )
+		{
 			throw new reply.BadRequest(`${key.toString()} is not exist`)
 
 		}
@@ -175,25 +169,26 @@ export class Exhibit<T extends object> {
 
 	}
 
-	#del(key: PropertyKey): void {
-		if (detective.is_array(this.#value)
-
-		) {
+	#del (key: PropertyKey): void
+	{
+		if (detective.is_array(this.#value) )
+		{
 			this.#value.splice(key as number, 1)
 
 		}
 
-		else if (detective.is_object(this.#value)
-
-		) {
+		else if (detective.is_object(this.#value) )
+		{
 			delete this.#value[key]
 
 		}
 
 	}
 
-	#set(key: PropertyKey, value?: unknown): void {
-		if (detective.is_object(this.#value) === false) {
+	#set (key: PropertyKey, value?: unknown): void
+	{
+		if (detective.is_object(this.#value) === false)
+		{
 			this.#value = {}
 
 		}
@@ -202,43 +197,45 @@ export class Exhibit<T extends object> {
 
 	}
 
-	async set<N extends keyof T, P = ExhibitExpectValue<T>>(
+	async set
+	<N extends keyof T, P = ExhibitExpectValue<T>>(
 		key: ExhibitKey<T, N>,
 
-		value: T[N] | Promise<T[N]> | ((v: P) => T[N]) | ((v: P) => Promise<T[N]>),
+		value: T[N] | Promise<T[N]> | ( (v: P) => T[N]) | ( (v: P) => Promise<T[N]>),
 
 		when?: boolean,
 
-	): Promise<void> {
-		if (when === false) {
+	)
+	: Promise<void>
+	{
+		if (when === false)
+		{
 			return
 
 		}
 
-		if (detective.is_any_function(value)
-
-		) {
+		if (detective.is_any_function(value) )
+		{
 			value = value(this.#value as P)
 
 		}
 
-		if (detective.is_number(key)
-
-		) {
-			if (detective.is_array(this.#value) === false) {
+		if (detective.is_number(key) )
+		{
+			if (detective.is_array(this.#value) === false)
+			{
 				this.#value = []
 
 			}
 
-			(this.#value as Array<unknown>)[key] = await value
+			(this.#value as unknown[])[key] = await value
 
 			return
 
 		}
 
-		if (detective.is_required_string(key)
-
-		) {
+		if (detective.is_required_string(key) )
+		{
 			this.#set(key, await value)
 
 			return
@@ -250,16 +247,18 @@ export class Exhibit<T extends object> {
 
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-	async deplete<K extends keyof T, V = Exclude<ExhibitValue<T, K>, undefined>>(
+
+	async deplete
+	<K extends keyof T, V = Exclude<ExhibitValue<T, K>, undefined>>(
 		key: ExhibitKey<T, K>,
 
 		fn: (v: V) => void | Promise<void>,
 
-	): Promise<void> {
-		if (this.has(key) === false
-
-		) {
+	)
+	: Promise<void>
+	{
+		if (this.has(key) === false)
+		{
 			return
 
 		}
@@ -273,7 +272,8 @@ export class Exhibit<T extends object> {
 
 	}
 
-	inject(target: object): void {
+	inject (target: object): void
+	{
 		Object.assign(
 			target, this.get(),
 
@@ -281,21 +281,24 @@ export class Exhibit<T extends object> {
 
 	}
 
-	async #call(fn: () => Promise<void>): Promise<void> {
-		try {
+	async #call (fn: () => Promise<void>): Promise<void>
+	{
+		try
+		{
 			await fn()
 
 		}
 
-		catch (e) {
-			if (e instanceof reply.Exception) {
+		catch (e)
+		{
+			if (e instanceof reply.Exception)
+			{
 				throw e
 
 			}
 
-			if (detective.is_error(e)
-
-			) {
+			if (detective.is_error(e) )
+			{
 				throw new reply.BadRequest(e.message)
 
 			}
@@ -306,41 +309,46 @@ export class Exhibit<T extends object> {
 
 	}
 
-	async #infer(chain: Chain<T>): Promise<void> {
+	async #infer (chain: Chain<T>): Promise<void>
+	{
 		this.#value = await chain.verify(this.#source)
 
 		this.#confirm()
 
 	}
 
-	async #infer_signed(
+	async #infer_signed (
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		chain: Chain<any, any>,
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		option: InferOption<any, any>,
 
-	): Promise<void> {
-		if (detective.is_object(this.#source) === false) {
+	)
+	: Promise<void>
+	{
+		if (detective.is_object(this.#source) === false)
+		{
 			throw new Error('is not a object')
 
 		}
 
-		if (detective.is_object_key(chain.symbol) === false) {
+		if (detective.is_object_key(chain.symbol) === false)
+		{
 			throw new Error('symbol is not a object key')
 
 		}
 
 		let key = chain.symbol
 
-		if (detective.is_object_key(option.rename)
-
-		) {
+		if (detective.is_object_key(option.rename) )
+		{
 			key = option.rename
 
 		}
 
-		try {
+		try
+		{
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			let value = await chain.verify(this.#source[chain.symbol])
 
@@ -348,9 +356,8 @@ export class Exhibit<T extends object> {
 			this.#set(key, value)
 
 
-			if (detective.is_exist(option.alias)
-
-			) {
+			if (detective.is_exist(option.alias) )
+			{
 				this.#confirm(option.alias)
 				this.#set(option.alias, value)
 
@@ -358,22 +365,22 @@ export class Exhibit<T extends object> {
 
 		}
 
-		catch (e) {
-			if (detective.is_exist(option.quiet)
-
-			) {
+		catch (e)
+		{
+			if (detective.is_exist(option.quiet) )
+			{
 				this.#del(key)
 
-				if (detective.is_exist(option.alias)
-
-				) {
+				if (detective.is_exist(option.alias) )
+				{
 					this.#del(option.alias)
 
 				}
 
 			}
 
-			else {
+			else
+			{
 				throw e
 
 			}
@@ -386,7 +393,8 @@ export class Exhibit<T extends object> {
 	}
 
 
-	infer(chain: Chain<T>): Promise<void> {
+	infer (chain: Chain<T>): Promise<void>
+	{
 		return this.#call(
 			() => this.#infer(chain),
 
@@ -396,33 +404,41 @@ export class Exhibit<T extends object> {
 	}
 
 
-	infer_signed<K extends Exclude<keyof T, keyof structure.GetPartial<T>>>(
+	infer_signed
+	<K extends Exclude<keyof T, keyof structure.GetPartial<T>>>(
 		chain: Chain<T[K], K>,
 
 		option?: InferPartialQuietOption<T, K>,
 
-	): Promise<void>
+	)
+	: Promise<void>
 
-	infer_signed<K extends keyof structure.GetPartial<T>>(
+	infer_signed
+	<K extends keyof structure.GetPartial<T>>(
 		chain: Chain<T[K], K>,
 
 		option: InferQuietOption<T, K>,
 
-	): Promise<void>
+	)
+	: Promise<void>
 
-	infer_signed<K extends keyof T, S extends PropertyKey>(
+	infer_signed
+	<K extends keyof T, S extends PropertyKey>(
 		chain: Chain<T[K], Exclude<S, K>>,
 
 		option: InferRenameOption<T, K>,
 
 	): Promise<void>
 
-	infer_signed<K extends keyof T, S extends PropertyKey>(
+	infer_signed
+	<K extends keyof T, S extends PropertyKey>(
 		chain: Chain<T[K], K> | Chain<T[K], Exclude<S, K>>,
 
 		option: InferQuietOption<T, K> | InferPartialQuietOption<T, K> | InferRenameOption<T, K> = {},
 
-	): Promise<void> {
+	)
+	: Promise<void>
+	{
 		return this.#call(
 			() => this.#infer_signed(
 				chain,
@@ -438,19 +454,18 @@ export class Exhibit<T extends object> {
 	}
 
 
-	#confirm(v?: PropertyKey): void {
-		if (detective.is_undefined(v)
-
-		) {
+	#confirm (v?: PropertyKey): void
+	{
+		if (detective.is_undefined(v) )
+		{
 			this.#so = true
 
 			return
 
 		}
 
-		if (detective.is_object(this.#so)
-
-		) {
+		if (detective.is_object(this.#so) )
+		{
 			this.#so[v] = true
 
 			return
@@ -461,17 +476,16 @@ export class Exhibit<T extends object> {
 
 	}
 
-	so<N extends keyof T>(key?: ExhibitKey<T, N>): boolean {
-		if (detective.is_undefined(key)
-
-		) {
+	so<N extends keyof T>(key?: ExhibitKey<T, N>): boolean
+	{
+		if (detective.is_undefined(key) )
+		{
 			return this.#so === true || detective.is_object(this.#so)
 
 		}
 
-		if (detective.is_object(this.#so)
-
-		) {
+		if (detective.is_object(this.#so) )
+		{
 			return this.#so[key] === true
 
 		}
@@ -484,7 +498,9 @@ export class Exhibit<T extends object> {
 }
 
 
-export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
+export class Chain
+<T = unknown, K extends undefined | PropertyKey = undefined>
+{
 	#message = ''
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -497,15 +513,16 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 	#linker?: Chain<unknown, undefined | PropertyKey>
 
 
-	get symbol(): undefined | K {
+	get symbol (): undefined | K
+	{
 		return this.#signed
 
 	}
 
-	get message(): string {
-		if (detective.is_exist(this.#signed)
-
-		) {
+	get message (): string
+	{
+		if (detective.is_exist(this.#signed) )
+		{
 			return `${this.#signed.toString()} ${this.#message}`
 
 		}
@@ -514,7 +531,8 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 	}
 
-	constructor(
+	constructor
+	(
 		message: string,
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -526,8 +544,8 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 		},
 
-
-	) {
+	)
+	{
 		this.#message = message
 
 		this.#infer = infer
@@ -538,13 +556,9 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 	}
 
-	#buckle<R = unknown>(
-		message: string,
-
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		infer: Infer<any, any>,
-
-	): Chain<R, K> {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	#buckle <R = unknown> (message: string, infer: Infer<any, any>): Chain<R, K>
+	{
 		return new Chain<R, K>(
 			message, infer, { signed: this.#signed, linker: this },
 
@@ -552,13 +566,14 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 	}
 
-	async verify(value: unknown): Promise<T> {
-		let error: null| reply.Exception = null
+	async verify (value: unknown): Promise<T>
+	{
+		let error: null | reply.Exception = null
 
-		try {
-			if (detective.is_exist(this.#linker)
-
-			) {
+		try
+		{
+			if (detective.is_exist(this.#linker) )
+			{
 				value = await this.#linker.verify(value)
 
 			}
@@ -569,16 +584,16 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 		}
 
-		catch (e) {
-			if (detective.is_error(e)
-
-			) {
-				// eslint-disable-next-line no-ex-assign
+		catch (e)
+		{
+			if (detective.is_error(e) )
+			{
 				e = new reply.BadRequest(e.message)
 
 			}
 
-			if (e instanceof reply.Exception) {
+			if (e instanceof reply.Exception)
+			{
 				error = e
 
 			}
@@ -586,9 +601,8 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 		}
 
 
-		if (detective.is_exist(error)
-
-		) {
+		if (detective.is_exist(error) )
+		{
 			throw error
 
 		}
@@ -598,7 +612,9 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 	}
 
-	signed<N extends undefined | PropertyKey>(name: N): Chain<T, N> {
+	signed
+	<N extends undefined | PropertyKey>(name: N): Chain<T, N>
+	{
 		return new Chain<T, N>(
 			this.#message, this.#infer, { signed: name, linker: this.#linker },
 
@@ -606,16 +622,13 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 	}
 
-	and<R = T>(
-		message: string,
-
-		fn: Infer<T, boolean>,
-
-	): Chain<R, K> {
+	and <R = T> (message: string, fn: Infer<T, boolean>): Chain<R, K>
+	{
 		return this.#buckle<R>(
 			message,
 
-			async (v: T): Promise<T> => {
+			async (v: T): Promise<T> =>
+			{
 				await Chain.test(v, message, fn)
 
 				return v
@@ -626,22 +639,20 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 	}
 
-	to<R = unknown>(fn: Infer<T, R>): Chain<R, K> {
+	to <R = unknown> (fn: Infer<T, R>): Chain<R, K>
+	{
 		return this.#buckle<R>(this.#message, fn)
 
 	}
 
-	static async test(
-		value: unknown,
-		message: string,
-
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		fn: Infer<any, boolean>,
-
-	): Promise<void> {
+	static async test
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	(value: unknown, message: string, fn: Infer<any, boolean>): Promise<void>
+	{
 		let vv = await fn(value)
 
-		if (vv === true) {
+		if (vv === true)
+		{
 			return
 
 		}
@@ -651,16 +662,14 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 	}
 
-	static infer<T = unknown>(
-		message: string,
-
-		fn: Infer<unknown, boolean>,
-
-	): Chain<T> {
+	static infer
+	<T = unknown> (message: string, fn: Infer<unknown, boolean>): Chain<T>
+	{
 		return new Chain<T>(
 			message,
 
-			async (v: T): Promise<T> => {
+			async (v: T): Promise<T> =>
+			{
 				await Chain.test(v, message, fn)
 
 				return v
@@ -676,22 +685,29 @@ export class Chain<T = unknown, K extends undefined | PropertyKey = undefined> {
 
 
 
-export class Text {
+export class Text
+{
 	static optional = Chain.infer<string>(
-		'is not a string', detective.is_string,
+		'is not a string',
+
+		detective.is_string,
 
 	)
 
 
 	static required = Chain.infer<string>(
-		'is not a required string', detective.is_required_string,
+		'is not a required string',
+
+		detective.is_required_string,
 
 	)
 
 
 	static required_else_null = Chain
 		.infer<string>(
-			'is not a required string', detective.is_string,
+			'is not a required string',
+
+			detective.is_string,
 
 		)
 		.to(
@@ -702,7 +718,9 @@ export class Text {
 
 	static is_boolean = Chain
 		.infer<string>(
-			'is not a boolean string', detective.is_boolean_string,
+			'is not a boolean string',
+
+			detective.is_boolean_string,
 
 		)
 		.to(
@@ -712,14 +730,18 @@ export class Text {
 
 
 	static is_time = Chain.infer<string>(
-		'is not a time string', detective.is_24_hour_system_string,
+		'is not a time string',
+
+		detective.is_24_hour_system_string,
 
 	)
 
 
 	static is_date = Chain
 		.infer<string>(
-			'is not a date string', detective.is_date_string,
+			'is not a date string',
+
+			detective.is_date_string,
 
 		)
 		.to(
@@ -730,7 +752,9 @@ export class Text {
 
 	static is_date_else_null = Chain
 		.infer<string>(
-			'is not a date string', detective.is_string,
+			'is not a date string',
+
+			detective.is_string,
 
 		)
 		.to(
@@ -741,7 +765,9 @@ export class Text {
 
 	static is_search = Chain
 		.infer<string>(
-			'is not a required string', detective.is_required_string,
+			'is not a required string',
+
+			detective.is_required_string,
 
 		)
 		.to(
@@ -752,28 +778,36 @@ export class Text {
 
 	static is_path = Chain
 		.infer<string>(
-			'is not a path string', detective.is_path_string,
+			'is not a path string',
+
+			detective.is_path_string,
 
 		)
 
 
 	static is_dirname = Chain
 		.infer<string>(
-			'is not a dirname string', detective.is_dirname_string,
+			'is not a dirname string',
+
+			detective.is_dirname_string,
 
 		)
 
 
 	static is_media_uri = Chain
 		.infer<string>(
-			'is not a media uri string', detective.is_media_uri_string,
+			'is not a media uri string',
+
+			detective.is_media_uri_string,
 
 		)
 
 
 	static is_real_number = Chain
 		.infer<string>(
-			'is not a real number string', detective.is_real_number_string,
+			'is not a real number string',
+
+			detective.is_real_number_string,
 
 		)
 		.to(Number)
@@ -781,21 +815,27 @@ export class Text {
 
 	static is_natura_number = Chain
 		.infer<string>(
-			'is not a natura number string', detective.is_natural_number_string,
+			'is not a natura number string',
+
+			detective.is_natural_number_string,
 
 		)
 		.to(Number)
 
 
 	static is_phone_number = Chain.infer<string>(
-		'is not a phone number string', detective.is_phone_number_string,
+		'is not a phone number string',
+
+		detective.is_phone_number_string,
 
 	)
 
 
 	static is_object_id = Chain
 		.infer<string>(
-			'is not a object id string', detective.is_object_id_string,
+			'is not a object id string',
+
+			detective.is_object_id_string,
 
 		)
 		.to(
@@ -806,7 +846,9 @@ export class Text {
 
 	static is_object_id_else_null = Chain
 		.infer<string>(
-			'is not a object id string', detective.is_string,
+			'is not a object id string',
+
+			detective.is_string,
 
 		)
 		.to(
@@ -815,13 +857,14 @@ export class Text {
 		)
 
 
-	static search<T extends string>(
-		...keyword: structure.UnionToTuple<T>
-
-	): Chain<Keyword<T>> {
+	static search
+	<T extends string> (...keyword: structure.UnionToTuple<T>): Chain<Keyword<T>>
+	{
 		return Chain
 			.infer<string>(
-				'is not a required string', detective.is_required_string,
+				'is not a required string',
+
+				detective.is_required_string,
 
 			)
 			.to<Keyword<T>>(
@@ -833,10 +876,11 @@ export class Text {
 	}
 
 
-	static match<T extends string>(regex: string | RegExp): Chain<T> {
-		if (detective.is_string(regex)
-
-		) {
+	static match
+	<T extends string>(regex: string | RegExp): Chain<T>
+	{
+		if (detective.is_string(regex) )
+		{
 			return Chain.infer<T>(
 				`string does not match ${regex}`,
 
@@ -858,7 +902,8 @@ export class Text {
 	}
 
 
-	static include<T extends string>(value: Array<string>): Chain<T> {
+	static include<T extends string>(value: string[]): Chain<T>
+	{
 		return Chain.infer<T>(
 			`string does not include ${value.toString()}`,
 
@@ -870,10 +915,13 @@ export class Text {
 	}
 
 
-	static split(pattern: string): Chain<Array<string>> {
+	static split (pattern: string): Chain<string[]>
+	{
 		return Chain
 			.infer<string>(
-				'is not a string', detective.is_string,
+				'is not a string',
+
+				detective.is_string,
 
 			)
 			.to(
@@ -887,28 +935,38 @@ export class Text {
 }
 
 
-export class Digital {
+export class Digital
+{
 	static is_real = Chain.infer<number>(
-		'is not a real number', detective.is_real_number,
+		'is not a real number',
+
+		detective.is_real_number,
 
 	)
 
 	static is_natural = Chain.infer<number>(
-		'is not a natural number', detective.is_natural_number,
+		'is not a natural number',
+
+		detective.is_natural_number,
 
 	)
 
 	static is_24_hour_system_number = Chain.infer<number>(
-		'is not a 24 hour system number', detective.is_24_hour_system_number,
+		'is not a 24 hour system number',
+
+		detective.is_24_hour_system_number,
 
 	)
 
 }
 
 
-export class Switch {
+export class Switch
+{
 	static is_boolean = Chain.infer<boolean>(
-		'is not a boolean', detective.is_boolean,
+		'is not a boolean',
+
+		detective.is_boolean,
 
 	)
 
@@ -944,34 +1002,45 @@ export class Switch {
 }
 
 
-export class Range {
+export class Range
+{
 	static is_time = Chain.infer<detective.RangeTime>(
-		'is not a time range array', detective.is_time_range,
+		'is not a time range array',
+
+		detective.is_time_range,
 
 	)
 
 
 	static is_date = Chain.infer<detective.RangeDate>(
-		'is not a date range array', detective.is_date_range,
+		'is not a date range array',
+
+		detective.is_date_range,
 
 	)
 
 
 	static is_real_number = Chain.infer<detective.RangeRealNumber>(
-		'is not a real number range array', detective.is_real_number_range,
+		'is not a real number range array',
+
+		detective.is_real_number_range,
 
 	)
 
 
 	static is_natura_number = Chain.infer<detective.RangeNaturalNumber>(
-		'is not a real number range array', detective.is_natural_number_range,
+		'is not a real number range array',
+
+		detective.is_natural_number_range,
 
 	)
 
 
 	static is_point_coordinates = Chain
 		.infer<detective.RangeRealNumber>(
-			'is not a real number range array', detective.is_real_number_range,
+			'is not a real number range array',
+
+			detective.is_real_number_range,
 
 		)
 		.to<detective.PointCoordinates>(
@@ -982,14 +1051,19 @@ export class Range {
 }
 
 
-export class Every {
-	static is<T>(
+export class Every
+{
+	static is
+	<T>
+	(
 		type: string,
 
-		fn: (value: unknown, index?: number, array?: Array<T>) => boolean,
+		fn: (value: unknown, index?: number, array?: T[]) => boolean,
 
-	): Chain<Array<T>> {
-		return Chain.infer<Array<T>>(
+	)
+	: Chain<T[]>
+	{
+		return Chain.infer<T[]>(
 			`one of the elements is not a ${type}`,
 
 			v => detective.is_array_every(v, fn),
@@ -1054,7 +1128,7 @@ export class Every {
 			detective.is_object_id_string,
 
 		)
-		.to<Array<Types.ObjectId>>(
+		.to<Types.ObjectId[]>(
 			v => v.map(
 				vv => new mongoose.Types.ObjectId(vv),
 
@@ -1066,18 +1140,25 @@ export class Every {
 }
 
 
-export class Model {
+export class Model
+{
 	static object_id = Chain.infer<Types.ObjectId>(
-		'is not a object id', detective.is_object_id,
+		'is not a object id',
+
+		detective.is_object_id,
 
 	)
 
-	static search<T extends string>(
+	static search
+	<T extends string> (
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		model: mongoose.Model<any>,
+
 		...keyword: structure.UnionToTuple<T>
 
-	): Chain<Array<Types.ObjectId>> {
+	)
+	: Chain<Types.ObjectId[]>
+	{
 		return Text.search<T>(...keyword).to(
 			$or => Pagination.search(model, $or),
 
@@ -1089,7 +1170,8 @@ export class Model {
 }
 
 
-export class Pagination<T extends object = Record<PropertyKey, never>> {
+export class Pagination<T extends object = Record<PropertyKey, never>>
+{
 	#skip = 0
 
 	#limit = 10
@@ -1098,25 +1180,28 @@ export class Pagination<T extends object = Record<PropertyKey, never>> {
 
 	#find?: T
 
-	get skip(): number {
+	get skip (): number
+	{
 		return this.#skip
 
 	}
 
-	get limit(): number {
+	get limit (): number
+	{
 		return this.#limit
 
 	}
 
-	get sort(): string {
+	get sort (): string
+	{
 		return this.#sort
 
 	}
 
-	get find(): PaginLinker<T> {
-		if (detective.is_exist(this.#find)
-
-		) {
+	get find (): PaginLinker<T>
+	{
+		if (detective.is_exist(this.#find) )
+		{
 			return structure.clone(this.#find) as PaginLinker<T>
 
 		}
@@ -1125,7 +1210,8 @@ export class Pagination<T extends object = Record<PropertyKey, never>> {
 
 	}
 
-	async linker(exhibit: Exhibit<PaginLinker<T>>): Promise<void> {
+	async linker (exhibit: Exhibit<PaginLinker<T>>): Promise<void>
+	{
 		let e = new Exhibit<PaginSuspect>(exhibit.source)
 
 		await e.infer_signed<'skip'>(
@@ -1172,11 +1258,9 @@ export class Pagination<T extends object = Record<PropertyKey, never>> {
 
 	}
 
-	static match<T extends string>(
-		value: string,
-		...keyword: structure.UnionToTuple<T>
-
-	): Keyword<T> {
+	static match
+	<T extends string>(value: string, ...keyword: structure.UnionToTuple<T>): Keyword<T>
+	{
 		// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 		let map = (k: unknown) => ({ [k as string]: new RegExp(value) })
 
@@ -1184,12 +1268,10 @@ export class Pagination<T extends object = Record<PropertyKey, never>> {
 
 	}
 
-	static async search<T extends string>(
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		model: mongoose.Model<any>,
-		keyword: Keyword<T>,
-
-	): Promise<Array<Types.ObjectId>> {
+	static async search
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	<T extends string>(model: mongoose.Model<any>, keyword: Keyword<T>): Promise<Types.ObjectId[]>
+	{
 		let doc = await model.find(
 			{ $or: keyword as Array<Record<string, RegExp>> },
 
@@ -1201,13 +1283,11 @@ export class Pagination<T extends object = Record<PropertyKey, never>> {
 
 	}
 
-	static increase<T extends object>(
-		value: Array<T>,
-
-		key: keyof structure.GetProperty<T, number>,
-
-	): number {
-		if (value.length < 1) {
+	static increase
+	<T extends object>(value: T[], key: keyof structure.GetProperty<T, number>): number
+	{
+		if (value.length < 1)
+		{
 			return 0
 
 		}
@@ -1215,12 +1295,12 @@ export class Pagination<T extends object = Record<PropertyKey, never>> {
 
 		let vv = 0
 
-		for (let v of value) {
+		for (let v of value)
+		{
 			let v_ = v[key]
 
-			if (detective.is_number(v_) && v_ > vv
-
-			) {
+			if (detective.is_number(v_) && v_ > vv)
+			{
 				vv = v_
 
 			}
@@ -1237,12 +1317,14 @@ export class Pagination<T extends object = Record<PropertyKey, never>> {
 
 
 
-export function suspect<T extends object>(source: unknown): Exhibit<T> {
+export function suspect<T extends object> (source: unknown): Exhibit<T>
+{
 	return new Exhibit<T>(source)
 
 }
 
-export function pagination<T extends object>(): Pagination<T> {
+export function pagination<T extends object> (): Pagination<T>
+{
 	return new Pagination<T>()
 
 }

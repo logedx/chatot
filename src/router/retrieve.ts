@@ -15,23 +15,26 @@ import * as checkpoint_model from '../model/checkpoint.js'
 
 
 
-declare global {
+declare global
+{
 	// eslint-disable-next-line @typescript-eslint/no-namespace
-	namespace Express {
+	namespace Express
+	{
 		// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-		interface Request {
+		interface Request
+		{
 			weapp?: weapp_model.THydratedDocumentType
 
-			user?: user_model.THydratedDocumentType
+			user?      : user_model.THydratedDocumentType
 			user_scope?: scope_model.THydratedDocumentType
 
 			keyword?: keyword_model.THydratedDocumentType
 
-			stamp?: stamp_model.THydratedDocumentType
+			stamp?     : stamp_model.THydratedDocumentType
 			checkpoint?: checkpoint_model.THydratedDocumentType
 
 
-			usable_token?: token_model.THydratedDocumentType
+			usable_token? : token_model.THydratedDocumentType
 			survive_token?: token_model.TSurviveHydratedDocumentType
 
 		}
@@ -44,7 +47,8 @@ declare global {
 
 
 
-export const weapp: express.RequestHandler = async function weapp(req, res, next) {
+export const weapp: express.RequestHandler = async function weapp (req, res, next)
+{
 	let { _id } = req.params
 
 	let doc = await weapp_model.default.findById(_id)
@@ -59,7 +63,8 @@ export const weapp: express.RequestHandler = async function weapp(req, res, next
 }
 
 
-export const user: express.RequestHandler = async function user(req, res, next) {
+export const user: express.RequestHandler = async function user (req, res, next)
+{
 	let { _id } = req.params
 	let { weapp } = req.survive_token!
 
@@ -79,7 +84,8 @@ export const user: express.RequestHandler = async function user(req, res, next) 
 }
 
 
-export const user_scope: express.RequestHandler = async function user_scope(req, res, next) {
+export const user_scope: express.RequestHandler = async function user_scope (req, res, next)
+{
 	let { _id } = req.params
 	let { weapp } = req.survive_token!
 
@@ -89,10 +95,16 @@ export const user_scope: express.RequestHandler = async function user_scope(req,
 			{ _id, weapp, 'scope.lock': false },
 
 		)
-		.select<
-			Required<Pick<user_model.THydratedDocumentType, 'scope'>>
+		.select
+		<
+			Required<Pick<
+				user_model.THydratedDocumentType, 'scope'>
 
-		>(
+			>
+
+		// eslint-disable-next-line func-call-spacing
+		>
+		(
 			['+scope'],
 
 		)
@@ -108,7 +120,8 @@ export const user_scope: express.RequestHandler = async function user_scope(req,
 }
 
 
-export const keyword: express.RequestHandler = async function keyword(req, res, next) {
+export const keyword: express.RequestHandler = async function keyword (req, res, next)
+{
 	let { _id } = req.params
 	let { weapp } = req.survive_token!
 
@@ -128,7 +141,8 @@ export const keyword: express.RequestHandler = async function keyword(req, res, 
 }
 
 
-export const stamp: express.RequestHandler = async function stamp(req, res, next) {
+export const stamp: express.RequestHandler = async function stamp (req, res, next)
+{
 	let { _id } = req.params
 
 	let doc = await stamp_model.default
@@ -147,7 +161,8 @@ export const stamp: express.RequestHandler = async function stamp(req, res, next
 }
 
 
-export const usable_token: express.RequestHandler = async function usable_token(req, res, next) {
+export const usable_token: express.RequestHandler = async function usable_token (req, res, next)
+{
 	let authorization = req.get('Authorization') ?? ''
 
 	let [, value] = authorization.split(' ')
@@ -168,7 +183,8 @@ export const usable_token: express.RequestHandler = async function usable_token(
 }
 
 
-export const survive_token: express.RequestHandler = async function survive_token(req, res, next) {
+export const survive_token: express.RequestHandler = async function survive_token (req, res, next)
+{
 	let authorization = req.get('Authorization') ?? ''
 
 	let [, value] = authorization.split(' ')

@@ -7,12 +7,14 @@ import * as secret from '../../src/lib/secret.js'
 describe(
 	'lib: secret.hex',
 
-	function () {
+	function ()
+	{
 		it(
 			'should return a random hex string',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let hex = secret.hex()
 
 				chai.expect(hex).to.match(/^[0-9a-f]{32}$/)
@@ -32,12 +34,14 @@ describe(
 describe(
 	'lib: secret.AES_256_CBC',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be able to encrypt and decrypt correctly',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let plain = 'Node.js® is a free, open-source, cross-platform JavaScript run-time environment—that lets developers write command line tools and server-side scripts outside of a browser.'
 
 				let aes = new secret.AES_256_CBC()
@@ -84,12 +88,14 @@ describe(
 describe(
 	'lib: secret.AES_256_CCM',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be able to encrypt and decrypt correctly',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let plain = 'Node.js® is a free, open-source, cross-platform JavaScript run-time environment—that lets developers write command line tools and server-side scripts outside of a browser.'
 
 
@@ -135,12 +141,14 @@ describe(
 describe(
 	'lib: secret.AES_256_GCM',
 
-	function () {
+	function ()
+	{
 		it(
 			'should be able to encrypt and decrypt correctly',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
-			async () => {
+			async () =>
+			{
 				let plain = 'Node.js® is a free, open-source, cross-platform JavaScript run-time environment—that lets developers write command line tools and server-side scripts outside of a browser.'
 
 
@@ -159,18 +167,10 @@ describe(
 				chai.expect(decrypt_with_pkcs7).instanceOf(Buffer)
 
 
-				chai.expect(
-					decrypt.toString('utf8'),
-
-				)
-					.equal(plain)
+				chai.expect(decrypt.toString('utf8') ).equal(plain)
 
 
-				chai.expect(
-					decrypt_with_pkcs7.toString('utf8'),
-
-				)
-					.equal(plain)
+				chai.expect(decrypt_with_pkcs7.toString('utf8') ).equal(plain)
 
 
 			},

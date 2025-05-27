@@ -1,11 +1,16 @@
 import eslint from '@eslint/js'
+import stylistic from '@stylistic/eslint-plugin'
+
 import typescript_eslint from 'typescript-eslint'
+
+
+
 
 export default typescript_eslint.config(
 	eslint.configs.recommended,
+	stylistic.configs.recommended,
 
 	...typescript_eslint.configs.strictTypeChecked,
-
 	...typescript_eslint.configs.stylisticTypeChecked,
 
 	{
@@ -23,12 +28,131 @@ export default typescript_eslint.config(
 
 		},
 
+		plugins: {
+			'@stylistic': stylistic,
+
+		},
+
 		rules: {
+			'@stylistic/arrow-parens': [
+				'warn',
+				'as-needed'
+			],
+			'@stylistic/brace-style': [
+				'error',
+				'allman',
+				{
+					'allowSingleLine': false
+				}
+			],
+			'@stylistic/comma-dangle': [
+				'error',
+				'always-multiline'
+			],
+			'@stylistic/generator-star-spacing': [
+				'error',
+				'both'
+			],
+			'@stylistic/indent': [
+				'error',
+				'tab',
+				{
+					'ArrayExpression': 'first',
+					'CallExpression': {
+						'arguments': 'first'
+					},
+					'FunctionDeclaration': {
+						'parameters': 'first'
+					},
+					'FunctionExpression': {
+						'parameters': 'first'
+					},
+					'ignoredNodes': [
+						'TSTypeAnnotation',
+						'TSTypeParameterInstantiation',
+						'JSXOpeningElement'
+					],
+					'ImportDeclaration': 'first',
+					'ObjectExpression': 'first',
+					'offsetTernaryExpressions': true,
+					'SwitchCase': 1,
+					'VariableDeclarator': 'first'
+				}
+			],
+			'@stylistic/indent-binary-ops': [
+				'error',
+				'tab'
+			],
+			'@stylistic/key-spacing': [
+				'error',
+				{
+					'align': 'colon',
+					'beforeColon': false,
+					'mode': 'minimum'
+				}
+			],
+			'@stylistic/linebreak-style': [
+				'error',
+				'unix'
+			],
+			'@stylistic/no-mixed-spaces-and-tabs': [
+				'warn',
+				'smart-tabs'
+			],
+			'@stylistic/no-multi-spaces': [
+				'warn',
+				{
+					'exceptions': {
+						'Property': true,
+						'ImportAttribute': true,
+						'ImportDeclaration': true,
+						'TSPropertySignature': true
+					}
+				}
+			],
+			'@stylistic/no-multiple-empty-lines': 'off',
+			'@stylistic/no-tabs': 'off',
+			'@stylistic/no-trailing-spaces': [
+				'warn',
+				{
+					'ignoreComments': true
+				}
+			],
+			'@stylistic/padded-blocks': [
+				'error',
+				'end'
+			],
+			'@stylistic/quote-props': [
+				'error',
+				'consistent'
+			],
+			'@stylistic/semi': [
+				'error',
+				'never'
+			],
+			'@stylistic/semi-spacing': 'warn',
+			'@stylistic/space-before-blocks': 'warn',
+			'@stylistic/space-before-function-paren': [
+				'warn',
+				'always'
+			],
+			'@stylistic/space-in-parens': [
+				'warn',
+				'never',
+				{
+					'exceptions': [
+						'()'
+					]
+				}
+			],
+			'@stylistic/space-infix-ops': 'warn',
+			'@stylistic/type-annotation-spacing': 'off',
+			'@stylistic/type-generic-spacing': 'off',
 			'@typescript-eslint/array-type': [
 				'warn',
 				{
-					'default': 'generic',
-				},
+					'default': 'array-simple'
+				}
 			],
 			'@typescript-eslint/await-thenable': 'off',
 			'@typescript-eslint/consistent-generic-constructors': 'error',
@@ -37,51 +161,55 @@ export default typescript_eslint.config(
 				'error',
 				{
 					'assertionStyle': 'as',
-					'objectLiteralTypeAssertions': 'allow',
-				},
+					'objectLiteralTypeAssertions': 'allow'
+				}
 			],
 			'@typescript-eslint/consistent-type-definitions': [
 				'error',
-				'type',
+				'type'
 			],
 			'@typescript-eslint/consistent-type-exports': 'error',
 			'@typescript-eslint/dot-notation': 'warn',
 			'@typescript-eslint/explicit-function-return-type': [
 				'error',
 				{
-					'allowExpressions': true,
-				},
+					'allowExpressions': true
+				}
 			],
 			'@typescript-eslint/explicit-module-boundary-types': 'error',
+			'@typescript-eslint/method-signature-style': [
+				'warn',
+				'method'
+			],
 			'@typescript-eslint/naming-convention': [
 				'error',
 				{
 					'format': [
-						'snake_case',
+						'snake_case'
 					],
 					'leadingUnderscore': 'allow',
 					'selector': 'default',
-					'trailingUnderscore': 'allow',
+					'trailingUnderscore': 'allow'
 				},
 				{
 					'format': [
 						'snake_case',
-						'UPPER_CASE',
+						'UPPER_CASE'
 					],
 					'leadingUnderscore': 'allowSingleOrDouble',
 					'selector': 'variable',
-					'trailingUnderscore': 'allow',
+					'trailingUnderscore': 'allow'
 				},
 				{
 					'format': [
-						'PascalCase',
+						'PascalCase'
 					],
-					'selector': 'typeLike',
-				},
+					'selector': 'typeLike'
+				}
 			],
 			'@typescript-eslint/no-confusing-non-null-assertion': 'error',
+			'@typescript-eslint/no-duplicate-type-constituents': 'warn',
 			'@typescript-eslint/no-dynamic-delete': 'off',
-			"@typescript-eslint/no-duplicate-type-constituents": "warn",
 			'@typescript-eslint/no-extraneous-class': 'off',
 			'@typescript-eslint/no-import-type-side-effects': 'error',
 			'@typescript-eslint/no-inferrable-types': 'error',
@@ -91,8 +219,10 @@ export default typescript_eslint.config(
 			'@typescript-eslint/no-shadow': 'error',
 			'@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
 			'@typescript-eslint/no-unnecessary-condition': 'off',
+			'@typescript-eslint/no-unnecessary-type-parameters': 'off',
 			'@typescript-eslint/no-unused-vars': 'warn',
 			'@typescript-eslint/no-useless-constructor': 'off',
+			'@typescript-eslint/prefer-function-type': 'error',
 			'@typescript-eslint/prefer-optional-chain': 'error',
 			'@typescript-eslint/prefer-reduce-type-parameter': 'off',
 			'@typescript-eslint/require-await': 'warn',
@@ -102,61 +232,47 @@ export default typescript_eslint.config(
 					'allowBoolean': true,
 					'allowNullish': true,
 					'allowNumber': true,
-					'allowRegExp': true,
-				},
+					'allowRegExp': true
+				}
 			],
 			'@typescript-eslint/strict-boolean-expressions': 'error',
+			'@typescript-eslint/triple-slash-reference': 'error',
 			'array-bracket-newline': [
 				'error',
-				'consistent',
+				'consistent'
 			],
 			'array-bracket-spacing': [
 				'error',
-				'never',
+				'never'
 			],
 			'array-callback-return': 'error',
 			'arrow-spacing': 'error',
 			'block-spacing': 'error',
-			'brace-style': [
-				'error',
-				'stroustrup',
-				{
-					'allowSingleLine': false,
-				},
-			],
-			'comma-dangle': [
-				'warn',
-				'always-multiline',
-			],
 			'comma-spacing': 'error',
 			'complexity': 'error',
 			'computed-property-spacing': 'warn',
 			'consistent-return': 'error',
 			'consistent-this': [
 				'error',
-				'self',
+				'self'
 			],
 			'curly': 'error',
 			'dot-location': [
 				'error',
-				'property',
+				'property'
 			],
 			'eqeqeq': 'error',
-			'func-call-spacing': 'error',
+			'func-call-spacing': [
+				'error',
+				'never'
+			],
 			'function-paren-newline': [
 				'warn',
-				'consistent',
-			],
-			'generator-star-spacing': [
-				'error',
-				{
-					'after': true,
-					'before': true,
-				},
+				'consistent'
 			],
 			'id-blacklist': [
 				'error',
-				'list',
+				'list'
 			],
 			'id-match': [
 				'error',
@@ -164,58 +280,49 @@ export default typescript_eslint.config(
 				{
 					'ignoreDestructuring': true,
 					'onlyDeclarations': false,
-					'properties': true,
-				},
+					'properties': true
+				}
 			],
 			'implicit-arrow-linebreak': 'error',
-			'indent': [
-				'error',
-				'tab',
-				{
-					'SwitchCase': 1,
-					'VariableDeclarator': 'first',
-				},
-			],
 			'init-declarations': 'error',
-			'key-spacing': 'error',
 			'keyword-spacing': 'error',
 			'line-comment-position': 'error',
 			'lines-around-comment': [
-				'error',
+				'warn',
 				{
 					'allowArrayStart': true,
 					'allowBlockStart': true,
 					'allowClassStart': true,
 					'allowObjectStart': true,
 					'beforeBlockComment': false,
-					'beforeLineComment': true,
-				},
+					'beforeLineComment': true
+				}
 			],
 			'lines-between-class-members': 'error',
 			'max-depth': 'error',
 			'max-nested-callbacks': [
 				'error',
 				{
-					'max': 3,
-				},
+					'max': 3
+				}
 			],
 			'max-params': [
 				'error',
 				{
-					'max': 4,
-				},
+					'max': 4
+				}
 			],
 			'max-statements-per-line': 'error',
 			'multiline-ternary': [
 				'error',
-				'always-multiline',
+				'always-multiline'
 			],
 			'new-cap': [
 				'error',
 				{
 					'capIsNew': false,
-					'properties': false,
-				},
+					'properties': false
+				}
 			],
 			'new-parens': 'error',
 			'newline-per-chained-call': 'error',
@@ -226,6 +333,7 @@ export default typescript_eslint.config(
 			'no-duplicate-imports': 'error',
 			'no-eq-null': 'error',
 			'no-eval': 'error',
+			'no-ex-assign': 'off',
 			'no-extend-native': 'error',
 			'no-floating-decimal': 'error',
 			'no-implicit-coercion': 'error',
@@ -237,7 +345,6 @@ export default typescript_eslint.config(
 			'no-lonely-if': 'error',
 			'no-mixed-operators': 'error',
 			'no-multi-assign': 'error',
-			'no-multi-spaces': 'warn',
 			'no-negated-condition': 'error',
 			'no-nested-ternary': 'error',
 			'no-new-func': 'error',
@@ -247,8 +354,8 @@ export default typescript_eslint.config(
 			'no-plusplus': [
 				'error',
 				{
-					'allowForLoopAfterthoughts': true,
-				},
+					'allowForLoopAfterthoughts': true
+				}
 			],
 			'no-proto': 'error',
 			'no-return-assign': 'error',
@@ -256,12 +363,7 @@ export default typescript_eslint.config(
 			'no-self-compare': 'error',
 			'no-shadow': 'off',
 			'no-throw-literal': 'error',
-			'no-trailing-spaces': [
-				'warn',
-				{
-					'ignoreComments': true,
-				},
-			],
+			'no-unexpected-multiline': 'off',
 			'no-unmodified-loop-condition': 'error',
 			'no-unneeded-ternary': 'error',
 			'no-unused-expressions': [
@@ -269,8 +371,8 @@ export default typescript_eslint.config(
 				{
 					'allowShortCircuit': true,
 					'allowTaggedTemplates': true,
-					'allowTernary': true,
-				},
+					'allowTernary': true
+				}
 			],
 			'no-unused-private-class-members': 'off',
 			'no-unused-vars': 'off',
@@ -278,8 +380,8 @@ export default typescript_eslint.config(
 				'error',
 				{
 					'classes': false,
-					'functions': false,
-				},
+					'functions': false
+				}
 			],
 			'no-useless-call': 'error',
 			'no-useless-computed-key': 'error',
@@ -296,26 +398,26 @@ export default typescript_eslint.config(
 					'ExportDeclaration': 'never',
 					'ImportDeclaration': 'never',
 					'ObjectPattern': {
-						'multiline': true,
-					},
-				},
+						'multiline': true
+					}
+				}
 			],
 			'object-curly-spacing': [
 				'warn',
-				'always',
+				'always'
 			],
 			'object-shorthand': 'error',
 			'one-var': [
 				'error',
-				'never',
+				'never'
 			],
 			'operator-assignment': [
 				'error',
-				'never',
+				'never'
 			],
 			'operator-linebreak': [
 				'error',
-				'before',
+				'before'
 			],
 			'padding-line-between-statements': [
 				'error',
@@ -330,8 +432,8 @@ export default typescript_eslint.config(
 						'import',
 						'iife',
 						'block',
-						'block-like',
-					],
+						'block-like'
+					]
 				},
 				{
 					'blankLine': 'always',
@@ -349,28 +451,28 @@ export default typescript_eslint.config(
 						'export',
 						'return',
 						'function',
-						'iife',
+						'iife'
 					],
-					'prev': '*',
+					'prev': '*'
 				},
 				{
 					'blankLine': 'any',
 					'next': 'import',
-					'prev': 'import',
+					'prev': 'import'
 				},
 				{
 					'blankLine': 'any',
 					'next': [
 						'var',
 						'let',
-						'const',
+						'const'
 					],
 					'prev': [
 						'var',
 						'let',
-						'const',
-					],
-				},
+						'const'
+					]
+				}
 			],
 			'prefer-const': 'off',
 			'prefer-object-spread': 'warn',
@@ -381,52 +483,35 @@ export default typescript_eslint.config(
 				'error',
 				'single',
 				{
-					'allowTemplateLiterals': true,
-				},
+					'allowTemplateLiterals': true
+				}
 			],
 			'rest-spread-spacing': 'error',
-			'semi': [
-				'error',
-				'never',
-			],
-			'semi-spacing': 'warn',
-			'space-before-blocks': 'warn',
-			'space-before-function-paren': [
-				'warn',
-				{
-					'anonymous': 'always',
-					'asyncArrow': 'always',
-					'named': 'never',
-				},
-			],
-			'space-in-parens': 'warn',
-			'space-infix-ops': 'error',
 			'spaced-comment': 'warn',
 			'switch-colon-spacing': 'warn',
 			'template-curly-spacing': 'warn',
 			'template-tag-spacing': [
 				'warn',
-				'always',
+				'always'
 			],
 			'unicode-bom': 'error',
 			'wrap-iife': [
 				'error',
-				'inside',
+				'inside'
 			],
 			'wrap-regex': 'error',
 			'yield-star-spacing': [
 				'error',
-				'both',
+				'both'
 			],
 			'yoda': [
 				'warn',
 				'never',
 				{
-					'onlyEquality': true,
-				},
-			],
-
-		},
+					'onlyEquality': true
+				}
+			]
+		}
 
 
 	},

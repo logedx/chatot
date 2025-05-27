@@ -17,12 +17,16 @@ import * as retrieve_router from './retrieve.js'
 
 
 
-export const in_keyword_evidence_chain = evidence.Text.search<user_model.TRawDocKeyword>(
+// eslint-disable-next-line func-call-spacing
+export const in_keyword_evidence_chain = evidence.Text.search<user_model.TRawDocKeyword>
+(
 	...user_model.keyword,
 
 )
 
-export const in_keyword_populate_evidence_chain = evidence.Model.search<user_model.TRawDocKeyword>(
+// eslint-disable-next-line func-call-spacing
+export const in_keyword_populate_evidence_chain = evidence.Model.search<user_model.TRawDocKeyword>
+(
 	user_model.default, ...user_model.keyword,
 
 )
@@ -34,10 +38,11 @@ router.post(
 
 	retrieve_router.usable_token,
 
-	async function create(req, res) {
+	async function create (req, res)
+	{
 		type Suspect = {
 			appid: string
-			code: string
+			code : string
 
 		}
 
@@ -79,18 +84,16 @@ router.post(
 			)
 			.select('+scope')
 
-		if (detective.is_null(user)
-
-		) {
+		if (detective.is_null(user) )
+		{
 			let scope: user_model.TRawDocType['scope'] = null
 
-			if (await user_model.default.countDocuments({}) < 1
-
-			) {
+			if (await user_model.default.countDocuments({}) < 1)
+			{
 				let v = {
 					lock: true,
 
-					value: scope_model.Role.无限,
+					value : scope_model.Role.无限,
 					expire: moment().add(99, 'year')
 						.toDate(),
 
@@ -108,7 +111,8 @@ router.post(
 
 		}
 
-		else {
+		else
+		{
 			user.wxsession = wx_session.value
 
 			await user.save()
@@ -144,14 +148,14 @@ router.post(
 
 	retrieve_router.user,
 
-	async function create_scope(req, res) {
+	async function create_scope (req, res)
+	{
 		let doc = req.user!
 
 		let fields = await doc.select_sensitive_fields('+scope')
 
-		if (detective.is_empty(fields.scope)
-
-		) {
+		if (detective.is_empty(fields.scope) )
+		{
 			let v = {
 				value: scope_model.Role.运营,
 
@@ -175,16 +179,17 @@ router.get(
 
 	...token_router.checkpoint(),
 
-	async function retrieve_pagination(req, res) {
+	async function retrieve_pagination (req, res)
+	{
 		type Suspect = {
-			$or?: evidence.Keyword<user_model.TRawDocKeyword>
+			'$or'?: evidence.Keyword<user_model.TRawDocKeyword>
 
-			scope?: null | { $ne: null }
+			'scope'?     : null | { $ne: null }
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'scope.lock'?: false | { $ne: true }
 
-			weapp: Types.ObjectId
-			active: true
+			'weapp' : Types.ObjectId
+			'active': true
 
 		}
 
@@ -260,7 +265,8 @@ router.get(
 
 	retrieve_router.user,
 
-	async function retrieve(req, res) {
+	async function retrieve (req, res)
+	{
 		let doc = req.user!
 
 		let fields = await doc.select_sensitive_fields('+phone')
@@ -281,10 +287,11 @@ router.put(
 
 	retrieve_router.user,
 
-	async function update(req, res) {
+	async function update (req, res)
+	{
 		type Suspect = {
 			nickname?: string
-			phone?: string
+			phone?   : string
 
 		}
 

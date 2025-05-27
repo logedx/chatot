@@ -13,11 +13,13 @@ import * as retrieve_router from './retrieve.js'
 /**
  * 检查权限范围
  */
-export function checkpoint(...point: Array<number>): Array<express.RequestHandler> {
+export function checkpoint (...point: number[]): express.RequestHandler[]
+{
 	return [
 		retrieve_router.survive_token,
 
-		async function (req, res, next) {
+		async function (req, res, next)
+		{
 			let method = req.method
 			let headers = req.headers
 			let original = req.originalUrl
@@ -29,7 +31,8 @@ export function checkpoint(...point: Array<number>): Array<express.RequestHandle
 			let any = point.length === 0 && scope > 0
 			let has = scope_model.some(scope, ...point)
 
-			if (any || has) {
+			if (any || has)
+			{
 				let doc = await checkpoint_model.default.create(
 					{ scope, weapp, user, method, original },
 
@@ -41,7 +44,8 @@ export function checkpoint(...point: Array<number>): Array<express.RequestHandle
 
 			}
 
-			else {
+			else
+			{
 				let e = new reply.Unauthorized('permission denied')
 
 				e.push('headers', headers)
@@ -63,7 +67,8 @@ export const router = express.Router()
 router.post(
 	'/token',
 
-	async function create(req, res) {
+	async function create (req, res)
+	{
 		let doc = await token_model.default.create(
 			{},
 
@@ -83,7 +88,8 @@ router.get(
 
 	retrieve_router.survive_token,
 
-	function retrieve(req, res) {
+	function retrieve (req, res)
+	{
 		let doc = req.survive_token!
 
 		res.json(
@@ -98,7 +104,8 @@ router.get(
 router.put(
 	'/token',
 
-	async function update(req, res) {
+	async function update (req, res)
+	{
 		let authorization = req.get('Authorization') ?? ''
 
 		let [, refresh] = authorization.split(' ')

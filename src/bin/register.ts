@@ -14,7 +14,8 @@ import * as weapp_model from '../model/weapp.js'
 
 
 
-function * steps(): Generator<void, void, string> {
+function * steps (): Generator<void, void, string>
+{
 	const canvas = std.draw(app.name_of_art_font, app.version)
 
 	console.info(
@@ -35,11 +36,12 @@ function * steps(): Generator<void, void, string> {
 }
 
 
-async function careate(): Promise<void> {
+async function careate (): Promise<void>
+{
 	let doc = {
 		appid: await inquirer.input(
 			{
-				message: 'App ID:',
+				message : 'App ID:',
 				validate: (v: string) => (/^wx[0-9a-f]{16}$/).test(v),
 
 			},
@@ -48,7 +50,7 @@ async function careate(): Promise<void> {
 
 		bucket: await inquirer.input(
 			{
-				message: `Media storage: ${chalk.gray('Bucket')}`,
+				message : `Media storage: ${chalk.gray('Bucket')}`,
 				validate: (v: string) => (/^[0-9a-z]+$/).test(v),
 
 			},
@@ -57,7 +59,7 @@ async function careate(): Promise<void> {
 
 		secret: await inquirer.input(
 			{
-				message: `Weixin App: ${chalk.gray('Secret')}`,
+				message : `Weixin App: ${chalk.gray('Secret')}`,
 				validate: (v: string) => (/^[0-9a-f]{32}$/).test(v),
 
 			},
@@ -75,10 +77,12 @@ async function careate(): Promise<void> {
 
 
 
-export async function run(): Promise<void> {
+export async function run (): Promise<void>
+{
 	const step = steps()
 
-	try {
+	try
+	{
 		step.next()
 
 		await careate()
@@ -87,10 +91,10 @@ export async function run(): Promise<void> {
 
 	}
 
-	catch (e) {
-		if (detective.is_error(e)
-
-		) {
+	catch (e)
+	{
+		if (detective.is_error(e) )
+		{
 			console.error(`\n${chalk.red(e.message)}\n`)
 
 		}

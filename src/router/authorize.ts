@@ -24,7 +24,8 @@ router.options(
 
 	retrieve_router.survive_token,
 
-	function query(req, res, next) {
+	function query (req, res, next)
+	{
 		let { _id } = req.survive_token!
 
 		let handler = stamp_router.symbol_encrypt(
@@ -45,7 +46,8 @@ router.post(
 
 	retrieve_router.survive_token,
 
-	async function create(req, res) {
+	async function create (req, res)
+	{
 		type Suspect = {
 			value: Types.ObjectId
 
@@ -56,13 +58,16 @@ router.post(
 
 		await suspect.infer_signed<'value'>(
 			stamp_router.symbol_evidence_chain('/authorize', 'post')
-				.and<
+				.and
+				<
 					structure.Overwrite<
 						stamp_model.THydratedDocumentType, { amber: string }
 
 					>
 
-				>(
+				// eslint-disable-next-line func-call-spacing
+				>
+				(
 					'amber is not a object id',
 
 					v => detective.is_object_id_string(v.amber),
@@ -72,7 +77,10 @@ router.post(
 					v => new Types.ObjectId(v.amber),
 
 				)
-				.signed('value'),
+				.signed(
+					'value',
+
+				),
 
 		)
 

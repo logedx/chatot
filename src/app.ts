@@ -89,7 +89,8 @@ export const abnormal_feedback_bundle: HandlerBundle = [
 ]
 
 
-export function create(...bundle: HandlerBundle): express.Application {
+export function create (...bundle: HandlerBundle): express.Application
+{
 	const app = express()
 
 	app.use(

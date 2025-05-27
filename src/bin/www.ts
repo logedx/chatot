@@ -12,9 +12,12 @@ import * as std from '../std.js'
 
 
 
+function listen
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function listen(port: number): (...arg: Array<any>) => void {
-	return function on_listening(this: unknown): void {
+(port: number): (...arg: any[]) => void
+{
+	return function on_listening (this: unknown): void
+	{
 		const canvas = std.draw(app.name_of_art_font, app.version).trim()
 
 		const protocol = ['http', 'https'][Number(this instanceof https.Server)]
@@ -37,10 +40,14 @@ function listen(port: number): (...arg: Array<any>) => void {
 
 }
 
+function error
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function error(port: number): (...arg: Array<any>) => never {
-	return function on_error(e: NodeJS.ErrnoException): never {
-		if (e.code === 'EACCES') {
+(port: number): (...arg: any[]) => never
+{
+	return function on_error (e: NodeJS.ErrnoException): never
+	{
+		if (e.code === 'EACCES')
+		{
 			console.error(
 				chalk.red(`\n× Permission denied`),
 
@@ -50,7 +57,8 @@ function error(port: number): (...arg: Array<any>) => never {
 
 		}
 
-		if (e.code === 'EADDRINUSE') {
+		if (e.code === 'EADDRINUSE')
+		{
 			console.error(
 				chalk.red(`\n× Port ${port} is already in use`),
 
@@ -67,14 +75,17 @@ function error(port: number): (...arg: Array<any>) => never {
 }
 
 
-async function read_file(name: string): Promise<Buffer> {
+async function read_file (name: string): Promise<Buffer>
+{
 	let x = name.toLowerCase()
 	let y = name.toUpperCase()
 
 	console.group()
 
-	for (let v of [x, y]) {
-		try {
+	for (let v of [x, y])
+	{
+		try
+		{
 			return await fs.readFile(
 				path.resolve(app.cert_dirname, v),
 
@@ -83,7 +94,8 @@ async function read_file(name: string): Promise<Buffer> {
 
 		}
 
-		catch (e) {
+		catch (e)
+		{
 			let z = e as NodeJS.ErrnoException
 
 			console.info(
@@ -102,7 +114,9 @@ async function read_file(name: string): Promise<Buffer> {
 
 }
 
-async function create_server(_app: express.Application): Promise<http.Server | https.Server> {
+async function create_server
+(_app: express.Application): Promise<http.Server | https.Server>
+{
 	console.info()
 
 	console.info(
@@ -111,7 +125,8 @@ async function create_server(_app: express.Application): Promise<http.Server | h
 	)
 
 
-	try {
+	try
+	{
 		const key = await read_file(app.key_name)
 		const cert = await read_file(app.pem_name)
 
@@ -125,7 +140,8 @@ async function create_server(_app: express.Application): Promise<http.Server | h
 
 	}
 
-	catch (e) {
+	catch (e)
+	{
 		let z = e as NodeJS.ErrnoException
 
 		console.info()
@@ -153,11 +169,9 @@ async function create_server(_app: express.Application): Promise<http.Server | h
 }
 
 
-export async function run(
-	_app: express.Application,
-	_port = Number(process.env?.PORT ?? 3000),
-
-): Promise<void> {
+export async function run
+(_app: express.Application, _port = Number(process.env?.PORT ?? 3000) ): Promise<void>
+{
 	const server = await create_server(_app)
 
 	server.on(

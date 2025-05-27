@@ -24,7 +24,8 @@ router.post(
 
 	),
 
-	async function update(req, res) {
+	async function update (req, res)
+	{
 		type BodyParse = {
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			Encrypt: string
@@ -32,20 +33,21 @@ router.post(
 
 		type Result = {
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			InfoType: string
+			InfoType             : string
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			ComponentVerifyTicket: string
 		}
 
-		try {
+		try
+		{
 			let body = await parser.parseStringPromise(req.body as string) as BodyParse
 
 			let decrypt = wxopen.WXBizMsgCrypt.decrypt(body.Encrypt)
 
 			let result = await parser.parseStringPromise(decrypt) as Result
 
-			switch (result.InfoType) {
-
+			switch (result.InfoType)
+			{
 				// 验证票据
 				case 'component_verify_ticket': {
 					wxopen.set_component_verify_ticket(result.ComponentVerifyTicket)
@@ -79,7 +81,8 @@ router.post(
 
 		}
 
-		catch (e) {
+		catch (e)
+		{
 			res.stdio(e)
 
 			res.end('fail')

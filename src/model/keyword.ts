@@ -15,10 +15,10 @@ import * as weapp_model from './weapp.js'
 
 export type TRawDocType = storage.TRawDocType<
 	{
-		weapp: Types.ObjectId
-		name: string
-		label: string
-		value: string
+		weapp : Types.ObjectId
+		name  : string
+		label : string
+		value : string
 		letter: string
 
 	}
@@ -58,14 +58,15 @@ export const letter_match = /^[a-zA-Z#]{1}$/
  * 首字母模型
  */
 export const letter_schema = {
-	type: String,
-	index: true,
-	required: true,
+	type     : String,
+	index    : true,
+	required : true,
 	uppercase: true,
-	trim: true,
-	validate: letter_match,
+	trim     : true,
+	validate : letter_match,
 
-	set(value: string): string {
+	set (value: string): string
+	{
 		let p = pinyin.default(
 			value,
 
@@ -95,36 +96,36 @@ export const schema = new Schema<
 >(
 	{
 		weapp: {
-			type: Schema.Types.ObjectId,
-			ref: () => weapp_model.default,
-			index: true,
+			type    : Schema.Types.ObjectId,
+			ref     : () => weapp_model.default,
+			index   : true,
 			required: true,
 
 		},
 
 		name: {
-			type: String,
-			index: true,
-			required: true,
+			type     : String,
+			index    : true,
+			required : true,
 			lowercase: true,
-			trim: true,
+			trim     : true,
 
 			validate: /^[a-z]+(\.[a-z0-9]+)*$/,
 
 		},
 
 		label: {
-			type: String,
+			type     : String,
 			lowercase: true,
-			trim: true,
-			default: '',
+			trim     : true,
+			default  : '',
 
 		},
 
 		value: {
-			type: String,
+			type    : String,
 			required: true,
-			trim: true,
+			trim    : true,
 
 		},
 

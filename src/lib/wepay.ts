@@ -12,51 +12,51 @@ const host = config.get<string>('host')
 
 
 export type APIv3Option = {
-	appid: string
-	mchid: string
-	v3key: string
-	sign: string | Buffer
+	appid   : string
+	mchid   : string
+	v3key   : string
+	sign    : string | Buffer
 	evidence: string | Buffer
-	verify: string | Buffer
+	verify  : string | Buffer
 
 }
 
 export type APIv3Sign = {
-	serial: [string, string]
-	nonce: string
+	serial   : [string, string]
+	nonce    : string
 	timestamp: number
 	stringify: string
-	plain: string
+	plain    : string
 	signature: string
 
 }
 
 export type APIv3ResultError = {
-	code: string
+	code   : string
 	message: string
 	detail: {
-		field: string
+		field   : string
 		location: string
-		detail: { issue: string }
+		detail  : { issue: string }
 
 	}
 
 }
 
 export type APIv3NotifyBody = {
-	id: string
-	create_time: string
-	event_type: string
+	id           : string
+	create_time  : string
+	event_type   : string
 	resource_type: string
-	summary: string
+	summary      : string
 
 
 	resource: {
-		algorithm: string
-		ciphertext: string
+		algorithm      : string
+		ciphertext     : string
 		associated_data: string
-		original_type: 'transaction' | 'refund'
-		nonce: string
+		original_type  : 'transaction' | 'refund'
+		nonce          : string
 	}
 
 }
@@ -64,7 +64,8 @@ export type APIv3NotifyBody = {
 
 
 
-export class APIv3 {
+export class APIv3
+{
 	#appid: string
 
 	#mchid: string
@@ -75,17 +76,24 @@ export class APIv3 {
 
 	#axios: axios.AxiosInstance
 
-	constructor(option: APIv3Option) {
-		if (typeof option.sign === 'string') {
+	constructor (option: APIv3Option)
+	{
+		if (typeof option.sign === 'string')
+		{
 			option.sign = Buffer.from(option.sign, 'base64')
+
 		}
 
-		if (typeof option.evidence === 'string') {
+		if (typeof option.evidence === 'string')
+		{
 			option.evidence = Buffer.from(option.evidence, 'base64')
+
 		}
 
-		if (typeof option.verify === 'string') {
+		if (typeof option.verify === 'string')
+		{
 			option.verify = Buffer.from(option.verify, 'base64')
+
 		}
 
 		this.#appid = option.appid
@@ -102,32 +110,37 @@ export class APIv3 {
 
 	}
 
-	get appid(): string {
+	get appid (): string
+	{
 		return this.#appid
 
 	}
 
-	get mchid(): string {
+	get mchid (): string
+	{
 		return this.#mchid
 
 	}
 
-	get v3key(): string {
+	get v3key (): string
+	{
 		return this.#v3key
 
 	}
 
-	get defend(): secret.RSA {
+	get defend (): secret.RSA
+	{
 		return this.#defend
 
 	}
 
-	get axios(): axios.AxiosInstance {
+	get axios (): axios.AxiosInstance
+	{
 		return this.#axios
 
 	}
 
-	on(
+	on (
 		name: 'update',
 
 		listener: (name: 'sign' | 'verify', ctx: string | Buffer) => void,
@@ -135,17 +148,17 @@ export class APIv3 {
 	): void
 
 
-	on(
+	on (
 		name: 'create',
 
 		listener: (
-			...args: Array<unknown>
+			...args: unknown[]
 
 		) => void,
 
 	): void
 
-	on(
+	on (
 		name: 'update' | 'create',
 
 		listener:
@@ -156,23 +169,24 @@ export class APIv3 {
 			|
 
 			(
-				(...args: Array<unknown>) => void
-			)
+				(...args: unknown[]) => void
+			),
 
-		,
 
-	): void {
+	): void
+	{
 		this.#defend.on(name, listener)
 
 	}
 
-	sign(
+	sign (
 		url: string,
 		method: 'GET' | 'PUT' | 'POST' | 'DELETE',
 		data: unknown = null,
 		params: Record<string, string> = {},
 
-	): APIv3Sign {
+	): APIv3Sign
+	{
 		let { serial } = this.#defend
 		let search = new URLSearchParams(params).toString()
 
@@ -180,12 +194,14 @@ export class APIv3 {
 		let timestamp = Math.floor(Date.now() / 1000)
 		let stringify = ''
 
-		if (search) {
+		if (search)
+		{
 			url = `${url}?${search}`
 
 		}
 
-		if (data instanceof Object) {
+		if (data instanceof Object)
+		{
 			stringify = JSON.stringify(data)
 
 		}
@@ -199,10 +215,12 @@ export class APIv3 {
 
 	}
 
-	verify(timestamp: number | string, nonce: string, data: unknown, signature: string | Buffer): boolean {
+	verify (timestamp: number | string, nonce: string, data: unknown, signature: string | Buffer): boolean
+	{
 		let stringify = ''
 
-		if (data instanceof Object) {
+		if (data instanceof Object)
+		{
 			stringify = JSON.stringify(data)
 
 		}
@@ -215,12 +233,12 @@ export class APIv3 {
 
 	}
 
-	decrypt(cipher: string | Buffer, iv: string | Buffer, aad?: string | Buffer): Buffer {
+	decrypt (cipher: string | Buffer, iv: string | Buffer, aad?: string | Buffer): Buffer
+	{
 		let gcm = new secret.AES_256_GCM(this.#v3key, iv)
 
-		if (detective.is_exist(aad)
-
-		) {
+		if (detective.is_exist(aad) )
+		{
 			gcm.aad = aad
 
 		}
@@ -229,7 +247,8 @@ export class APIv3 {
 
 	}
 
-	format(serial: string, nonce: string, timestamp: number, signature: string): string {
+	format (serial: string, nonce: string, timestamp: number, signature: string): string
+	{
 		let value = [
 			`mchid="${this.#mchid}"`,
 			`serial_no="${serial}"`,
@@ -247,23 +266,25 @@ export class APIv3 {
 		method: 'GET' | 'PUT' | 'POST' | 'DELETE',
 		data: null | Record<string, unknown> = null,
 		params: Record<string, string> = {},
-	): Promise<T> {
+	): Promise<T>
+	{
 		let sign = this.sign(url, method, data, params)
 		let [sign_serial, verify_serial] = sign.serial
 
 		let headers = {
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			'Accept': 'application/json',
+			'Accept'         : 'application/json',
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			'Content-Type': 'application/json',
+			'Content-Type'   : 'application/json',
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'Accept-Encoding': 'zlib',
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			'Authorization': this.format(sign_serial, sign.nonce, sign.timestamp, sign.signature),
+			'Authorization'  : this.format(sign_serial, sign.nonce, sign.timestamp, sign.signature),
 
 		}
 
-		try {
+		try
+		{
 			let result = await this.#axios.request<T>(
 				{ url, method, headers, params, data: sign.stringify },
 
@@ -274,7 +295,8 @@ export class APIv3 {
 			let wechatpay_nonce = `${result.headers['Wechatpay-Nonce'] ?? result.headers['wechatpay-nonce'] ?? ''}`
 			let wechatpay_signature = `${result.headers['Wechatpay-Signature'] ?? result.headers['wechatpay-signature'] ?? ''}`
 
-			if (verify_serial !== wechatpay_serial) {
+			if (verify_serial !== wechatpay_serial)
+			{
 				await this.download()
 
 			}
@@ -285,20 +307,21 @@ export class APIv3 {
 
 		}
 
-		catch (e) {
-			if (axios.default.isAxiosError(e)
-
-			) {
+		catch (e)
+		{
+			if (axios.default.isAxiosError(e) )
+			{
 				let ee = new reply.BadRequest('Wepay APIv3 Newsletter Fail')
 
-				if (e.response) {
+				if (e.response)
+				{
 					type APIv3ResultErrorData = APIv3ResultError & {
 						detail: {
 							sign_information: {
-								method: string
-								sign_message_length: number
+								method                : string
+								sign_message_length   : number
 								truncated_sign_message: string
-								url: string
+								url                   : string
 							}
 						}
 
@@ -319,7 +342,8 @@ export class APIv3 {
 
 			}
 
-			if (e instanceof Error) {
+			if (e instanceof Error)
+			{
 				throw new reply.BadRequest(e.message)
 
 			}
@@ -331,11 +355,12 @@ export class APIv3 {
 
 	}
 
-	async download(): Promise<void> {
+	async download (): Promise<void>
+	{
 		type Data = {
-			serial_no: string
-			effective_time: string
-			expire_time: string
+			serial_no          : string
+			effective_time     : string
+			expire_time        : string
 			encrypt_certificate: {
 
 				// 加密前的对象类型
@@ -354,10 +379,12 @@ export class APIv3 {
 				associated_data: string
 
 			}
+
 		}
 
 		type AxiosResponse = {
-			data: Array<Data>
+			data: Data[]
+
 		}
 
 		const url = '/v3/certificates'
@@ -368,7 +395,7 @@ export class APIv3 {
 
 		let headers = {
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			'Authorization': this.format(sign_serial, sign.nonce, sign.timestamp, sign.signature),
+			Authorization: this.format(sign_serial, sign.nonce, sign.timestamp, sign.signature),
 
 		}
 
@@ -399,26 +426,29 @@ export type TransactionsTradeState = 'SUCCESS' | 'REFUND' | 'NOTPAY' | 'CLOSED' 
 
 export type TransactionsCreateResult = {
 	prepay_id: string
+
 }
 
 export type TransactionsRetrieveResult = {
-	appid: string
-	mchid: string
-	out_trade_no: string
-	transaction_id?: string
-	trade_type?: TransactionsTradeType
-	trade_state: TransactionsTradeState
+	appid           : string
+	mchid           : string
+	out_trade_no    : string
+	transaction_id? : string
+	trade_type?     : TransactionsTradeType
+	trade_state     : TransactionsTradeState
 	trade_state_desc: string
-	bank_type?: string
-	attach: string
-	success_time?: string
+	bank_type?      : string
+	attach          : string
+	success_time?   : string
+
 	payer: {
 		openid: string
 	}
+
 	amount: {
-		total: number
-		payer_total: number
-		currency?: string
+		total          : number
+		payer_total    : number
+		currency?      : string
 		payer_currency?: string
 	}
 
@@ -426,27 +456,26 @@ export type TransactionsRetrieveResult = {
 
 export type TransactionsCallupResult = {
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	appId: string
+	appId    : string
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	timeStamp: string
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	nonceStr: string
-	package: string
+	nonceStr : string
+	package  : string
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	signType: 'RSA'
+	signType : 'RSA'
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	paySign: string
+	paySign  : string
 
 }
 
-export class Transactions extends APIv3 {
-	create(
-		out_trade_no: string,
-		description: string,
-		total: number,
-		openid: string,
-
-	): Promise<TransactionsCreateResult> {
+export class Transactions extends APIv3
+{
+	create
+	// eslint-disable-next-line @stylistic/space-in-parens
+	( out_trade_no: string, description: string, total: number, openid: string)
+	: Promise<TransactionsCreateResult>
+	{
 		description = Buffer.from(description)
 			.subarray(0, 127)
 			.toString()
@@ -458,20 +487,20 @@ export class Transactions extends APIv3 {
 
 		let payer = { openid }
 		let amount = { total: Math.floor(total * 100) }
-		let data = { appid, mchid, description, out_trade_no, notify_url, amount, payer }
 
 		return this.newsletter<TransactionsCreateResult>(
 			'/v3/pay/transactions/jsapi',
 
 			'POST',
 
-			data,
+			{ appid, mchid, description, out_trade_no, notify_url, payer, amount },
 
 		)
 
 	}
 
-	retrieve(out_trade_no: string): Promise<TransactionsRetrieveResult> {
+	retrieve (out_trade_no: string): Promise<TransactionsRetrieveResult>
+	{
 		let mchid = this.mchid
 
 		return this.newsletter<TransactionsRetrieveResult>(
@@ -488,7 +517,8 @@ export class Transactions extends APIv3 {
 
 	}
 
-	delete(out_trade_no: string): Promise<null> {
+	delete (out_trade_no: string): Promise<null>
+	{
 		let mchid = this.mchid
 
 		return this.newsletter<null>(
@@ -503,7 +533,8 @@ export class Transactions extends APIv3 {
 
 	}
 
-	callup(prepay_id: string): TransactionsCallupResult {
+	callup (prepay_id: string): TransactionsCallupResult
+	{
 		// eslint-disable-next-line @typescript-eslint/naming-convention
 		let appId = this.appid
 		// eslint-disable-next-line @typescript-eslint/naming-convention
@@ -537,47 +568,46 @@ export type RefundStatus = 'SUCCESS' | 'CLOSED' | 'PROCESSING' | 'ABNORMAL'
 export type RefundFundsAccount = 'UNSETTLED' | 'AVAILABLE' | 'UNAVAILABLE' | 'OPERATION' | 'BASIC'
 
 export type RefundCreateResult = {
-	refund_id: string
-	out_refund_no: string
-	transaction_id: string
-	out_trade_no: string
-	channel: RefundChannel
+	refund_id            : string
+	out_refund_no        : string
+	transaction_id       : string
+	out_trade_no         : string
+	channel              : RefundChannel
 	user_received_account: string
-	success_time: string
-	create_time: string
-	status: RefundStatus
-	funds_account: RefundFundsAccount
+	success_time         : string
+	create_time          : string
+	status               : RefundStatus
+	funds_account        : RefundFundsAccount
 
 	amount: {
-		total: number
-		refund: number
-		payer_total: number
-		payer_refund: number
+		total            : number
+		refund           : number
+		payer_total      : number
+		payer_refund     : number
 		settlement_refund: number
-		settlement_total: number
-		discount_refund: number
-		currency: string
+		settlement_total : number
+		discount_refund  : number
+		currency         : string
 	}
+
 }
 
 export type RefundRetrieveResult = RefundCreateResult
 
-export class Refund extends APIv3 {
-	create(
-		out_trade_no: string,
-		total: number,
-		refund: number,
-		reason: string,
-
-	): Promise<RefundCreateResult> {
+export class Refund extends APIv3
+{
+	create
+	(out_trade_no: string, total: number, refund: number, reason: string)
+	: Promise<RefundCreateResult>
+	{
 		let out_refund_no = moment().format('YYDDDDHHmmssS')
 		let notify_url = new URL(`/defray/${out_trade_no}/notify`, host).href
 
 
 		let amount = {
 			currency: 'CNY',
-			refund: Math.floor(refund * 100),
-			total: Math.floor(total * 100),
+			refund  : Math.floor(refund * 100),
+			total   : Math.floor(total * 100),
 
 		}
 
@@ -594,7 +624,8 @@ export class Refund extends APIv3 {
 
 	}
 
-	retrieve(out_refund_no: string): Promise<RefundCreateResult> {
+	retrieve (out_refund_no: string): Promise<RefundCreateResult>
+	{
 		return this.newsletter<RefundRetrieveResult>(
 			`/v3/refund/domestic/refunds/${out_refund_no}`,
 

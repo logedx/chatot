@@ -2,7 +2,7 @@ import { Schema, Model, HydratedDocument } from 'mongoose'
 
 
 export type TPointRawDocType = {
-	type: string
+	type       : string
 	coordinates: [number, number]
 
 }
@@ -39,16 +39,16 @@ export const point = new Schema<
 >(
 	{
 		type: {
-			type: String,
+			type    : String,
 			required: true,
-			trim: true,
-			enum: ['Point'],
-			default: 'Point',
+			trim    : true,
+			enum    : ['Point'],
+			default : 'Point',
 
 		},
 
 		coordinates: {
-			type: [Number],
+			type    : [Number],
 			required: true,
 
 		},

@@ -20,7 +20,7 @@ import * as detective from '../lib/detective.js'
 
 export type TRawDocType = storage.TRawDocType<
 	{
-		value: string
+		value : string
 		symbol: `${string}#${Lowercase<axios.Method>}`
 
 		expire: Date
@@ -36,7 +36,7 @@ export type TRawDocType = storage.TRawDocType<
 export type TPopulatePaths = object
 
 export type TVirtuals = {
-	lave: number
+	lave  : number
 	method: '*' | Uppercase<axios.Method>
 
 }
@@ -44,25 +44,15 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	eternal(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType
-
 	// eslint-disable-next-line no-use-before-define
-	): Promise<THydratedDocumentType>
+	eternal(this: THydratedDocumentType): Promise<THydratedDocumentType>
 
 }
 
 export type TStaticMethods = {
-	from(
-		// eslint-disable-next-line no-use-before-define
-		this: TModel,
-
-		value: string,
-		symbol?: TRawDocType['symbol'],
-
-		// eslint-disable-next-line no-use-before-define
-	): Promise<THydratedDocumentType>
+	from
+	// eslint-disable-next-line no-use-before-define
+	(this: TModel, value: string, symbol?: TRawDocType['symbol']): Promise<THydratedDocumentType>
 
 }
 
@@ -91,41 +81,41 @@ export const schema = new Schema<
 	{
 		// 令牌
 		value: {
-			type: String,
-			unique: true,
+			type    : String,
+			unique  : true,
 			required: true,
-			trim: true,
+			trim    : true,
 
 		},
 
 		// 校验码
 		symbol: {
-			type: String,
+			type    : String,
 			required: true,
-			trim: true,
+			trim    : true,
 
 		},
 
 		// 过期时间
 		expire: {
-			type: Date,
-			expires: 0,
+			type    : Date,
+			expires : 0,
 			required: true,
 
 		},
 
 		// media uri
 		src: {
-			type: String,
+			type    : String,
 			required: true,
-			unique: true,
-			trim: true,
+			unique  : true,
+			trim    : true,
 
 		},
 
 		// 载荷
 		amber: {
-			type: Schema.Types.Mixed,
+			type   : Schema.Types.Mixed,
 			default: null,
 
 		},
@@ -136,7 +126,8 @@ export const schema = new Schema<
 
 
 schema.virtual('lave').get(
-	function (): TVirtuals['lave'] {
+	function (): TVirtuals['lave']
+	{
 		return 0 - moment().diff(this.expire, 'seconds')
 
 	},
@@ -145,14 +136,14 @@ schema.virtual('lave').get(
 
 
 schema.virtual('method').get(
-	function (): TVirtuals['method'] {
+	function (): TVirtuals['method']
+	{
 		let symbol = this.symbol ?? ''
 
 		let [, v] = symbol.split('#')
 
-		if (detective.is_string(v)
-
-		) {
+		if (detective.is_string(v) )
+		{
 			return v.toUpperCase() as Uppercase<axios.Method>
 
 		}
@@ -170,7 +161,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['eternal']>
-	function () {
+	function ()
+	{
 		this.expire = new Date(2077, 0, 1)
 
 		return this.save()
@@ -184,7 +176,8 @@ schema.method(
 schema.static<'from'>(
 	'from',
 
-	async function (value, symbol) {
+	async function (value, symbol)
+	{
 		let doc = await this.findOne(
 			{ value, symbol, expire: { $gte: new Date() } },
 
@@ -215,8 +208,10 @@ export type Mailer = {
 }
 
 
-export function is_mailer(v: unknown): v is Mailer {
-	if (detective.is_object(v) === false) {
+export function is_mailer (v: unknown): v is Mailer
+{
+	if (detective.is_object(v) === false)
+	{
 		return false
 
 	}
@@ -233,14 +228,15 @@ export function is_mailer(v: unknown): v is Mailer {
 /**
  * 加密
  */
-export function encrypt(
+export function encrypt (
 	symbol: TRawDocType['symbol'],
 
 	expire: Date,
 
 	amber: unknown = null,
 
-): string {
+): string
+{
 	let payload: Mailer = {
 		symbol,
 
@@ -262,11 +258,13 @@ export function encrypt(
 /**
  * 解密
  */
-export function decrypt(cypher: string): Mailer {
+export function decrypt (cypher: string): Mailer
+{
 	let payload: unknown = null
 	let plain = aes.decrypt_with_pkcs7(cypher)
 
-	try {
+	try
+	{
 		payload = JSON.parse(
 			plain.toString('utf8'),
 
@@ -274,18 +272,19 @@ export function decrypt(cypher: string): Mailer {
 
 	}
 
-	catch {
+	catch
+	{
 		throw new reply.Forbidden('decryption failed')
 
 	}
 
-	if (is_mailer(payload)
-
-	) {
+	if (is_mailer(payload) )
+	{
 		let d = new Date()
 		let expire = new Date(payload.expire)
 
-		if (expire > d) {
+		if (expire > d)
+		{
 			return { ...payload, expire }
 
 		}

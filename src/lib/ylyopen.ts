@@ -7,17 +7,17 @@ import * as secret from './secret.js'
 
 
 export type ServiceHex = {
-	id: string
-	sign: string
+	id       : string
+	sign     : string
 	timestamp: number
-	scope: string
+	scope    : string
 	client_id: string
 
 }
 
 
 export type ServiceToken = {
-	token: string
+	token  : string
 	refresh: string
 	expired: Date
 
@@ -30,18 +30,22 @@ const yly_api = axios.create(
 )
 
 
-export class Service {
+export class Service
+{
 	#client: string
 
 	#secret_key: string
 
 
-	constructor(client: string, secret_key: string) {
+	constructor (client: string, secret_key: string)
+	{
 		this.#client = client
 		this.#secret_key = secret_key
+
 	}
 
-	hex(): ServiceHex {
+	hex (): ServiceHex
+	{
 		let id = secret.hex()
 		let timestamp = Math.floor(Date.now() / 1000)
 
@@ -50,13 +54,15 @@ export class Service {
 			.digest('hex')
 
 		return { id, sign, timestamp, scope: 'all', client_id: this.#client }
+
 	}
 
-	async post<T>(url: string, params: Record<string, unknown>): Promise<T> {
+	async post<T>(url: string, params: Record<string, unknown>): Promise<T>
+	{
 		type Result = {
-			error: string
+			error            : string
 			error_description: string
-			body: T
+			body             : T
 		}
 
 		let result = await yly_api.post<Result>(
@@ -68,18 +74,22 @@ export class Service {
 
 		let { error, error_description, body } = result.data
 
-		if (error === '0' && error_description === 'success') {
+		if (error === '0' && error_description === 'success')
+		{
 			return body
+
 		}
 
 		throw new reply.BadRequest(error_description)
+
 	}
 
-	async create(code: string, qr: string): Promise<ServiceToken> {
+	async create (code: string, qr: string): Promise<ServiceToken>
+	{
 		type Result = {
-			access_token: string
+			access_token : string
 			refresh_token: string
-			expires_in: number
+			expires_in   : number
 		}
 
 		let result = await this.post<Result>(
@@ -101,24 +111,28 @@ export class Service {
 }
 
 
-export class RpcClient extends Service {
+export class RpcClient extends Service
+{
 	#code: string
 
 	#token: string
 
-	constructor(client: string, secret_key: string, code: string, token: string) {
+	constructor (client: string, secret_key: string, code: string, token: string)
+	{
 		super(client, secret_key)
 
 		this.#code = code
 		this.#token = token
+
 	}
 
 
-	async refresh(value: string): Promise<ServiceToken> {
+	async refresh (value: string): Promise<ServiceToken>
+	{
 		type Result = {
-			access_token: string
+			access_token : string
 			refresh_token: string
-			expires_in: number
+			expires_in   : number
 		}
 
 		let result = await this.post<Result>(
@@ -139,16 +153,19 @@ export class RpcClient extends Service {
 
 	}
 
-	delete(): Promise<null> {
+	delete (): Promise<null>
+	{
 		return this.post<null>(
 			'/printer/deleteprinter',
 
 			{ machine_code: this.#code, access_token: this.#token },
+
 		)
 
 	}
 
-	callup(sn: string, content: string): Promise<null> {
+	callup (sn: string, content: string): Promise<null>
+	{
 		let origin_id = sn
 		let machine_code = this.#code
 		let access_token = this.#token
@@ -157,6 +174,7 @@ export class RpcClient extends Service {
 			'print/index',
 
 			{ machine_code, access_token, origin_id, content },
+
 		)
 
 

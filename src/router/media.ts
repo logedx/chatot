@@ -20,35 +20,36 @@ import * as retrieve_router from './retrieve.js'
 
 
 
-export async function create(
+export async function create
+(
 	weapp: weapp_model.THydratedDocumentType,
 
 	body: stream.Readable,
 
 	option: {
-		name: string,
-		model: string,
+		name : string
+		model: string
 
-		mime: string,
-		folder: string,
+		mime  : string
+		folder: string
 
 		hash?: string
 
 	},
 
-): Promise<media_model.THydratedDocumentType> {
-	if (detective.is_hex_string(option.hash)
-
-	) {
+)
+: Promise<media_model.THydratedDocumentType>
+{
+	if (detective.is_hex_string(option.hash) )
+	{
 		let doc = await media_model.default
 			.safe_to_link(
 				option.name, option.model, { hash: option.hash },
 
 			)
 
-		if (detective.is_exist(doc)
-
-		) {
+		if (detective.is_exist(doc) )
+		{
 			return doc
 
 		}
@@ -59,7 +60,7 @@ export async function create(
 	let doc = await media_model.default.create(
 		{
 			weapp,
-			mime: option.mime, folder: option.folder,
+			mime  : option.mime, folder: option.folder,
 			bucket: weapp.bucket,
 
 			linker: [
@@ -82,10 +83,11 @@ router.post(
 
 	retrieve_router.survive_token,
 
-	async function create_(req, res) {
+	async function create_ (req, res)
+	{
 		type Suspect = {
-			name: string
-			model: string
+			name  : string
+			model : string
 			folder: string
 
 			mime: string
@@ -117,10 +119,12 @@ router.post(
 		await suspect.infer_signed<'mime', 'accept'>(
 			evidence.Text.required
 				.to(
-					v => {
+					v =>
+					{
 						let vv = mime_types.contentType(v)
 
-						if (vv === false) {
+						if (vv === false)
+						{
 							throw new Error('accept error, it not in type list')
 
 						}
@@ -189,8 +193,9 @@ router.delete(
 
 	),
 
-	async function delete_(req, res) {
-		type Suspect = Array<string>
+	async function delete_ (req, res)
+	{
+		type Suspect = string[]
 
 
 		let { weapp } = req.survive_token!

@@ -21,12 +21,13 @@ let COMPONENT_ACCESS_TOKEN_EXPIRE = new Date()
 
 type WxopenAPIErrorResult = {
 	errcode: number
-	errmsg: string
+	errmsg : string
 
 }
 
 
-function is_wxopen_api_error_result(v: unknown): v is WxopenAPIErrorResult {
+function is_wxopen_api_error_result (v: unknown): v is WxopenAPIErrorResult
+{
 	return detective.is_object(v)
 		&& detective.is_number(v.errcode)
 		&& detective.is_string(v.errmsg)
@@ -49,13 +50,13 @@ const wxopen_api = axios.create(
 )
 
 wxopen_api.interceptors.response.use(
-	res => {
+	res =>
+	{
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		let { data } = res
 
-		if (is_wxopen_api_error_result(data) === true
-
-		) {
+		if (is_wxopen_api_error_result(data) === true)
+		{
 			let e = new reply.BadRequest('wxopen api request failed')
 
 			e.push('data', data)
@@ -69,29 +70,31 @@ wxopen_api.interceptors.response.use(
 
 	},
 
-	res => {
+	res =>
+	{
 		let error = new reply.BadRequest()
 
-		if (res instanceof Error) {
+		if (res instanceof Error)
+		{
 			error.message = res.message
 
 		}
 
-		if (isAxiosError(res)
-
-		) {
-			if (res.response) {
+		if (isAxiosError(res) )
+		{
+			if (res.response)
+			{
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 				let { data } = res.response
 
-				if (data instanceof Error) {
+				if (data instanceof Error)
+				{
 					error.message = data.message
 
 				}
 
-				if (is_wxopen_api_error_result(data)
-
-				) {
+				if (is_wxopen_api_error_result(data) )
+				{
 					error.message = data.errmsg
 
 				}
@@ -110,11 +113,13 @@ wxopen_api.interceptors.response.use(
 /**
  * 微信第三方平台消息加解密类
  */
-export class WXBizMsgCrypt {
+export class WXBizMsgCrypt
+{
 	/**
 	 * 消息加密
 	 */
-	static encrypt(plain: string): string {
+	static encrypt (plain: string): string
+	{
 		let plain_ = Buffer.concat(
 			[
 				Buffer.isBuffer(plain) ? plain : Buffer.from(plain),
@@ -134,10 +139,10 @@ export class WXBizMsgCrypt {
 	/**
 	 * 消息解密
 	 */
-	static decrypt(plain: string | Buffer): string {
-		if (detective.is_string(plain)
-
-		) {
+	static decrypt (plain: string | Buffer): string
+	{
+		if (detective.is_string(plain) )
+		{
 			plain = Buffer.from(plain, 'base64')
 
 		}
@@ -152,7 +157,8 @@ export class WXBizMsgCrypt {
 	/**
 	 * 签名
 	 */
-	static async sign(encrypt: string, timestamp: string, nonce: string): Promise<string> {
+	static async sign (encrypt: string, timestamp: string, nonce: string): Promise<string>
+	{
 		let component_access_token = await get_component_access_token()
 
 		// 拼接待签名参数
@@ -173,7 +179,8 @@ export class WXBizMsgCrypt {
 /**
  * 设置验证票据
  */
-export function set_component_verify_ticket(value: string): void {
+export function set_component_verify_ticket (value: string): void
+{
 	COMPONENT_VERIFY_TICKET = value
 
 }
@@ -182,10 +189,10 @@ export function set_component_verify_ticket(value: string): void {
 /**
  * 获取验证票据
  */
-export function get_component_verify_ticket(): string {
-	if (detective.is_required_string(COMPONENT_VERIFY_TICKET)
-
-	) {
+export function get_component_verify_ticket (): string
+{
+	if (detective.is_required_string(COMPONENT_VERIFY_TICKET) )
+	{
 		return COMPONENT_VERIFY_TICKET
 
 	}
@@ -198,17 +205,17 @@ export function get_component_verify_ticket(): string {
 /**
  * 获取第三方平台接口令牌
  */
-export async function get_component_access_token(): Promise<string> {
+export async function get_component_access_token (): Promise<string>
+{
 	if (COMPONENT_ACCESS_TOKEN === null
-		|| new Date() > COMPONENT_ACCESS_TOKEN_EXPIRE
-
-	) {
+		|| new Date() > COMPONENT_ACCESS_TOKEN_EXPIRE)
+	{
 		let component_appid = app_id
 		let component_appsecret = app_secret
 		let component_verify_ticket = get_component_verify_ticket()
 
 		type Result = {
-			expires_in: string
+			expires_in            : string
 			component_access_token: string
 		}
 
@@ -239,16 +246,16 @@ export async function get_component_access_token(): Promise<string> {
 /**
  * 获取预授权码
  */
-export async function get_pre_auth_code(): Promise<string> {
+export async function get_pre_auth_code (): Promise<string>
+{
 	if (PRE_AUTH_CODE === null
-		|| new Date() > PRE_AUTH_CODE_EXPIRE
-
-	) {
+		|| new Date() > PRE_AUTH_CODE_EXPIRE)
+	{
 		let component_appid = app_id
 		let component_access_token = await get_component_access_token()
 
 		type Result = {
-			expires_in: string
+			expires_in   : string
 			pre_auth_code: string
 		}
 
@@ -280,27 +287,28 @@ export async function get_pre_auth_code(): Promise<string> {
 
 
 export type AuthorizerAccessToken = {
-	appid: string
-	token: string
+	appid  : string
+	token  : string
 	refresh: string
-	expire: Date
+	expire : Date
 
 }
 
 /**
  * 获取授权方接口调用令牌
  */
-export async function get_authorizer_access_token(authorization_code: string): Promise<AuthorizerAccessToken> {
+export async function get_authorizer_access_token (authorization_code: string): Promise<AuthorizerAccessToken>
+{
 	let component_appid = app_id
 	let component_access_token = await get_component_access_token()
 
 
 	type Result = {
 		authorization_info: {
-			authorizer_appid: string
-			authorizer_access_token: string
+			authorizer_appid        : string
+			authorizer_access_token : string
 			authorizer_refresh_token: string
-			expires_in: string
+			expires_in              : string
 		}
 	}
 
@@ -328,7 +336,7 @@ export async function get_authorizer_access_token(authorization_code: string): P
 }
 
 export type RefreshAuthorizerAccessToken = {
-	token: string
+	token  : string
 	refresh: string
 	expired: Date
 
@@ -337,19 +345,20 @@ export type RefreshAuthorizerAccessToken = {
 /**
  * 刷新授权方接口调用令牌
  */
-export async function refresh_authorizer_access_token(
+export async function refresh_authorizer_access_token (
 	authorizer_appid: string,
 	authorizer_refresh_token: string,
 
-): Promise<RefreshAuthorizerAccessToken> {
+): Promise<RefreshAuthorizerAccessToken>
+{
 	let component_appid = app_id
 	let component_access_token = await get_component_access_token()
 
 
 	type Result = {
-		authorizer_access_token: string
+		authorizer_access_token : string
 		authorizer_refresh_token: string
-		expires_in: string
+		expires_in              : string
 
 	}
 
@@ -374,27 +383,28 @@ export async function refresh_authorizer_access_token(
 
 
 export type AuthorizerInfo = {
-	nickname: string
-	avatar: string
+	nickname : string
+	avatar   : string
 	principal: string
-	stamp: string
+	stamp    : string
 
 }
 
 /**
  * 获取授权方的帐号基本信息
  */
-export async function get_authorizer_info(authorizer_appid: string): Promise<AuthorizerInfo> {
+export async function get_authorizer_info (authorizer_appid: string): Promise<AuthorizerInfo>
+{
 	let component_appid = app_id
 	let component_access_token = await get_component_access_token()
 
 
 	type Result = {
 		authorizer_info: {
-			nick_name: string
-			head_img: string
+			nick_name     : string
+			head_img      : string
 			principal_name: string
-			stamp_url: string
+			stamp_url     : string
 		}
 
 	}
@@ -411,10 +421,10 @@ export async function get_authorizer_info(authorizer_appid: string): Promise<Aut
 	let { nick_name, head_img, principal_name, stamp_url } = data.authorizer_info
 
 	return {
-		nickname: nick_name,
-		avatar: head_img,
+		nickname : nick_name,
+		avatar   : head_img,
 		principal: principal_name,
-		stamp: stamp_url,
+		stamp    : stamp_url,
 	}
 
 }
@@ -423,7 +433,8 @@ export async function get_authorizer_info(authorizer_appid: string): Promise<Aut
 /**
  * 获取授权注册页面地址
  */
-export async function ge_component_login_page(redirect: string): Promise<string> {
+export async function ge_component_login_page (redirect: string): Promise<string>
+{
 	let component_appid = app_id
 	let pre_auth_code = await get_component_access_token()
 
@@ -440,6 +451,7 @@ export async function ge_component_login_page(redirect: string): Promise<string>
 	uri.searchParams.append('auth_type', '2')
 
 	return uri.href
+
 }
 
 
@@ -447,7 +459,7 @@ export async function ge_component_login_page(redirect: string): Promise<string>
  * 创建小程序
  */
 // eslint-disable-next-line max-params
-export async function fast_register_weapp(
+export async function fast_register_weapp (
 	name: string,
 	code: string,
 	code_type: string,
@@ -455,7 +467,8 @@ export async function fast_register_weapp(
 	legal_persona_name: string,
 	component_phone: string,
 
-): Promise<void> {
+): Promise<void>
+{
 	let component_access_token = await get_component_access_token()
 
 	await wxopen_api.post(
@@ -485,8 +498,8 @@ export async function fast_register_weapp(
 
 
 export type WeappsBasic = {
-	nickname: string
-	avatar: string
+	nickname : string
+	avatar   : string
 	principal: string
 
 }
@@ -495,7 +508,8 @@ export type WeappsBasic = {
 /**
  * 获取授权方小程序基本信息
  */
-export async function get_weapps_basic(access_token: string): Promise<WeappsBasic> {
+export async function get_weapps_basic (access_token: string): Promise<WeappsBasic>
+{
 	type Result = {
 		nickname_info: {
 			nickname: string
@@ -520,7 +534,7 @@ export async function get_weapps_basic(access_token: string): Promise<WeappsBasi
 
 	return {
 		nickname,
-		avatar: head_image_url,
+		avatar   : head_image_url,
 		principal: data.principal_name,
 	}
 
@@ -530,15 +544,16 @@ export async function get_weapps_basic(access_token: string): Promise<WeappsBasi
 
 export type WeappsUpportVersion = {
 	version: string
-	items: Array<object>
+	items  : object[]
 }
 
 /**
  * 查询当前设置的最低基础库版本及各版本用户占比
  */
-export async function get_weapps_upport_version(access_token: string): Promise<WeappsUpportVersion> {
+export async function get_weapps_upport_version (access_token: string): Promise<WeappsUpportVersion>
+{
 	type Result = {
-		uv_info: Array<object>
+		uv_info    : object[]
 		now_version: string
 	}
 
@@ -561,7 +576,8 @@ export async function get_weapps_upport_version(access_token: string): Promise<W
 /**
  * 设置最低基础库版本
  */
-export async function set_weapps_upport_version(access_token: string, version: string): Promise<void> {
+export async function set_weapps_upport_version (access_token: string, version: string): Promise<void>
+{
 	await wxopen_api.post(
 		'/cgi-bin/wxopen/setweappsupportversion',
 
@@ -582,8 +598,10 @@ export type DecryptEncrypted = {
 /**
  * 解密敏感内容
  */
-export function decrypt_encrypted(encrypted: string, iv: string, session: string): DecryptEncrypted {
-	try {
+export function decrypt_encrypted (encrypted: string, iv: string, session: string): DecryptEncrypted
+{
+	try
+	{
 		let iv_ = Buffer.from(iv, 'base64')
 		let session_ = Buffer.from(session, 'base64')
 
@@ -602,7 +620,8 @@ export function decrypt_encrypted(encrypted: string, iv: string, session: string
 
 	}
 
-	catch {
+	catch
+	{
 		throw new reply.Forbidden('Decryption Failed')
 
 	}
@@ -611,30 +630,31 @@ export function decrypt_encrypted(encrypted: string, iv: string, session: string
 
 
 export type WxSession = {
-	openid: string
+	openid : string
 	unionid: string
-	value: string
+	value  : string
 }
 
 /**
  * 小程序登录
  */
-export async function get_wx_session(
+export async function get_wx_session (
 	appid: string,
 	js_code: string,
 
-): Promise<WxSession> {
+): Promise<WxSession>
+{
 	type Params = {
-		appid: string
-		js_code: string
-		grant_type: string
-		component_appid: string
+		appid                 : string
+		js_code               : string
+		grant_type            : string
+		component_appid       : string
 		component_access_token: string
 	}
 
 	type Result = {
-		openid: string
-		unionid: string
+		openid     : string
+		unionid    : string
 		session_key: string
 	}
 
@@ -643,7 +663,7 @@ export async function get_wx_session(
 		js_code,
 		grant_type: 'authorization_code',
 
-		component_appid: app_id,
+		component_appid       : app_id,
 		component_access_token: await get_component_access_token(),
 	}
 
@@ -666,19 +686,20 @@ export async function get_wx_session(
 /**
  * 获取授权方小程序基本信息
  */
-export async function modify_domain(
+export async function modify_domain (
 	access_token: string,
-	requestdomain: Array<string> = [],
-	uploaddomain: Array<string> = [],
-	downloaddomain: Array<string> = [],
+	requestdomain: string[] = [],
+	uploaddomain: string[] = [],
+	downloaddomain: string[] = [],
 
 ): Promise<
 	{ nickname: string, avatar: string, principal: string }
 
-> {
+>
+{
 	type Result = {
-		principal_name: string
-		nickname_info: { nickname: string }
+		principal_name : string
+		nickname_info  : { nickname: string }
 		head_image_info: { head_image_url: string }
 	}
 
@@ -708,9 +729,9 @@ export async function modify_domain(
 
 
 export type WeappDraft = {
-	_id: string
+	_id    : string
 	version: string
-	desc: string
+	desc   : string
 	created: string
 
 }
@@ -718,16 +739,17 @@ export type WeappDraft = {
 /**
  * 获取代码草稿
  */
-export async function get_weapps_draft(): Promise<Array<WeappDraft>> {
+export async function get_weapps_draft (): Promise<WeappDraft[]>
+{
 	type TDraft = {
-		draft_id: string
+		draft_id    : string
 		user_version: string
-		user_desc: string
-		create_time: string
+		user_desc   : string
+		create_time : string
 
 	}
 
-	type DraftResult = { draft_list: Array<TDraft> }
+	type DraftResult = { draft_list: TDraft[] }
 
 	let access_token = await get_component_access_token()
 
@@ -741,7 +763,8 @@ export async function get_weapps_draft(): Promise<Array<WeappDraft>> {
 	let { draft_list } = result.data
 
 	return draft_list.map(
-		v => {
+		v =>
+		{
 			let _id = v.draft_id
 			let version = v.user_version
 			let desc = v.user_desc
@@ -760,7 +783,8 @@ export async function get_weapps_draft(): Promise<Array<WeappDraft>> {
 /**
  * 将草稿添加到代码模板库
  */
-export async function put_weapps_draft_to_template(draft_id: string): Promise<void> {
+export async function put_weapps_draft_to_template (draft_id: string): Promise<void>
+{
 	let access_token = await get_component_access_token()
 
 	await wxopen_api.post(
@@ -776,9 +800,9 @@ export async function put_weapps_draft_to_template(draft_id: string): Promise<vo
 
 
 export type WeappTemplate = {
-	_id: string
+	_id    : string
 	version: string
-	desc: string
+	desc   : string
 	created: string
 
 }
@@ -786,16 +810,17 @@ export type WeappTemplate = {
 /**
  * 获取代码模板
  */
-export async function get_weapp_template(): Promise<Array<WeappTemplate>> {
+export async function get_weapp_template (): Promise<WeappTemplate[]>
+{
 	type TTemplate = {
-		template_id: string
+		template_id : string
 		user_version: string
-		user_desc: string
-		create_time: string
+		user_desc   : string
+		create_time : string
 
 	}
 
-	type DraftResult = { template_list: Array<TTemplate> }
+	type DraftResult = { template_list: TTemplate[] }
 
 	let access_token = await get_component_access_token()
 
@@ -811,9 +836,9 @@ export async function get_weapp_template(): Promise<Array<WeappTemplate>> {
 	return template_list.map<WeappTemplate>(
 		v => (
 			{
-				_id: v.template_id,
+				_id    : v.template_id,
 				version: v.user_version,
-				desc: v.user_desc,
+				desc   : v.user_desc,
 				created: v.create_time,
 			}
 
@@ -828,10 +853,11 @@ export async function get_weapp_template(): Promise<Array<WeappTemplate>> {
 /**
  * 删除指定代码模板
  */
-export async function delete_weapps_template(
+export async function delete_weapps_template (
 	template_id: string,
 
-): Promise<void> {
+): Promise<void>
+{
 	let access_token = await get_component_access_token()
 
 	await wxopen_api.post(
@@ -850,14 +876,15 @@ export async function delete_weapps_template(
  * 上传小程序代码
  */
 // eslint-disable-next-line max-params
-export async function weapps_commit(
+export async function weapps_commit (
 	access_token: string,
 	template_id: string,
 	ext_appid: string,
 	user_version: string,
 	user_desc: string,
 
-): Promise<void> {
+): Promise<void>
+{
 	let ext_json = JSON.stringify(
 		// eslint-disable-next-line @typescript-eslint/naming-convention
 		{ extAppid: ext_appid },
@@ -879,10 +906,11 @@ export async function weapps_commit(
 /**
  * 小程序提交审核
  */
-export async function weapps_submit(
+export async function weapps_submit (
 	access_token: string,
 
-): Promise<void> {
+): Promise<void>
+{
 	await wxopen_api.post(
 		'/wxa/submit_audit',
 
@@ -898,10 +926,11 @@ export async function weapps_submit(
 /**
  * 小程序提交审核
  */
-export async function weapps_undo(
+export async function weapps_undo (
 	access_token: string,
 
-): Promise<void> {
+): Promise<void>
+{
 	await wxopen_api.get(
 		'/wxa/undocodeaudit',
 
@@ -915,10 +944,11 @@ export async function weapps_undo(
 /**
  * 发布已通过审核的小程序
  */
-export async function weapps_release(
+export async function weapps_release (
 	access_token: string,
 
-): Promise<void> {
+): Promise<void>
+{
 	await wxopen_api.post(
 		'/wxa/release',
 
@@ -934,10 +964,11 @@ export async function weapps_release(
 /**
  * 线上小程序版本进行回退
  */
-export async function weapps_revert(
+export async function weapps_revert (
 	access_token: string,
 
-): Promise<void> {
+): Promise<void>
+{
 	await wxopen_api.get(
 		'/wxa/revertcoderelease',
 

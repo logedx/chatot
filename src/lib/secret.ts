@@ -8,7 +8,8 @@ import * as detective from './detective.js'
 /**
  * Randomly generate a hexadecimal string
  */
-export function hex(length = 32): string {
+export function hex (length = 32): string
+{
 	let RADIX = 16
 
 	return Array(length)
@@ -24,7 +25,8 @@ export function hex(length = 32): string {
 /**
  * generate a delay time
  */
-export function delay(seconds: number): Date {
+export function delay (seconds: number): Date
+{
 	let v = new Date()
 
 	v.setSeconds(
@@ -41,7 +43,8 @@ type CryptoPipelineCreateHandler = (
 	value: Buffer,
 	option: { algorithm: string, key: Buffer, iv: Buffer },
 
-) => crypto.Cipher
+)
+=> crypto.Cipher
 
 type CryptoPipelineConcatHandler = (transfer: crypto.Cipher | crypto.Decipher, valuve: Buffer) => Buffer
 
@@ -51,13 +54,14 @@ type CryptoPipelinePaddingHandler = (valuve: Buffer) => Buffer
 
 type CryptoPipeline = {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	replace(name: string, handler: (...arg: Array<any>) => any): CryptoPipeline
+	replace(name: string, handler: (...arg: any[]) => any): CryptoPipeline
 
 	execute(value: Buffer): Buffer
 
 }
 
-class CryptoManager {
+class CryptoManager
+{
 	// 加密算法
 	readonly algorithm: string
 
@@ -74,37 +78,41 @@ class CryptoManager {
 	padding_handler: null | CryptoPipelinePaddingHandler = null
 
 
-	constructor(algorithm: string, key: Buffer, iv: Buffer) {
+	constructor (algorithm: string, key: Buffer, iv: Buffer)
+	{
 		this.algorithm = algorithm
 		this.key = key
 		this.iv = iv
 
 	}
 
-	replace(name: 'create', handler: CryptoPipelineCreateHandler): this
+	replace
+	(name: 'create', handler: CryptoPipelineCreateHandler): this
 
-	replace(name: 'concat', handler: CryptoPipelineConcatHandler): this
+	replace
+	(name: 'concat', handler: CryptoPipelineConcatHandler): this
 
-	replace(name: 'padding', handler: CryptoPipelinePaddingHandler): this
+	replace
+	(name: 'padding', handler: CryptoPipelinePaddingHandler): this
 
-	replace(
-		name: string,
-
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		handler: (...arg: Array<any>) => any,
-
-	): this {
-		if (name === 'create') {
+	replace
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	(name: string, handler: (...arg: any[]) => any): this
+	{
+		if (name === 'create')
+		{
 			this.create_handler = handler
 
 		}
 
-		if (name === 'concat') {
+		if (name === 'concat')
+		{
 			this.concat_handler = handler
 
 		}
 
-		if (name === 'padding') {
+		if (name === 'padding')
+		{
 			this.padding_handler = handler
 
 		}
@@ -117,9 +125,12 @@ class CryptoManager {
 
 }
 
-class Encrypt extends CryptoManager implements CryptoPipeline {
-	#create(value: Buffer): crypto.Cipher {
-		if (this.create_handler) {
+class Encrypt extends CryptoManager implements CryptoPipeline
+{
+	#create (value: Buffer): crypto.Cipher
+	{
+		if (this.create_handler)
+		{
 			return this.create_handler(
 				value,
 
@@ -135,8 +146,10 @@ class Encrypt extends CryptoManager implements CryptoPipeline {
 	}
 
 
-	#concat(cipher: crypto.Cipher, value: Buffer): Buffer {
-		if (this.concat_handler) {
+	#concat (cipher: crypto.Cipher, value: Buffer): Buffer
+	{
+		if (this.concat_handler)
+		{
 			return this.concat_handler(cipher, value)
 
 		}
@@ -149,10 +162,12 @@ class Encrypt extends CryptoManager implements CryptoPipeline {
 	}
 
 
-	execute(value: Buffer): Buffer {
+	execute (value: Buffer): Buffer
+	{
 		let cipher = this.#create(value)
 
-		if (this.padding_handler) {
+		if (this.padding_handler)
+		{
 			cipher.setAutoPadding(false)
 
 			value = this.padding_handler(value)
@@ -167,9 +182,12 @@ class Encrypt extends CryptoManager implements CryptoPipeline {
 
 }
 
-class Decrypt extends CryptoManager implements CryptoPipeline {
-	#create(value: Buffer): crypto.Cipher {
-		if (this.create_handler) {
+class Decrypt extends CryptoManager implements CryptoPipeline
+{
+	#create (value: Buffer): crypto.Cipher
+	{
+		if (this.create_handler)
+		{
 			return this.create_handler(
 				value,
 
@@ -184,8 +202,10 @@ class Decrypt extends CryptoManager implements CryptoPipeline {
 
 	}
 
-	#concat(cipher: crypto.Decipher, value: Buffer): Buffer {
-		if (this.concat_handler) {
+	#concat (cipher: crypto.Decipher, value: Buffer): Buffer
+	{
+		if (this.concat_handler)
+		{
 			return this.concat_handler(cipher, value)
 
 		}
@@ -198,10 +218,12 @@ class Decrypt extends CryptoManager implements CryptoPipeline {
 	}
 
 
-	execute(value: Buffer): Buffer {
+	execute (value: Buffer): Buffer
+	{
 		let cipher = this.#create(value)
 
-		if (this.padding_handler) {
+		if (this.padding_handler)
+		{
 			cipher.setAutoPadding(false)
 
 			value = this.#concat(cipher, value)
@@ -235,7 +257,8 @@ type AESCryptoManager = {
  * 4. Mode: 加密模式；
  * 5. Padding: 填充方式。
  */
-class AESManager {
+class AESManager
+{
 	// 加密算法
 	readonly algorithm: string
 
@@ -256,23 +279,26 @@ class AESManager {
 	static readonly pkcs7_plain_length_offset = 16
 
 
-	constructor(
+	constructor
+	(
 		algorithm: string,
 
 		key: string | Buffer = crypto.randomBytes(32),
 		iv: string | Buffer = crypto.randomBytes(16),
-
-	) {
+	)
+	{
 		key = AESManager.normalized(key, 'utf8')
 		iv = AESManager.normalized(iv, 'utf8')
 
 
-		if (key.length !== 32) {
+		if (key.length !== 32)
+		{
 			throw new reply.BadRequest('the length of the key must be 32 bytes.')
 
 		}
 
-		if (iv.length !== 12 && iv.length !== 16) {
+		if (iv.length !== 12 && iv.length !== 16)
+		{
 			throw new reply.BadRequest('the length of the iv must be 16 bytes.')
 
 		}
@@ -283,10 +309,10 @@ class AESManager {
 
 	}
 
-	static normalized(value: string | Buffer, encoding: 'utf8' | 'hex'): Buffer {
-		if (detective.is_string(value)
-
-		) {
+	static normalized (value: string | Buffer, encoding: 'utf8' | 'hex'): Buffer
+	{
+		if (detective.is_string(value) )
+		{
 			value = Buffer.from(value, encoding)
 
 		}
@@ -295,7 +321,8 @@ class AESManager {
 
 	}
 
-	static pkcs7_pad(plain: Buffer): Buffer {
+	static pkcs7_pad (plain: Buffer): Buffer
+	{
 		// 载荷
 		let payload = crypto.randomBytes(AES.pkcs7_playload_length)
 
@@ -317,7 +344,8 @@ class AESManager {
 	}
 
 
-	static pkcs7_unpad(plain: Buffer): Buffer {
+	static pkcs7_unpad (plain: Buffer): Buffer
+	{
 		let offset = plain.readUInt32BE(AES.pkcs7_plain_length_offset)
 
 		return plain.subarray(
@@ -341,13 +369,16 @@ class AESManager {
  * 4. Mode: 加密模式；
  * 5. Padding: 填充方式。
  */
-class AES extends AESManager implements AESCryptoManager {
-	#encrypt(value: string | Buffer, is_padding = false): Buffer {
+class AES extends AESManager implements AESCryptoManager
+{
+	#encrypt (value: string | Buffer, is_padding = false): Buffer
+	{
 		value = AESManager.normalized(value, 'utf8')
 
 		let pipeline = new Encrypt(this.algorithm, this.key, this.iv)
 
-		if (is_padding) {
+		if (is_padding)
+		{
 			// eslint-disable-next-line @typescript-eslint/unbound-method
 			pipeline.replace('padding', AES.pkcs7_pad)
 
@@ -357,12 +388,14 @@ class AES extends AESManager implements AESCryptoManager {
 
 	}
 
-	#decrypt(value: string | Buffer, is_padding = false): Buffer {
+	#decrypt (value: string | Buffer, is_padding = false): Buffer
+	{
 		value = AESManager.normalized(value, 'hex')
 
 		let pipeline = new Decrypt(this.algorithm, this.key, this.iv)
 
-		if (is_padding) {
+		if (is_padding)
+		{
 			// eslint-disable-next-line @typescript-eslint/unbound-method
 			pipeline.replace('padding', AES.pkcs7_unpad)
 
@@ -373,12 +406,14 @@ class AES extends AESManager implements AESCryptoManager {
 
 	}
 
-	encrypt(value: string | Buffer): Buffer {
+	encrypt (value: string | Buffer): Buffer
+	{
 		return this.#encrypt(value)
 
 	}
 
-	decrypt(value: string | Buffer): Buffer {
+	decrypt (value: string | Buffer): Buffer
+	{
 		return this.#decrypt(value)
 
 	}
@@ -386,7 +421,8 @@ class AES extends AESManager implements AESCryptoManager {
 	/**
 	 * PKCS#7 填充加密
 	 */
-	encrypt_with_pkcs7(value: string | Buffer): Buffer {
+	encrypt_with_pkcs7 (value: string | Buffer): Buffer
+	{
 		return this.#encrypt(value, true)
 
 	}
@@ -395,8 +431,10 @@ class AES extends AESManager implements AESCryptoManager {
 	/**
 	 * PKCS#7 填充解密
 	 */
-	decrypt_with_pkcs7(value: string | Buffer): Buffer {
+	decrypt_with_pkcs7 (value: string | Buffer): Buffer
+	{
 		return this.#decrypt(value, true)
+
 	}
 
 
@@ -404,23 +442,28 @@ class AES extends AESManager implements AESCryptoManager {
 
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-class AES_AEAD extends AESManager implements AESCryptoManager {
+class AES_AEAD extends AESManager implements AESCryptoManager
+{
 	#aad: Buffer = Buffer.from('')
 
 	#auth_tag_length = 16
 
-	set aad(value: string | Buffer) {
+	set aad (value: string | Buffer)
+	{
 		this.#aad = AESManager.normalized(value, 'utf8')
 
 	}
 
-	#cipher_create_handler(
+	#cipher_create_handler (
 		aad: Buffer,
 		auth_tag_length: number,
 		plaintext_length: number,
 
-	): CryptoPipelineCreateHandler {
-		return function (value, option) {
+	)
+	: CryptoPipelineCreateHandler
+	{
+		return function (value, option)
+		{
 			let cipher = crypto.createCipheriv(
 				option.algorithm as crypto.CipherCCMTypes,
 
@@ -446,13 +489,16 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
 
 	}
 
-	#decipher_create_handler(
+	#decipher_create_handler (
 		aad: Buffer,
 		auth_tag_length: number,
 		plaintext_length: number,
 
-	): CryptoPipelineCreateHandler {
-		return function (value, option) {
+	)
+	: CryptoPipelineCreateHandler
+	{
+		return function (value, option)
+		{
 			let decipher = crypto.createDecipheriv(
 				option.algorithm as crypto.CipherCCMTypes,
 
@@ -483,7 +529,8 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
 
 	}
 
-	#cipher_concat_handler(cipher: crypto.CipherCCM, value: Buffer): Buffer {
+	#cipher_concat_handler (cipher: crypto.CipherCCM, value: Buffer): Buffer
+	{
 		return Buffer.concat(
 			[cipher.update(value), cipher.final(), cipher.getAuthTag()],
 
@@ -491,8 +538,10 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
 
 	}
 
-	#decipher_concat_handler(auth_tag_length: number): CryptoPipelineConcatHandler {
-		return function (cipher, value): Buffer {
+	#decipher_concat_handler (auth_tag_length: number): CryptoPipelineConcatHandler
+	{
+		return function (cipher, value): Buffer
+		{
 			return Buffer.concat(
 				[
 					cipher.update(
@@ -510,7 +559,8 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
 
 	}
 
-	#encrypt(value: string | Buffer, is_padding = false): Buffer {
+	#encrypt (value: string | Buffer, is_padding = false): Buffer
+	{
 		value = AESManager.normalized(value, 'utf8')
 
 		let pipeline = new Encrypt(this.algorithm, this.key, this.iv)
@@ -530,7 +580,8 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
 
 		)
 
-		if (is_padding) {
+		if (is_padding)
+		{
 			// eslint-disable-next-line @typescript-eslint/unbound-method
 			pipeline.replace('padding', AES.pkcs7_pad)
 
@@ -541,7 +592,8 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
 
 	}
 
-	#decrypt(value: string | Buffer, is_padding = false): Buffer {
+	#decrypt (value: string | Buffer, is_padding = false): Buffer
+	{
 		value = AESManager.normalized(value, 'hex')
 
 		let pipeline = new Decrypt(this.algorithm, this.key, this.iv)
@@ -562,7 +614,8 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
 
 		)
 
-		if (is_padding) {
+		if (is_padding)
+		{
 			// eslint-disable-next-line @typescript-eslint/unbound-method
 			pipeline.replace('padding', AES.pkcs7_unpad)
 
@@ -575,12 +628,14 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
 
 
 
-	encrypt(value: string | Buffer): Buffer {
+	encrypt (value: string | Buffer): Buffer
+	{
 		return this.#encrypt(value)
 
 	}
 
-	decrypt(value: string | Buffer): Buffer {
+	decrypt (value: string | Buffer): Buffer
+	{
 		return this.#decrypt(value)
 
 	}
@@ -588,7 +643,8 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
 	/**
 	 * PKCS#7 填充加密
 	 */
-	encrypt_with_pkcs7(value: string | Buffer): Buffer {
+	encrypt_with_pkcs7 (value: string | Buffer): Buffer
+	{
 		return this.#encrypt(value, true)
 
 	}
@@ -597,8 +653,10 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
 	/**
 	 * PKCS#7 填充解密
 	 */
-	decrypt_with_pkcs7(value: string | Buffer): Buffer {
+	decrypt_with_pkcs7 (value: string | Buffer): Buffer
+	{
 		return this.#decrypt(value, true)
+
 	}
 
 
@@ -610,12 +668,14 @@ class AES_AEAD extends AESManager implements AESCryptoManager {
  * 高级加密标准
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export class AES_256_CBC extends AES {
-	constructor(
+export class AES_256_CBC extends AES
+{
+	constructor
+	(
 		key: string | Buffer = crypto.randomBytes(32),
 		iv: string | Buffer = crypto.randomBytes(16),
-
-	) {
+	)
+	{
 		super('aes-256-cbc', key, iv)
 
 	}
@@ -627,12 +687,14 @@ export class AES_256_CBC extends AES {
  * 高级加密标准
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export class AES_256_CCM extends AES_AEAD {
-	constructor(
+export class AES_256_CCM extends AES_AEAD
+{
+	constructor
+	(
 		key: string | Buffer = crypto.randomBytes(32),
 		iv: string | Buffer = crypto.randomBytes(12),
-
-	) {
+	)
+	{
 		super('aes-256-ccm', key, iv)
 
 	}
@@ -643,12 +705,14 @@ export class AES_256_CCM extends AES_AEAD {
  * 高级加密标准
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export class AES_256_GCM extends AES_AEAD {
-	constructor(
+export class AES_256_GCM extends AES_AEAD
+{
+	constructor
+	(
 		key: string | Buffer = crypto.randomBytes(32),
 		iv: string | Buffer = crypto.randomBytes(16),
-
-	) {
+	)
+	{
 		super('aes-256-gcm', key, iv)
 
 	}
@@ -658,7 +722,8 @@ export class AES_256_GCM extends AES_AEAD {
 
 
 
-export class RSA extends EventEmitter {
+export class RSA extends EventEmitter
+{
 	#sign: Buffer = Buffer.from([])
 
 	#evidence: Buffer = Buffer.from([])
@@ -667,7 +732,8 @@ export class RSA extends EventEmitter {
 
 	#serial: [string, string] = ['', '']
 
-	constructor(sign: Buffer, evidence: Buffer, verify: Buffer) {
+	constructor (sign: Buffer, evidence: Buffer, verify: Buffer)
+	{
 		super()
 
 		let x = new crypto.X509Certificate(evidence)
@@ -677,48 +743,55 @@ export class RSA extends EventEmitter {
 		this.#verify = verify
 		this.#serial = [x.serialNumber, x.serialNumber]
 
-		try {
+		try
+		{
 			this.#serial[1] = new crypto.X509Certificate(verify).serialNumber
 
 		}
 
-		catch {
+		catch
+		{
 			// 
 
 		}
 
 	}
 
-	get serial(): [string, string] {
+	get serial (): [string, string]
+	{
 		return this.#serial
 
 	}
 
-	update(name: 'evidence' | 'verify', ctx: string | Buffer): void {
+	update (name: 'evidence' | 'verify', ctx: string | Buffer): void
+	{
 		ctx = AESManager.normalized(ctx, 'utf8')
 
 
 		let c = new crypto.X509Certificate(ctx)
 
-		if (name === 'evidence') {
+		if (name === 'evidence')
+		{
 			this.#evidence = ctx
 
 			this.#serial[0] = c.serialNumber
 
 		}
 
-		if (name === 'verify') {
+		if (name === 'verify')
+		{
 			this.#verify = ctx
 
 			this.#serial[1] = c.serialNumber
 
 		}
 
-		this.emit('update', name, ctx.toString('base64'))
+		this.emit('update', name, ctx.toString('base64') )
 
 	}
 
-	encrypt(value: string | Buffer): Buffer {
+	encrypt (value: string | Buffer): Buffer
+	{
 		const { RSA_PKCS1_OAEP_PADDING } = crypto.constants
 
 		return crypto.publicEncrypt(
@@ -730,7 +803,8 @@ export class RSA extends EventEmitter {
 
 	}
 
-	decrypt(value: string | Buffer): Buffer {
+	decrypt (value: string | Buffer): Buffer
+	{
 		const { RSA_PKCS1_OAEP_PADDING } = crypto.constants
 
 		return crypto.privateDecrypt(
@@ -741,12 +815,13 @@ export class RSA extends EventEmitter {
 
 	}
 
-	sign(data: string | Buffer, algorithm = 'sha256WithRSAEncryption'): Buffer {
+	sign
+	(data: string | Buffer, algorithm = 'sha256WithRSAEncryption'): Buffer
+	{
 		let hashes = crypto.getHashes()
 
-		if (hashes.includes(algorithm) === false
-
-		) {
+		if (hashes.includes(algorithm) === false)
+		{
 			throw new reply.BadRequest('`algorithm` Incorrect. Use crypto.getHashes() to obtain the names of the available digest algorithms.')
 
 		}
@@ -757,12 +832,13 @@ export class RSA extends EventEmitter {
 
 	}
 
-	verify(data: string | Buffer, signature: Buffer, algorithm = 'sha256WithRSAEncryption'): boolean {
+	verify
+	(data: string | Buffer, signature: Buffer, algorithm = 'sha256WithRSAEncryption'): boolean
+	{
 		let hashes = crypto.getHashes()
 
-		if (hashes.includes(algorithm) === false
-
-		) {
+		if (hashes.includes(algorithm) === false)
+		{
 			throw new reply.BadRequest('`algorithm` Incorrect. Use crypto.getHashes() to obtain the names of the available digest algorithms.')
 
 		}

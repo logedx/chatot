@@ -23,9 +23,9 @@ export type TRawDocType = storage.TRawDocType<
 		scope: number
 
 		weapp: null | Types.ObjectId
-		user: null | Types.ObjectId
+		user : null | Types.ObjectId
 
-		value: string
+		value  : string
 		refresh: string
 
 		expire: Date
@@ -36,14 +36,14 @@ export type TRawDocType = storage.TRawDocType<
 
 export type TPopulatePaths = {
 	weapp: null | weapp_model.THydratedDocumentType
-	user: null | user_model.THydratedDocumentType
+	user : null | user_model.THydratedDocumentType
 
 }
 
 export type TVirtuals = {
 	is_super: boolean
 
-	is_usable: boolean
+	is_usable : boolean
 	is_survive: boolean
 
 	mode: scope_model.Mode
@@ -53,52 +53,26 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	replenish(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
+	// eslint-disable-next-line no-use-before-define
+	replenish(this: THydratedDocumentType, value?: string): Promise<THydratedDocumentType>
 
-		value?: string,
+	// eslint-disable-next-line no-use-before-define
+	to_user(this: THydratedDocumentType): Promise<user_model.THydratedDocumentType>
 
-		// eslint-disable-next-line no-use-before-define
-	): Promise<THydratedDocumentType>
+	// eslint-disable-next-line no-use-before-define
+	to_weapp(this: THydratedDocumentType): Promise<weapp_model.THydratedDocumentType>
 
-	to_user(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
+	// eslint-disable-next-line no-use-before-define
+	to_usable(this: THydratedDocumentType): TSurviveHydratedDocumentType
 
-	): Promise<user_model.THydratedDocumentType>
-
-	to_weapp(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-	): Promise<weapp_model.THydratedDocumentType>
-
-	to_usable(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-		// eslint-disable-next-line no-use-before-define
-	): TSurviveHydratedDocumentType
-
-	to_survive(
-		// eslint-disable-next-line no-use-before-define
-		this: THydratedDocumentType,
-
-		// eslint-disable-next-line no-use-before-define
-	): TSurviveHydratedDocumentType
+	// eslint-disable-next-line no-use-before-define
+	to_survive(this: THydratedDocumentType): TSurviveHydratedDocumentType
 
 }
 
 export type TStaticMethods = {
-	replenish(
-		// eslint-disable-next-line no-use-before-define
-		this: TModel,
-
-		refresh: string,
-
 	// eslint-disable-next-line no-use-before-define
-	): Promise<THydratedDocumentType>
+	replenish(this: TModel, refresh: string): Promise<THydratedDocumentType>
 
 }
 
@@ -133,51 +107,51 @@ export const schema = new Schema<
 	{
 		//  权限范围
 		scope: {
-			type: Number,
+			type    : Number,
 			required: true,
-			default: 0,
+			default : 0,
 
 		},
 
 		weapp: {
-			type: Schema.Types.ObjectId,
-			ref: () => weapp_model.default,
+			type   : Schema.Types.ObjectId,
+			ref    : () => weapp_model.default,
 			default: null,
 
 		},
 
 		user: {
-			type: Schema.Types.ObjectId,
-			ref: () => user_model.default,
+			type   : Schema.Types.ObjectId,
+			ref    : () => user_model.default,
 			default: null,
 
 		},
 
 		value: {
-			type: String,
-			unique: true,
+			type    : String,
+			unique  : true,
 			required: true,
-			trim: true,
-			default: () => secret.hex(),
+			trim    : true,
+			default : () => secret.hex(),
 
 		},
 
 		// 刷新令牌
 		refresh: {
-			type: String,
-			unique: true,
+			type    : String,
+			unique  : true,
 			required: true,
-			trim: true,
-			default: () => secret.hex(),
+			trim    : true,
+			default : () => secret.hex(),
 
 		},
 
 		// 过期时间
 		expire: {
-			type: Date,
-			expires: 0,
+			type    : Date,
+			expires : 0,
 			required: true,
-			default: () => secret.delay(7200),
+			default : () => secret.delay(7200),
 
 		},
 
@@ -186,7 +160,8 @@ export const schema = new Schema<
 )
 
 schema.virtual('is_super').get(
-	function (): TVirtuals['is_super'] {
+	function (): TVirtuals['is_super']
+	{
 		return this.scope > 0
 
 	},
@@ -194,7 +169,8 @@ schema.virtual('is_super').get(
 )
 
 schema.virtual('is_usable').get(
-	function (): TVirtuals['is_usable'] {
+	function (): TVirtuals['is_usable']
+	{
 		return this.expire > new Date()
 
 	},
@@ -202,7 +178,8 @@ schema.virtual('is_usable').get(
 )
 
 schema.virtual('is_survive').get(
-	function (): TVirtuals['is_survive'] {
+	function (): TVirtuals['is_survive']
+	{
 		let is_expired = this.expire > new Date()
 		let is_anonymous = detective.is_null(this.user) || detective.is_null(this.weapp)
 
@@ -213,7 +190,8 @@ schema.virtual('is_survive').get(
 )
 
 schema.virtual('mode').get(
-	function (): TVirtuals['mode'] {
+	function (): TVirtuals['mode']
+	{
 		return scope_model.vtmod(this.scope)
 
 	},
@@ -225,11 +203,11 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['replenish']>
-	async function () {
+	async function ()
+	{
 		if (
-			this.expire > secret.delay(-3600)
-
-		) {
+			this.expire > secret.delay(-3600) )
+		{
 			throw new reply.Unauthorized('value is expired')
 
 		}
@@ -251,7 +229,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['to_user']>
-	async function () {
+	async function ()
+	{
 		let doc = await this.populate<
 				Pick<TPopulatePaths, 'user'>
 
@@ -272,7 +251,8 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['to_weapp']>
-	async function () {
+	async function ()
+	{
 		let doc = await this.populate<
 			Pick<TPopulatePaths, 'weapp'>
 
@@ -293,8 +273,10 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['to_usable']>
-	function () {
-		if (this.is_usable) {
+	function ()
+	{
+		if (this.is_usable)
+		{
 			return this as TSurviveHydratedDocumentType
 
 		}
@@ -311,8 +293,10 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['to_survive']>
-	function () {
-		if (this.is_survive) {
+	function ()
+	{
+		if (this.is_survive)
+		{
 			return this as TSurviveHydratedDocumentType
 
 		}
@@ -328,7 +312,8 @@ schema.method(
 schema.static<'replenish'>(
 	'replenish',
 
-	async function (refresh) {
+	async function (refresh)
+	{
 		let doc = await this.findOne(
 			{ refresh },
 

@@ -18,11 +18,14 @@ import * as retrieve_router from './retrieve.js'
 
 export const cypher_decrypt_evidence_chain = evidence.Text.required.to(stamp_model.decrypt)
 
-export function symbol_evidence_chain(
+export function symbol_evidence_chain
+(
 	pathname: `/${string}`,
 	method: Lowercase<axios.Method>,
 
-): evidence.Chain<stamp_model.THydratedDocumentType> {
+)
+: evidence.Chain<stamp_model.THydratedDocumentType>
+{
 	return evidence.Text.required.to(
 		v => stamp_model.default.from(v, `${pathname}#${method}`),
 
@@ -31,19 +34,23 @@ export function symbol_evidence_chain(
 
 }
 
-export function symbol_encrypt(
+export function symbol_encrypt
+(
 	pathname: `/${string}`,
 	method: Lowercase<axios.Method>,
 
 	option?: {
-		expire?: number,
-		amber?: stamp_model.TRawDocType['amber']
+		expire?: number
+		amber? : stamp_model.TRawDocType['amber']
 
 	},
 
-): express.RequestHandler {
+)
+: express.RequestHandler
+{
 	// eslint-disable-next-line @typescript-eslint/no-shadow
-	return function symbol_encrypt(req, res) {
+	return function symbol_encrypt (req, res)
+	{
 		let expire = option?.expire ?? 600
 
 		let cypher = stamp_model.encrypt(
@@ -75,11 +82,12 @@ router.post(
 
 	...token_router.checkpoint(),
 
-	async function create(req, res) {
+	async function create (req, res)
+	{
 		type Suspect = {
 			value: string
 
-			path: string
+			path  : string
 			mailer: stamp_model.Mailer
 
 		}
@@ -148,7 +156,8 @@ router.options(
 
 	retrieve_router.survive_token,
 
-	async function query(req, res) {
+	async function query (req, res)
+	{
 		let { value } = req.params
 		let { weapp } = req.survive_token!
 
@@ -194,7 +203,8 @@ router.get(
 
 	retrieve_router.stamp,
 
-	async function retrieve(req, res) {
+	async function retrieve (req, res)
+	{
 		let doc = req.stamp!
 		let { weapp } = req.survive_token!
 

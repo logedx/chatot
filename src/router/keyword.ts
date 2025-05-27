@@ -18,11 +18,12 @@ router.post(
 
 	...token_router.checkpoint(),
 
-	async function create(req, res) {
+	async function create (req, res)
+	{
 		type Suspect = {
 			weapp: Types.ObjectId
 
-			name: string
+			name : string
 			label: string
 			value: string
 
@@ -71,11 +72,12 @@ router.get(
 
 	...token_router.checkpoint(),
 
-	async function retrieve_pagination(req, res) {
+	async function retrieve_pagination (req, res)
+	{
 		type Suspect = {
 			weapp: Types.ObjectId
 
-			name?: string
+			name? : string
 			label?: string
 			value?: RegExp
 
@@ -142,7 +144,8 @@ router.delete(
 
 	retrieve_router.keyword,
 
-	async function delete_(req, res) {
+	async function delete_ (req, res)
+	{
 		let doc = req.keyword!
 		let ctx = req.checkpoint!
 

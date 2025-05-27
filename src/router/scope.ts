@@ -39,7 +39,8 @@ router.post(
 
 	retrieve_router.survive_token,
 
-	async function create(req, res) {
+	async function create (req, res)
+	{
 		type Suspect = {
 			value: stamp_model.THydratedDocumentType
 
@@ -61,7 +62,8 @@ router.post(
 
 		reply.NotFound.asserts(doc, 'user')
 
-		if (doc.scope) {
+		if (doc.scope)
+		{
 			doc.scope.value = scope_model.mixed(
 				doc.scope.value,
 
@@ -71,7 +73,8 @@ router.post(
 
 		}
 
-		else {
+		else
+		{
 			doc.scope = { value: scope_model.Role.运营 } as scope_model.THydratedDocumentType
 
 		}
@@ -108,7 +111,8 @@ router.get(
 
 	retrieve_router.user_scope,
 
-	function retrieve(req, res) {
+	function retrieve (req, res)
+	{
 		res.json(req.user_scope)
 
 	},
@@ -130,9 +134,10 @@ router.put(
 
 	retrieve_router.user_scope,
 
-	async function update(req, res) {
+	async function update (req, res)
+	{
 		type Suspect = {
-			value?: number
+			value? : number
 			expire?: Date
 
 		}
@@ -195,7 +200,8 @@ router.delete(
 
 	),
 
-	async function delete_(req, res) {
+	async function delete_ (req, res)
+	{
 		let { _id } = req.params
 		let { weapp } = req.survive_token!
 

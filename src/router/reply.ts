@@ -12,12 +12,15 @@ const { NODE_ENV } = process.env
 
 
 
-declare global {
+declare global
+{
 	// eslint-disable-next-line @typescript-eslint/no-namespace
-	namespace Express {
+	namespace Express
+	{
 		// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-		interface Response {
-			stdio: (e: unknown) => void
+		interface Response
+		{
+			stdio(e: unknown): void
 
 		}
 
@@ -27,8 +30,9 @@ declare global {
 
 
 
-export const stdio: express.RequestHandler = function stdio(req, res, next) {
-	let queue: Array<unknown> = []
+export const stdio: express.RequestHandler = function stdio (req, res, next)
+{
+	let queue: unknown[] = []
 
 
 	req.headers['x-request-id'] = secret.hex(8)
@@ -36,28 +40,30 @@ export const stdio: express.RequestHandler = function stdio(req, res, next) {
 	res.once(
 		'finish',
 
-		async () => {
+		async () =>
+		{
 			let id = req.get('x-request-id')
 
-			if (NODE_ENV === 'test' || detective.is_empty(id)
-
-			) {
+			if (NODE_ENV === 'test' || detective.is_empty(id) )
+			{
 				return
 
 			}
 
 			let resolve = await Promise.all(
 				queue.map(
-					async v => {
-						if (detective.is_promise(v)
-
-						) {
-							try {
+					async v =>
+					{
+						if (detective.is_promise(v) )
+						{
+							try
+							{
 								await v
 
 							}
 
-							catch (e) {
+							catch (e)
+							{
 								return e
 
 							}
@@ -72,9 +78,8 @@ export const stdio: express.RequestHandler = function stdio(req, res, next) {
 
 			)
 
-			for (let [i, v] of resolve.entries()
-
-			) {
+			for (let [i, v] of resolve.entries() )
+			{
 				let ii = i.toString().padStart(2, '0')
 
 				reply.stdio(`${id}.${ii}`, v)
@@ -88,10 +93,10 @@ export const stdio: express.RequestHandler = function stdio(req, res, next) {
 	)
 
 	// eslint-disable-next-line @typescript-eslint/no-shadow
-	res.stdio = function stdio(e) {
-		if (detective.is_exist(e)
-
-		) {
+	res.stdio = function stdio (e)
+	{
+		if (detective.is_exist(e) )
+		{
 			queue.push(e)
 
 		}
@@ -106,7 +111,8 @@ export const stdio: express.RequestHandler = function stdio(req, res, next) {
 /**
  * NotFound
  */
-export const not_found: express.RequestHandler = function not_found(req) {
+export const not_found: express.RequestHandler = function not_found (req)
+{
 	let e = new reply.NotFound(req.path)
 
 	e.push('headers', req.headers)
@@ -119,41 +125,38 @@ export const not_found: express.RequestHandler = function not_found(req) {
 /**
  * 错误响应
  */
-export const finish: express.ErrorRequestHandler = function finish(
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	e: NodeJS.ErrnoException, req, res, _next,
-
-) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const finish: express.ErrorRequestHandler = function finish (e: NodeJS.ErrnoException, req, res, _next)
+{
 	let stack = e.stack ?? ''
 
 	if (e instanceof mongoose.mongo.MongoServerError
 		&& detective.is_number(e.code)
-		&& detective.is_exist(mongo_i18n.server_error[e.code])
-
-	) {
+		&& detective.is_exist(mongo_i18n.server_error[e.code]) )
+	{
 		e = new reply.BadRequest(mongo_i18n.server_error[e.code])
 
 		e.stack = stack
 
 	}
 
-	if (e instanceof reply.Exception === false
-
-	) {
+	if (e instanceof reply.Exception === false)
+	{
 		e = new reply.BadRequest(e.message)
 
 		e.stack = stack
 
 	}
 
-	if (detective.is_function(res.stdio)
-
-	) {
+	// eslint-disable-next-line @typescript-eslint/unbound-method
+	if (detective.is_function(res.stdio) )
+	{
 		res.stdio(e)
 
 	}
 
-	else {
+	else
+	{
 		reply.stdio_(req, e)
 
 	}
@@ -161,9 +164,9 @@ export const finish: express.ErrorRequestHandler = function finish(
 	res.status(e.errno ?? 500)
 		.json(
 			{
-				name: e.name,
+				name   : e.name,
 				message: e.message,
-				stack: (e as reply.Exception).mute().collect(),
+				stack  : (e as reply.Exception).mute().collect(),
 
 			},
 
