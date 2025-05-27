@@ -21,7 +21,7 @@
 		"install": "npm run build",
 		"eslint": "npx tsc --noEmit && npx eslint **/*.ts --ignore-pattern dist",
 		"test": "npx mocha test/**/*.ts",
-		"release": "npx standard-version",
+		"release": "npx commit-and-tag-version --releaseCommitMessageFormat \"🐳 chore(release): {{currentTag}}\"",
 		"build": "npx tsc -p ./src",
 		"build:cover": "nyc --reporter=html npm run test",
 		"build:image": "docker build --progress=plain --no-cache -t %npm_package_name%:v%npm_package_version% .",
@@ -47,50 +47,50 @@
 		"npm": ">= 10.0.0"
 	},
 	"dependencies": {
-		"@inquirer/prompts": "^7.4.1",
+		"@inquirer/prompts": "^7.5.3",
 		"@tensorflow/tfjs": "^4.22.0",
 		"@types/ali-oss": "^6.16.11",
-		"@types/compression": "^1.7.5",
+		"@types/compression": "^1.8.0",
 		"@types/config": "^3.3.5",
-		"@types/express": "^5.0.1",
-		"@types/inquirer": "^9.0.7",
+		"@types/express": "^5.0.2",
+		"@types/inquirer": "^9.0.8",
 		"@types/mime-types": "^2.1.4",
 		"@types/morgan": "^1.9.9",
-		"@types/node": "^22.14.0",
+		"@types/node": "^22.15.21",
 		"@types/pinyin": "^2.10.2",
 		"@types/xml2js": "^0.4.14",
-		"ali-oss": "^6.22.0",
-		"axios": "^1.8.4",
+		"ali-oss": "^6.23.0",
+		"axios": "^1.9.0",
 		"chalk": "^5.4.1",
 		"compression": "^1.8.0",
-		"config": "^3.3.12",
+		"config": "^4.0.0",
 		"express": "^5.1.0",
-		"inquirer": "^12.5.2",
+		"inquirer": "^12.6.3",
 		"mime-types": "^3.0.1",
 		"moment": "^2.30.1",
-		"mongoose": "^8.13.2",
+		"mongoose": "^8.15.1",
 		"morgan": "^1.10.0",
-		"pinyin": "^3.1.0",
+		"pinyin": "^4.0.0",
 		"typescript": "^5.8.3",
 		"xml2js": "^0.6.2"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.24.0",
+		"@eslint/js": "^9.27.0",
 		"@stylistic/eslint-plugin": "^4.4.0",
-		"@types/chai": "^5.2.1",
+		"@types/chai": "^5.2.2",
 		"@types/mocha": "^10.0.10",
 		"@types/sinon": "^17.0.4",
 		"chai": "^5.2.0",
-		"eslint": "^9.24.0",
+		"commit-and-tag-version": "^12.5.1",
+		"eslint": "^9.27.0",
 		"husky": "^9.1.7",
-		"mocha": "^11.1.0",
+		"mocha": "^11.5.0",
 		"nyc": "^17.1.0",
 		"ora": "^8.2.0",
 		"sinon": "^20.0.0",
-		"standard-version": "^9.5.0",
-		"supertest": "^7.1.0",
+		"supertest": "^7.1.1",
 		"ts-node": "^10.9.2",
-		"typescript-eslint": "^8.29.1"
+		"typescript-eslint": "^8.32.1"
 	},
 	"mocha": {
 		"ui": "bdd",
@@ -103,5 +103,10 @@
 			"enable-source-maps",
 			"loader=ts-node/esm"
 		]
+	},
+	"commit-and-tag-version": {
+		"parserOpts": {
+			"headerPattern": "(\\w*)(?:\\(([\\w\\$\\.\\-\\* ]*)\\))?: (.*)$"
+		}
 	}
 }
