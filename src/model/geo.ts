@@ -28,7 +28,8 @@ export type TPointModel = Model<TPointRawDocType, TPointQueryHelpers, TPointInst
 
 // Don't do `{ location: { type: String } }`
 // 'location.type' must be 'Point'
-export const point = new Schema<
+export const point = new Schema
+<
 	TPointRawDocType,
 	TPointModel,
 	TPointInstanceMethods,
@@ -36,7 +37,9 @@ export const point = new Schema<
 	TPointVirtuals,
 	TStaticMethods
 
->(
+// eslint-disable-next-line func-call-spacing
+>
+(
 	{
 		type: {
 			type    : String,

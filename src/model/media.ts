@@ -240,7 +240,8 @@ class SecretSchemaType extends SchemaType
 drive.Schema.Types.Secret = SecretSchemaType
 
 
-export const schema = new Schema<
+export const schema = new Schema
+<
 	TRawDocType,
 	TModel,
 	TInstanceMethods,
@@ -248,7 +249,9 @@ export const schema = new Schema<
 	TVirtuals,
 	TStaticMethods
 
->(
+// eslint-disable-next-line func-call-spacing
+>
+(
 	{
 		weapp: {
 			type    : Schema.Types.ObjectId,
