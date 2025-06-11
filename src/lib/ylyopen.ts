@@ -1,12 +1,14 @@
 import axios from 'axios'
 import crypto from 'crypto'
+import { HydratedDocument, Types } from 'mongoose'
 
 
 import * as reply from './reply.js'
 import * as secret from './secret.js'
+import * as detective from './detective.js'
 
 
-export type ServiceHex = {
+export type ServiceSign = {
 	id       : string
 	sign     : string
 	timestamp: number
@@ -24,9 +26,10 @@ export type ServiceToken = {
 }
 
 
-const yly_api = axios.create(
+const YLY_API = axios.create(
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	{ baseURL: 'https://open-api.10ss.net/' },
+	{ baseURL: 'https://open-api.10ss.net/v2' },
+
 )
 
 
@@ -44,7 +47,7 @@ export class Service
 
 	}
 
-	hex (): ServiceHex
+	sign (): ServiceSign
 	{
 		let id = secret.hex()
 		let timestamp = Math.floor(Date.now() / 1000)
@@ -63,18 +66,20 @@ export class Service
 			error            : string
 			error_description: string
 			body             : T
+
 		}
 
-		let result = await yly_api.post<Result>(
+		let result = await YLY_API.post<Result>(
 			url,
 
-			{ ...this.hex(), ...params },
+			{ ...this.sign(), ...params },
+
 		)
 
 
-		let { error, error_description, body } = result.data
+		let { error_description, body } = result.data
 
-		if (error === '0' && error_description === 'success')
+		if (error_description === 'success')
 		{
 			return body
 
@@ -84,101 +89,184 @@ export class Service
 
 	}
 
-	async create (code: string, qr: string): Promise<ServiceToken>
+	async access (): Promise<ServiceToken>
 	{
 		type Result = {
-			access_token : string
-			refresh_token: string
-			expires_in   : number
+			access_token      : string
+			refresh_token     : string
+			expires_in        : number
+			refresh_expires_in: number
 		}
 
-		let result = await this.post<Result>(
-			'/oauth/scancodemodel',
 
-			{ machine_code: code, qr_key: qr },
+		let result = await this.post<Result>(
+			'/oauth/oauth',
+
+			{ grant_type: 'client_credentials' },
+
 		)
 
-		let timestamp = Date.now() + (result.expires_in * 1000)
 
 		let token = result.access_token
 		let refresh = result.refresh_token
-		let expired = new Date(timestamp)
+
+		let expired = new Date()
+
+		expired.setSeconds(
+			expired.getSeconds() + result.expires_in,
+
+		)
+
 
 		return { token, refresh, expired }
+
+	}
+
+	async create (token: string, code: string, sign: string): Promise<void>
+	{
+		await this.post<null>(
+			'/printer/addprinter',
+
+			{ access_token: token, machine_code: code, msign: sign },
+
+		)
+
+	}
+
+
+	async delete (token: string, code: string): Promise<void>
+	{
+		await this.post<null>(
+			'/printer/deleteprinter',
+
+			{ access_token: token, machine_code: code },
+
+		)
+
+	}
+
+	async callup (token: string, code: string, sn: string, content: string): Promise<void>
+	{
+		await this.post<null>(
+			'print/index',
+
+			{ access_token: token, machine_code: code, origin_id: sn, content },
+
+		)
+
 
 	}
 
 }
 
 
-export class RpcClient extends Service
-{
-	#code: string
+export type RpcClientRawDocType = {
+	client : string
+	secret : string
+	token  : string
+	refresh: string
+	expired: null | Date
 
-	#token: string
+	machine: Types.DocumentArray<
+		{
+			code: string
+			sign: string
 
-	constructor (client: string, secret_key: string, code: string, token: string)
-	{
-		super(client, secret_key)
-
-		this.#code = code
-		this.#token = token
-
-	}
-
-
-	async refresh (value: string): Promise<ServiceToken>
-	{
-		type Result = {
-			access_token : string
-			refresh_token: string
-			expires_in   : number
 		}
 
-		let result = await this.post<Result>(
-			'/oauth/oauth',
+	>
 
-			{ grant_type: 'refresh_token', refresh_token: value },
-		)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	[key: string]: any
 
-		let timestamp = Date.now() + (result.expires_in * 1000)
+}
 
-		let token = result.access_token
-		let refresh = result.refresh_token
-		let expired = new Date(timestamp)
+export class RpcClient<T extends RpcClientRawDocType = RpcClientRawDocType> extends Service
+{
+	#doc: HydratedDocument<T>
 
-		this.#token = result.access_token
+	#code: string
 
-		return { token, refresh, expired }
 
-	}
-
-	delete (): Promise<null>
+	constructor (doc: HydratedDocument<T>, code: string)
 	{
-		return this.post<null>(
-			'/printer/deleteprinter',
+		super(doc.client, doc.secret)
 
-			{ machine_code: this.#code, access_token: this.#token },
-
-		)
+		this.#doc = doc
+		this.#code = code
 
 	}
 
-	callup (sn: string, content: string): Promise<null>
+
+	get token (): Promise<string>
 	{
-		let origin_id = sn
-		let machine_code = this.#code
-		let access_token = this.#token
+		return this.access().then(v => v.token)
 
-		return this.post<null>(
-			'print/index',
+	}
 
-			{ machine_code, access_token, origin_id, content },
+	async access (): Promise<ServiceToken>
+	{
+		let doc = this.#doc
+
+		if (detective.is_date(doc.expired) && doc.expired > new Date() )
+		{
+			return { token: doc.token, refresh: doc.refresh, expired: doc.expired }
+
+		}
+
+		let res = await super.access()
+
+		doc.token = res.token
+		doc.expired = res.expired
+
+		await doc.save()
+
+		return res
+
+	}
+
+	async create (sign: string): Promise<void>
+	{
+		await super.create(
+			await this.token, this.#code, sign,
+
+		)
+
+		await this.#doc
+			.updateOne(
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				{ $addToSet: { machine: { code: this.#code, sign } } },
+
+			)
+
+
+	}
+
+	async delete (): Promise<void>
+	{
+		await super.delete(
+			await this.token, this.#code,
+
+		)
+
+		await this.#doc
+			.updateOne(
+				{ $pull: { machine: { code: this.#code } } },
+
+			)
+
+	}
+
+	async callup (sn: string, content: string): Promise<void>
+	{
+		await super.callup(
+			await this.token, this.#code, sn, content,
 
 		)
 
 
 	}
+
 
 }
 
