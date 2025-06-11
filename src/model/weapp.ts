@@ -105,7 +105,8 @@ export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtua
 
 const drive = await storage.mongodb()
 
-export const schema = new Schema<
+export const schema = new Schema
+<
 	TRawDocType,
 	TModel,
 	TInstanceMethods,
@@ -113,7 +114,9 @@ export const schema = new Schema<
 	TVirtuals,
 	TStaticMethods
 
->(
+// eslint-disable-next-line func-call-spacing
+>
+(
 	{
 		// 微信小程序APPID
 		appid: {

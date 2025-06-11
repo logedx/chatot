@@ -71,7 +71,8 @@ export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtua
 
 
 
-export const schema = new Schema<
+export const schema = new Schema
+<
 	TRawDocType,
 	TModel,
 	TInstanceMethods,
@@ -79,7 +80,9 @@ export const schema = new Schema<
 	TVirtuals,
 	TStaticMethods
 
->(
+// eslint-disable-next-line func-call-spacing
+>
+(
 	{
 		// 锁定
 		lock: {
