@@ -338,7 +338,7 @@ export async function get_phone_number
  * 发送订阅消息
  */
 // eslint-disable-next-line max-params
-export async function send_notice_message
+export async function send_subscribe_message
 (
 	access_token: string,
 	touser: string,

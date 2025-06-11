@@ -72,7 +72,7 @@ router.post(
 
 		reply.NotFound.asserts(weapp, 'weapp')
 
-		let wx_session = await weapp.get_wx_session(
+		let wx_session = await weapp.to_wx_session(
 			suspect.get('code'),
 
 		)
