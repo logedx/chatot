@@ -21,6 +21,8 @@ declare global
 		interface Response
 		{
 			stdio(e: unknown): void
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			issue(fn: () => any): void
 
 		}
 
@@ -107,6 +109,55 @@ export const stdio: express.RequestHandler = function stdio (req, res, next)
 
 }
 
+
+export const issue: express.RequestHandler = function issue (req, res, next)
+{
+	function stdio_ (e: NodeJS.ErrnoException): void
+	{
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		if (detective.is_function(res.stdio) )
+		{
+			res.stdio(e)
+
+		}
+
+		else
+		{
+			reply.stdio_(req, e)
+
+		}
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-shadow
+	res.issue = function issue (fn)
+	{
+		try
+		{
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			let v = fn()
+
+			if (detective.is_promise(v) )
+			{
+				v.catch(stdio_)
+
+
+			}
+
+
+		}
+
+		catch (e)
+		{
+			stdio_(e as NodeJS.ErrnoException)
+
+		}
+
+	}
+
+	next()
+
+}
 
 /**
  * NotFound
