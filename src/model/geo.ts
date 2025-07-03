@@ -7,7 +7,11 @@ export type TPointRawDocType = {
 
 }
 
-export type TPointVirtuals = object
+export type TPointVirtuals = {
+	longitude: number
+	latitude : number
+
+}
 
 export type TPointQueryHelpers = object
 
@@ -55,6 +59,29 @@ export const point = new Schema
 			required: true,
 
 		},
+
+	},
+
+)
+
+point.virtual('longitude').get(
+	function (): TPointVirtuals['longitude']
+	{
+		let [v] = this.coordinates
+
+		return v
+
+
+	},
+
+)
+
+point.virtual('latitude').get(
+	function (): TPointVirtuals['latitude']
+	{
+		let [, v] = this.coordinates
+
+		return v
 
 	},
 
