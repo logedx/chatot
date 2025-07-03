@@ -1,7 +1,7 @@
 import express from 'express'
 
 import * as reply from '../lib/reply.js'
-import * as evidence from '../lib/evidence.js'
+import * as surmise from '../lib/surmise.js'
 
 import * as user_model from '../model/user.js'
 import * as token_model from '../model/token.js'
@@ -47,10 +47,11 @@ router.post(
 		}
 
 		let { user } = req.survive_token!
-		let suspect = evidence.suspect<Suspect>(req.body)
+
+		let suspect = surmise.capture<Suspect>(req.body)
 
 		await suspect.infer_signed<'value'>(
-			stamp_router.symbol_evidence_chain('/scope', 'post').signed('value'),
+			stamp_router.symbol_surmise_chain('/scope', 'post').signed('value'),
 
 		)
 
@@ -147,10 +148,10 @@ router.put(
 
 		let { user } = req.survive_token!
 
-		let suspect = evidence.suspect<Suspect>(req.body)
+		let suspect = surmise.capture<Suspect>(req.body)
 
 		await suspect.infer_signed<'value'>(
-			evidence.Digital.is_natural
+			surmise.Digital.is_natural
 				.to(
 					v => v & scope_model.pick(v, scope_model.Mode.普通, scope_model.Mode.管理),
 
@@ -162,7 +163,7 @@ router.put(
 		)
 
 		await suspect.infer_signed<'expire'>(
-			evidence.Text.is_date.signed('expire'),
+			surmise.Text.is_date.signed('expire'),
 
 			{ quiet: true },
 

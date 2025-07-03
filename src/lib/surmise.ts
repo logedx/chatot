@@ -39,17 +39,17 @@ export type InferRenameOption<T extends object, K extends keyof T> = { rename: K
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ExhibitKey<T, N extends keyof T> = T extends any[] ? number : N
+export type DossierKey<T, N extends keyof T> = T extends any[] ? number : N
 
 
-export type ExhibitValue<T, N extends keyof T> = T extends Array<infer A> ? A : T[N]
+export type DossierValue<T, N extends keyof T> = T extends Array<infer A> ? A : T[N]
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ExhibitExpectValue<T> = T extends any[] ? T : Partial<T>
+export type DossierExpectValue<T> = T extends any[] ? T : Partial<T>
 
 
 
-export type PaginSuspect = {
+export type PagerSuspect = {
 	skip : number
 	limit: number
 	sort : string
@@ -57,7 +57,7 @@ export type PaginSuspect = {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type PaginLinker<T extends object> = T extends any[] ? never : T
+export type PagerFit<T extends object> = T extends any[] ? never : T
 
 export type Keyword<
 	T extends string,
@@ -71,7 +71,7 @@ export type Keyword<
 
 
 
-export class Exhibit<T extends object>
+export class Dossier<T extends object>
 {
 	#source: unknown
 
@@ -92,7 +92,7 @@ export class Exhibit<T extends object>
 	}
 
 	has
-	(key: ExhibitKey<T, keyof T>, and?: { empty?: boolean }): boolean
+	(key: DossierKey<T, keyof T>, and?: { empty?: boolean }): boolean
 	{
 		let a = detective.is_array(this.#value)
 			&& detective.is_number(key)
@@ -129,10 +129,10 @@ export class Exhibit<T extends object>
 	get (): T
 
 	get
-	<N extends keyof T>(key: ExhibitKey<T, N>, _default?: ExhibitValue<T, N>): ExhibitValue<T, N>
+	<N extends keyof T>(key: DossierKey<T, N>, _default?: DossierValue<T, N>): DossierValue<T, N>
 
 	get
-	<N extends keyof T>(key?: ExhibitKey<T, N>, _default?: ExhibitValue<T, N>): T | ExhibitValue<T, N>
+	<N extends keyof T>(key?: DossierKey<T, N>, _default?: DossierValue<T, N>): T | DossierValue<T, N>
 	{
 		if (detective.is_undefined(key) )
 		{
@@ -149,13 +149,13 @@ export class Exhibit<T extends object>
 		if (detective.is_number(key)
 			&& detective.is_array(this.#value) )
 		{
-			return structure.clone(this.#value[key]) as ExhibitValue<T, N>
+			return structure.clone(this.#value[key]) as DossierValue<T, N>
 
 		}
 
 		if (detective.is_object(this.#value) )
 		{
-			return structure.clone(this.#value[key as N]) as ExhibitValue<T, N>
+			return structure.clone(this.#value[key as N]) as DossierValue<T, N>
 
 		}
 
@@ -198,8 +198,8 @@ export class Exhibit<T extends object>
 	}
 
 	async set
-	<N extends keyof T, P = ExhibitExpectValue<T>>(
-		key: ExhibitKey<T, N>,
+	<N extends keyof T, P = DossierExpectValue<T>>(
+		key: DossierKey<T, N>,
 
 		value: T[N] | Promise<T[N]> | ( (v: P) => T[N]) | ( (v: P) => Promise<T[N]>),
 
@@ -249,8 +249,8 @@ export class Exhibit<T extends object>
 
 
 	async deplete
-	<K extends keyof T, V = Exclude<ExhibitValue<T, K>, undefined>>(
-		key: ExhibitKey<T, K>,
+	<K extends keyof T, V = Exclude<DossierValue<T, K>, undefined>>(
+		key: DossierKey<T, K>,
 
 		fn: (v: V) => void | Promise<void>,
 
@@ -309,7 +309,7 @@ export class Exhibit<T extends object>
 
 	}
 
-	async #infer (chain: Chain<T>): Promise<void>
+	async #infer (chain: Clue<T>): Promise<void>
 	{
 		this.#value = await chain.verify(this.#source)
 
@@ -319,7 +319,7 @@ export class Exhibit<T extends object>
 
 	async #infer_signed (
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		chain: Chain<any, any>,
+		chain: Clue<any, any>,
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		option: InferOption<any, any>,
@@ -393,7 +393,7 @@ export class Exhibit<T extends object>
 	}
 
 
-	infer (chain: Chain<T>): Promise<void>
+	infer (chain: Clue<T>): Promise<void>
 	{
 		return this.#call(
 			() => this.#infer(chain),
@@ -406,7 +406,7 @@ export class Exhibit<T extends object>
 
 	infer_signed
 	<K extends Exclude<keyof T, keyof structure.GetPartial<T>>>(
-		chain: Chain<T[K], K>,
+		chain: Clue<T[K], K>,
 
 		option?: InferPartialQuietOption<T, K>,
 
@@ -415,7 +415,7 @@ export class Exhibit<T extends object>
 
 	infer_signed
 	<K extends keyof structure.GetPartial<T>>(
-		chain: Chain<T[K], K>,
+		chain: Clue<T[K], K>,
 
 		option: InferQuietOption<T, K>,
 
@@ -424,7 +424,7 @@ export class Exhibit<T extends object>
 
 	infer_signed
 	<K extends keyof T, S extends PropertyKey>(
-		chain: Chain<T[K], Exclude<S, K>>,
+		chain: Clue<T[K], Exclude<S, K>>,
 
 		option: InferRenameOption<T, K>,
 
@@ -432,7 +432,7 @@ export class Exhibit<T extends object>
 
 	infer_signed
 	<K extends keyof T, S extends PropertyKey>(
-		chain: Chain<T[K], K> | Chain<T[K], Exclude<S, K>>,
+		chain: Clue<T[K], K> | Clue<T[K], Exclude<S, K>>,
 
 		option: InferQuietOption<T, K> | InferPartialQuietOption<T, K> | InferRenameOption<T, K> = {},
 
@@ -476,7 +476,7 @@ export class Exhibit<T extends object>
 
 	}
 
-	so<N extends keyof T>(key?: ExhibitKey<T, N>): boolean
+	so<N extends keyof T>(key?: DossierKey<T, N>): boolean
 	{
 		if (detective.is_undefined(key) )
 		{
@@ -498,7 +498,7 @@ export class Exhibit<T extends object>
 }
 
 
-export class Chain
+export class Clue
 <T = unknown, K extends undefined | PropertyKey = undefined>
 {
 	#message = ''
@@ -510,7 +510,7 @@ export class Chain
 	#signed?: K
 
 	// eslint-disable-next-line no-use-before-define
-	#linker?: Chain<unknown, undefined | PropertyKey>
+	#linker?: Clue<unknown, undefined | PropertyKey>
 
 
 	get symbol (): undefined | K
@@ -540,7 +540,7 @@ export class Chain
 
 		option?: {
 			signed?: K
-			linker?: Chain<unknown, undefined | PropertyKey>
+			linker?: Clue<unknown, undefined | PropertyKey>
 
 		},
 
@@ -557,9 +557,9 @@ export class Chain
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	#buckle <R = unknown> (message: string, infer: Infer<any, any>): Chain<R, K>
+	#buckle <R = unknown> (message: string, infer: Infer<any, any>): Clue<R, K>
 	{
-		return new Chain<R, K>(
+		return new Clue<R, K>(
 			message, infer, { signed: this.#signed, linker: this },
 
 		)
@@ -613,23 +613,23 @@ export class Chain
 	}
 
 	signed
-	<N extends undefined | PropertyKey>(name: N): Chain<T, N>
+	<N extends undefined | PropertyKey>(name: N): Clue<T, N>
 	{
-		return new Chain<T, N>(
+		return new Clue<T, N>(
 			this.#message, this.#infer, { signed: name, linker: this.#linker },
 
 		)
 
 	}
 
-	and <R = T> (message: string, fn: Infer<T, boolean>): Chain<R, K>
+	and <R = T> (message: string, fn: Infer<T, boolean>): Clue<R, K>
 	{
 		return this.#buckle<R>(
 			message,
 
 			async (v: T): Promise<T> =>
 			{
-				await Chain.test(v, message, fn)
+				await Clue.test(v, message, fn)
 
 				return v
 
@@ -639,7 +639,7 @@ export class Chain
 
 	}
 
-	to <R = unknown> (fn: Infer<T, R>): Chain<R, K>
+	to <R = unknown> (fn: Infer<T, R>): Clue<R, K>
 	{
 		return this.#buckle<R>(this.#message, fn)
 
@@ -663,14 +663,14 @@ export class Chain
 	}
 
 	static infer
-	<T = unknown> (message: string, fn: Infer<unknown, boolean>): Chain<T>
+	<T = unknown> (message: string, fn: Infer<unknown, boolean>): Clue<T>
 	{
-		return new Chain<T>(
+		return new Clue<T>(
 			message,
 
 			async (v: T): Promise<T> =>
 			{
-				await Chain.test(v, message, fn)
+				await Clue.test(v, message, fn)
 
 				return v
 
@@ -687,7 +687,7 @@ export class Chain
 
 export class Text
 {
-	static optional = Chain.infer<string>(
+	static optional = Clue.infer<string>(
 		'is not a string',
 
 		detective.is_string,
@@ -695,7 +695,7 @@ export class Text
 	)
 
 
-	static required = Chain.infer<string>(
+	static required = Clue.infer<string>(
 		'is not a required string',
 
 		detective.is_required_string,
@@ -703,7 +703,7 @@ export class Text
 	)
 
 
-	static required_else_null = Chain
+	static required_else_null = Clue
 		.infer<string>(
 			'is not a required string',
 
@@ -716,7 +716,7 @@ export class Text
 		)
 
 
-	static is_boolean = Chain
+	static is_boolean = Clue
 		.infer<string>(
 			'is not a boolean string',
 
@@ -729,7 +729,7 @@ export class Text
 		)
 
 
-	static is_time = Chain.infer<string>(
+	static is_time = Clue.infer<string>(
 		'is not a time string',
 
 		detective.is_24_hour_system_string,
@@ -737,7 +737,7 @@ export class Text
 	)
 
 
-	static is_date = Chain
+	static is_date = Clue
 		.infer<string>(
 			'is not a date string',
 
@@ -750,7 +750,7 @@ export class Text
 		)
 
 
-	static is_date_else_null = Chain
+	static is_date_else_null = Clue
 		.infer<string>(
 			'is not a date string',
 
@@ -763,7 +763,7 @@ export class Text
 		)
 
 
-	static is_search = Chain
+	static is_search = Clue
 		.infer<string>(
 			'is not a required string',
 
@@ -776,7 +776,7 @@ export class Text
 		)
 
 
-	static is_path = Chain
+	static is_path = Clue
 		.infer<string>(
 			'is not a path string',
 
@@ -785,7 +785,7 @@ export class Text
 		)
 
 
-	static is_dirname = Chain
+	static is_dirname = Clue
 		.infer<string>(
 			'is not a dirname string',
 
@@ -794,7 +794,7 @@ export class Text
 		)
 
 
-	static is_media_uri = Chain
+	static is_media_uri = Clue
 		.infer<string>(
 			'is not a media uri string',
 
@@ -803,7 +803,7 @@ export class Text
 		)
 
 
-	static is_real_number = Chain
+	static is_real_number = Clue
 		.infer<string>(
 			'is not a real number string',
 
@@ -813,7 +813,7 @@ export class Text
 		.to(Number)
 
 
-	static is_natura_number = Chain
+	static is_natura_number = Clue
 		.infer<string>(
 			'is not a natura number string',
 
@@ -823,7 +823,7 @@ export class Text
 		.to(Number)
 
 
-	static is_phone_number = Chain.infer<string>(
+	static is_phone_number = Clue.infer<string>(
 		'is not a phone number string',
 
 		detective.is_phone_number_string,
@@ -831,7 +831,7 @@ export class Text
 	)
 
 
-	static is_object_id = Chain
+	static is_object_id = Clue
 		.infer<string>(
 			'is not a object id string',
 
@@ -844,7 +844,7 @@ export class Text
 		)
 
 
-	static is_object_id_else_null = Chain
+	static is_object_id_else_null = Clue
 		.infer<string>(
 			'is not a object id string',
 
@@ -858,9 +858,9 @@ export class Text
 
 
 	static search
-	<T extends string> (...keyword: structure.UnionToTuple<T>): Chain<Keyword<T>>
+	<T extends string> (...keyword: structure.UnionToTuple<T>): Clue<Keyword<T>>
 	{
-		return Chain
+		return Clue
 			.infer<string>(
 				'is not a required string',
 
@@ -868,7 +868,7 @@ export class Text
 
 			)
 			.to<Keyword<T>>(
-				v => Pagination.match(v, ...keyword),
+				v => Pager.match(v, ...keyword),
 
 			)
 
@@ -877,11 +877,11 @@ export class Text
 
 
 	static match
-	<T extends string>(regex: string | RegExp): Chain<T>
+	<T extends string>(regex: string | RegExp): Clue<T>
 	{
 		if (detective.is_string(regex) )
 		{
-			return Chain.infer<T>(
+			return Clue.infer<T>(
 				`string does not match ${regex}`,
 
 				v => detective.is_string(v) && v === regex,
@@ -891,7 +891,7 @@ export class Text
 
 		}
 
-		return Chain.infer<T>(
+		return Clue.infer<T>(
 			`string does not match ${regex}`,
 
 			v => detective.is_string(v) && regex.test(v),
@@ -902,9 +902,9 @@ export class Text
 	}
 
 
-	static include<T extends string>(value: string[]): Chain<T>
+	static include<T extends string>(value: string[]): Clue<T>
 	{
-		return Chain.infer<T>(
+		return Clue.infer<T>(
 			`string does not include ${value.toString()}`,
 
 			v => detective.is_required_string(v) && value.includes(v),
@@ -915,9 +915,9 @@ export class Text
 	}
 
 
-	static split (pattern: string): Chain<string[]>
+	static split (pattern: string): Clue<string[]>
 	{
-		return Chain
+		return Clue
 			.infer<string>(
 				'is not a string',
 
@@ -937,21 +937,21 @@ export class Text
 
 export class Digital
 {
-	static is_real = Chain.infer<number>(
+	static is_real = Clue.infer<number>(
 		'is not a real number',
 
 		detective.is_real_number,
 
 	)
 
-	static is_natural = Chain.infer<number>(
+	static is_natural = Clue.infer<number>(
 		'is not a natural number',
 
 		detective.is_natural_number,
 
 	)
 
-	static is_24_hour_system_number = Chain.infer<number>(
+	static is_24_hour_system_number = Clue.infer<number>(
 		'is not a 24 hour system number',
 
 		detective.is_24_hour_system_number,
@@ -963,7 +963,7 @@ export class Digital
 
 export class Switch
 {
-	static is_boolean = Chain.infer<boolean>(
+	static is_boolean = Clue.infer<boolean>(
 		'is not a boolean',
 
 		detective.is_boolean,
@@ -971,7 +971,7 @@ export class Switch
 	)
 
 
-	static is_number = Chain
+	static is_number = Clue
 		.infer<number>(
 			'not 0 or 1', v => v === 0 || v === 1,
 
@@ -979,7 +979,7 @@ export class Switch
 		.to(Boolean)
 
 
-	static is_string = Chain
+	static is_string = Clue
 		.infer<string>(
 			'not \'0\' or \'1\' or \'true\' or \'false\'',
 
@@ -1004,7 +1004,7 @@ export class Switch
 
 export class Range
 {
-	static is_time = Chain.infer<detective.RangeTime>(
+	static is_time = Clue.infer<detective.RangeTime>(
 		'is not a time range array',
 
 		detective.is_time_range,
@@ -1012,7 +1012,7 @@ export class Range
 	)
 
 
-	static is_date = Chain.infer<detective.RangeDate>(
+	static is_date = Clue.infer<detective.RangeDate>(
 		'is not a date range array',
 
 		detective.is_date_range,
@@ -1020,7 +1020,7 @@ export class Range
 	)
 
 
-	static is_real_number = Chain.infer<detective.RangeRealNumber>(
+	static is_real_number = Clue.infer<detective.RangeRealNumber>(
 		'is not a real number range array',
 
 		detective.is_real_number_range,
@@ -1028,7 +1028,7 @@ export class Range
 	)
 
 
-	static is_natura_number = Chain.infer<detective.RangeNaturalNumber>(
+	static is_natura_number = Clue.infer<detective.RangeNaturalNumber>(
 		'is not a real number range array',
 
 		detective.is_natural_number_range,
@@ -1036,7 +1036,7 @@ export class Range
 	)
 
 
-	static is_point_coordinates = Chain
+	static is_point_coordinates = Clue
 		.infer<detective.RangeRealNumber>(
 			'is not a real number range array',
 
@@ -1061,9 +1061,9 @@ export class Every
 		fn: (value: unknown, index?: number, array?: T[]) => boolean,
 
 	)
-	: Chain<T[]>
+	: Clue<T[]>
 	{
-		return Chain.infer<T[]>(
+		return Clue.infer<T[]>(
 			`one of the elements is not a ${type}`,
 
 			v => detective.is_array_every(v, fn),
@@ -1142,7 +1142,7 @@ export class Every
 
 export class Model
 {
-	static object_id = Chain.infer<Types.ObjectId>(
+	static object_id = Clue.infer<Types.ObjectId>(
 		'is not a object id',
 
 		detective.is_object_id,
@@ -1157,10 +1157,10 @@ export class Model
 		...keyword: structure.UnionToTuple<T>
 
 	)
-	: Chain<Types.ObjectId[]>
+	: Clue<Types.ObjectId[]>
 	{
 		return Text.search<T>(...keyword).to(
-			$or => Pagination.search(model, $or),
+			$or => Pager.search(model, $or),
 
 		)
 
@@ -1170,7 +1170,7 @@ export class Model
 }
 
 
-export class Pagination<T extends object = Record<PropertyKey, never>>
+export class Pager<T extends object = Record<PropertyKey, never>>
 {
 	#skip = 0
 
@@ -1198,11 +1198,11 @@ export class Pagination<T extends object = Record<PropertyKey, never>>
 
 	}
 
-	get find (): PaginLinker<T>
+	get find (): PagerFit<T>
 	{
 		if (detective.is_exist(this.#find) )
 		{
-			return structure.clone(this.#find) as PaginLinker<T>
+			return structure.clone(this.#find) as PagerFit<T>
 
 		}
 
@@ -1210,9 +1210,9 @@ export class Pagination<T extends object = Record<PropertyKey, never>>
 
 	}
 
-	async linker (exhibit: Exhibit<PaginLinker<T>>): Promise<void>
+	async fit (dossier: Dossier<PagerFit<T>>): Promise<void>
 	{
-		let e = new Exhibit<PaginSuspect>(exhibit.source)
+		let e = new Dossier<PagerSuspect>(dossier.source)
 
 		await e.infer_signed<'skip'>(
 			Text.is_natura_number.signed('skip'),
@@ -1254,7 +1254,7 @@ export class Pagination<T extends object = Record<PropertyKey, never>>
 
 		this.#sort = e.get('sort', '-created')
 
-		this.#find = exhibit.get()
+		this.#find = dossier.get()
 
 	}
 
@@ -1317,14 +1317,14 @@ export class Pagination<T extends object = Record<PropertyKey, never>>
 
 
 
-export function suspect<T extends object> (source: unknown): Exhibit<T>
+export function capture<T extends object> (source: unknown): Dossier<T>
 {
-	return new Exhibit<T>(source)
+	return new Dossier<T>(source)
 
 }
 
-export function pagination<T extends object> (): Pagination<T>
+export function fritter<T extends object> (): Pager<T>
 {
-	return new Pagination<T>()
+	return new Pager<T>()
 
 }

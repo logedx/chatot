@@ -1,7 +1,7 @@
 import express from 'express'
 import { Types } from 'mongoose'
 
-import * as evidence from '../lib/evidence.js'
+import * as surmise from '../lib/surmise.js'
 import * as detective from '../lib/detective.js'
 
 import * as user_model from '../model/user.js'
@@ -30,30 +30,30 @@ router.get(
 
 	),
 
-	async function retrieve_pagination (req, res)
+	async function retrieves (req, res)
 	{
 		type Suspect = {
 			closed?: detective.Expired
 
 		}
 
-		let pagin = evidence.pagination<Suspect>()
-		let suspect = evidence.suspect<Suspect>(req.query)
+		let segment = surmise.fritter<Suspect>()
+		let suspect = surmise.capture<Suspect>(req.query)
 
 		await suspect.infer_signed<'closed'>(
-			evidence.Switch.is_expired.signed('closed'),
+			surmise.Switch.is_expired.signed('closed'),
 
 			{ quiet: true },
 
 		)
 
-		await pagin.linker(suspect)
+		await segment.fit(suspect)
 
 		let doc = await weapp_model.default
-			.find(pagin.find)
-			.sort(pagin.sort)
-			.skip(pagin.skip)
-			.limit(pagin.limit)
+			.find(segment.find)
+			.sort(segment.sort)
+			.skip(segment.skip)
+			.limit(segment.limit)
 
 		res.json(doc)
 
@@ -110,21 +110,21 @@ router.put(
 
 		let doc = req.weapp!
 
-		let suspect = evidence.suspect<Suspect>(req.body)
+		let suspect = surmise.capture<Suspect>(req.body)
 
 		await suspect.infer_signed<'secret'>(
-			evidence.Text.required.signed('secret'),
+			surmise.Text.required.signed('secret'),
 
 		)
 
 		await suspect.infer_signed<'mchid'>(
-			evidence.Text.optional.signed('mchid'),
+			surmise.Text.optional.signed('mchid'),
 
 
 		)
 
 		await suspect.infer_signed<'v3key'>(
-			evidence.Text.optional.signed('v3key'),
+			surmise.Text.optional.signed('v3key'),
 
 		)
 
@@ -184,36 +184,36 @@ router.get(
 
 	retrieve_router.weapp,
 
-	async function retrieve_user_pagination (req, res)
+	async function retrieve_users (req, res)
 	{
 		type Suspect = {
-			$or?: evidence.Keyword<user_model.TRawDocKeyword>
-
 			weapp: Types.ObjectId
+
+			$or?: surmise.Keyword<user_model.TRawDocKeyword>
 
 		}
 
 		let weapp = req.weapp!._id
 
-		let pagin = evidence.pagination<Suspect>()
-		let suspect = evidence.suspect<Suspect>(req.query)
+		let segment = surmise.fritter<Suspect>()
+		let suspect = surmise.capture<Suspect>(req.query)
+
+		await suspect.set('weapp', weapp)
 
 		await suspect.infer_signed<'$or', 'keyword'>(
-			user_router.in_keyword_evidence_chain.signed('keyword'),
+			user_router.in_keyword_surmise_chain.signed('keyword'),
 
 			{ rename: '$or', quiet: true },
 
 		)
 
-		await suspect.set('weapp', weapp)
-
-		await pagin.linker(suspect)
+		await segment.fit(suspect)
 
 		let doc = await user_model.default
-			.find(pagin.find)
-			.sort(pagin.sort)
-			.skip(pagin.skip)
-			.limit(pagin.limit)
+			.find(segment.find)
+			.sort(segment.sort)
+			.skip(segment.skip)
+			.limit(segment.limit)
 
 		res.json(doc)
 

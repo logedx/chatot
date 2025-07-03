@@ -1,7 +1,7 @@
 import express from 'express'
 import { Types } from 'mongoose'
 
-import * as evidence from '../lib/evidence.js'
+import * as surmise from '../lib/surmise.js'
 
 import * as keyword_model from '../model/keyword.js'
 
@@ -33,23 +33,23 @@ router.post(
 
 		let { weapp } = req.survive_token!
 
-		let suspect = evidence.suspect<Suspect>(req.body)
+		let suspect = surmise.capture<Suspect>(req.body)
 
 
 		await suspect.set('weapp', weapp)
 
 		await suspect.infer_signed<'name'>(
-			evidence.Text.required.signed('name'),
+			surmise.Text.required.signed('name'),
 
 		)
 
 		await suspect.infer_signed<'label'>(
-			evidence.Text.optional.signed('label'),
+			surmise.Text.optional.signed('label'),
 
 		)
 
 		await suspect.infer_signed<'value'>(
-			evidence.Text.required.signed('value'),
+			surmise.Text.required.signed('value'),
 
 			{ alias: 'letter' },
 
@@ -72,7 +72,7 @@ router.get(
 
 	...token_router.checkpoint(),
 
-	async function retrieve_pagination (req, res)
+	async function retrieves (req, res)
 	{
 		type Suspect = {
 			weapp: Types.ObjectId
@@ -88,48 +88,48 @@ router.get(
 
 		let { weapp } = req.survive_token!
 
-		let pagin = evidence.pagination<Suspect>()
-		let suspect = evidence.suspect<Suspect>(req.query)
+		let segment = surmise.fritter<Suspect>()
+		let suspect = surmise.capture<Suspect>(req.query)
 
 
 		await suspect.set('weapp', weapp)
 
 		await suspect.infer_signed<'name'>(
-			evidence.Text.required.signed('name'),
+			surmise.Text.required.signed('name'),
 
 			{ quiet: true },
 
 		)
 
 		await suspect.infer_signed<'label'>(
-			evidence.Text.required.signed('label'),
+			surmise.Text.required.signed('label'),
 
 			{ quiet: true },
 
 		)
 
 		await suspect.infer_signed<'value'>(
-			evidence.Text.is_search.signed('value'),
+			surmise.Text.is_search.signed('value'),
 
 			{ quiet: true },
 
 		)
 
 		await suspect.infer_signed<'letter'>(
-			evidence.Text.required.signed('letter'),
+			surmise.Text.required.signed('letter'),
 
 			{ quiet: true },
 
 		)
 
 
-		await pagin.linker(suspect)
+		await segment.fit(suspect)
 
 		let doc = await keyword_model.default
-			.find(pagin.find)
-			.sort(pagin.sort)
-			.skip(pagin.skip)
-			.limit(pagin.limit)
+			.find(segment.find)
+			.sort(segment.sort)
+			.skip(segment.skip)
+			.limit(segment.limit)
 
 		res.json(doc)
 
