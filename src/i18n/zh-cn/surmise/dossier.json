@@ -1,0 +1,8 @@
+{
+	"failed to get any data": "获取数据失败",
+	"${key} is not exist"   : "${key} 不存在",
+	"key is invalid"        : "键无效",
+	"infer fail"            : "推断失败",
+	"is not a object"       : "不是一个对象",
+	"symbol is not a object key": "符号不是对象的键"
+}
