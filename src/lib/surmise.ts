@@ -4,6 +4,10 @@ import * as reply from './reply.js'
 import * as structure from './structure.js'
 import * as detective from './detective.js'
 
+import * as surmise_helper from '../i18n/helper/surmise.js'
+
+
+
 
 export type Infer<V, T> = (v: V) => T | Promise<T>
 
@@ -142,7 +146,10 @@ export class Dossier<T extends object>
 
 			}
 
-			throw new reply.BadRequest('failed to get any data')
+			throw new reply.BadRequest(
+				surmise_helper.dossier.t('failed to get any data'),
+
+			)
 
 		}
 
@@ -161,7 +168,10 @@ export class Dossier<T extends object>
 
 		if (detective.is_undefined(_default) )
 		{
-			throw new reply.BadRequest(`${key.toString()} is not exist`)
+			throw new reply.BadRequest(
+				surmise_helper.dossier.t('${key} is not exist', key),
+
+			)
 
 		}
 
@@ -243,7 +253,10 @@ export class Dossier<T extends object>
 		}
 
 
-		throw new reply.BadRequest('key is invalid')
+		throw new reply.BadRequest(
+			surmise_helper.dossier.t('key is invalid'),
+
+		)
 
 	}
 
@@ -299,11 +312,20 @@ export class Dossier<T extends object>
 
 			if (detective.is_error(e) )
 			{
-				throw new reply.BadRequest(e.message)
+				throw new reply.BadRequest(
+					surmise_helper.dossier.t(
+						e.message as keyof typeof surmise_helper.Dossier,
+
+					),
+
+				)
 
 			}
 
-			throw new reply.BadRequest('infer fail')
+			throw new reply.BadRequest(
+				surmise_helper.dossier.t('infer fail'),
+
+			)
 
 		}
 
