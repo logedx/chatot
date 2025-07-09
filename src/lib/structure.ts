@@ -19,6 +19,29 @@ export type GetRequired<T> = {
 
 }
 
+export type GetInterLastElement<U> = U extends Array<infer R> ? R : never
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type GetTupleLastElement<U> = U extends [...infer _, infer L] ? L : never
+
+// eslint-disable-next-line no-use-before-define
+export type GetUnionLastElement<U> = GetInterLastElement<UnionToInter<U>>
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type UnionToInter <U> = (U extends any ? (k: U[]) => void : never) extends (k: infer I) => void
+	? I
+	: never
+
+export type UnionToTuple<
+	T,
+
+	E = Exclude<T, undefined>,
+	L = GetUnionLastElement<E>,
+
+> = [E] extends [never]
+	? []
+	: [...UnionToTuple<Exclude<E, L>>, L]
+
 export type Replace<T, U, V> = T extends U
 	? V
 	: T extends Array<infer A>
@@ -40,29 +63,6 @@ export type Overwrite<T, U, O = Omit<T, keyof U> & Required<U>> = {
 	>
 
 }
-
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type UnionToInterFunction<U> = U extends any ? (k: () => U) => void : never
-
-export type GetUnionLastElement<U> = UnionToInterFunction<U> extends (a: infer I) => void
-	? I extends () => infer R
-		? R
-		: never
-	: never
-
-export type UnionToTuple<
-	T,
-	E = Exclude<T, undefined>,
-	L = GetUnionLastElement<T>,
-
-> = [E] extends [never]
-	? []
-	: [...UnionToTuple<Exclude<E, L>>, L]
-
-
-
-
 
 
 export function clone<T> (target: T): T
@@ -173,15 +173,36 @@ export function get
 }
 
 export function pick
-<T extends object, K extends keyof T> (source: T, ...name: K[]): Pick<T, K>
+<T extends object, K extends keyof T> (source: T, ...keys: K[]): { [k in K]: T[k] }
+
+export function pick
+<T extends object, K extends keyof T> (source: T, _default: { [k in K]: T[k] }): { [k in K]-?: T[k] }
+
+export function pick
+<T extends object, K extends keyof T> (source: T, arg0: unknown, ...other: K[]): { [k in K]: T[k] }
 {
-	let key = new Set(name)
+	let _default = {} as T
+
+	if (detective.is_object_legitimism(arg0) )
+	{
+		_default = arg0 as T
+
+		other = Object.keys(arg0) as K[]
+
+	}
+	else
+	{
+		other = [arg0 as K, ...other]
+
+	}
+
+	let map = new Set(other)
+
 	let value = {} as Pick<T, K>
 
-
-	for (let n of Array.from(key) )
+	for (let k of Array.from(map) )
 	{
-		value[n] = clone(source[n])
+		value[k] = clone(source[k] ?? _default[k])
 
 	}
 

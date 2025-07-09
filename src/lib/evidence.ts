@@ -61,12 +61,12 @@ export type PaginLinker<T extends object> = T extends any[] ? never : T
 
 export type Keyword<
 	T extends string,
-	L extends string = structure.GetUnionLastElement<T>,
+	L = structure.GetUnionLastElement<T>,
 
 > = [T] extends [never]
 	? []
 	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-	: [...Keyword<Exclude<T, L>>, { [k in L]: RegExp }]
+	: [...Keyword<Exclude<T, L>>, { [k in L as string]: RegExp }]
 
 
 
