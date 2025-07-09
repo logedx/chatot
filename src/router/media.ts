@@ -3,7 +3,7 @@ import stream from 'node:stream'
 import express from 'express'
 import mime_types from 'mime-types'
 
-import * as evidence from '../lib/evidence.js'
+import * as surmise from '../lib/surmise.js'
 import * as detective from '../lib/detective.js'
 
 import * as media_model from '../model/media.js'
@@ -99,25 +99,25 @@ router.post(
 
 		let weapp = await req.survive_token!.to_weapp()
 
-		let suspect = evidence.suspect<Suspect>(req.headers)
+		let suspect = surmise.capture<Suspect>(req.headers)
 
 		await suspect.infer_signed<'name'>(
-			evidence.Text.required.signed('name'),
+			surmise.Text.required.signed('name'),
 
 		)
 
 		await suspect.infer_signed<'model'>(
-			evidence.Text.required.signed('model'),
+			surmise.Text.required.signed('model'),
 
 		)
 
 		await suspect.infer_signed<'folder'>(
-			evidence.Text.is_path.signed('folder'),
+			surmise.Text.is_path.signed('folder'),
 
 		)
 
 		await suspect.infer_signed<'mime', 'accept'>(
-			evidence.Text.required
+			surmise.Text.required
 				.to(
 					v =>
 					{
@@ -141,7 +141,7 @@ router.post(
 		)
 
 		await suspect.infer_signed<'hash'>(
-			evidence.Text.required.signed('hash'),
+			surmise.Text.required.signed('hash'),
 
 			{ quiet: true },
 
@@ -200,10 +200,10 @@ router.delete(
 
 		let { weapp } = req.survive_token!
 
-		let suspect = evidence.suspect<Suspect>(req.body)
+		let suspect = surmise.capture<Suspect>(req.body)
 
 		await suspect.infer(
-			evidence.Every.is_media_uri_string,
+			surmise.Every.is_media_uri_string,
 
 		)
 

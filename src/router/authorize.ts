@@ -3,7 +3,7 @@ import { Types } from 'mongoose'
 
 
 import * as reply from '../lib/reply.js'
-import * as evidence from '../lib/evidence.js'
+import * as surmise from '../lib/surmise.js'
 import * as detective from '../lib/detective.js'
 import * as structure from '../lib/structure.js'
 
@@ -54,10 +54,11 @@ router.post(
 		}
 
 		let { user } = req.survive_token!
-		let suspect = evidence.suspect<Suspect>(req.body)
+
+		let suspect = surmise.capture<Suspect>(req.body)
 
 		await suspect.infer_signed<'value'>(
-			stamp_router.symbol_evidence_chain('/authorize', 'post')
+			stamp_router.symbol_surmise_chain('/authorize', 'post')
 				.and
 				<
 					structure.Overwrite<

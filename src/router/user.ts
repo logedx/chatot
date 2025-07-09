@@ -3,7 +3,7 @@ import express from 'express'
 import { Types } from 'mongoose'
 
 import * as reply from '../lib/reply.js'
-import * as evidence from '../lib/evidence.js'
+import * as surmise from '../lib/surmise.js'
 import * as detective from '../lib/detective.js'
 
 import * as user_model from '../model/user.js'
@@ -18,14 +18,14 @@ import * as retrieve_router from './retrieve.js'
 
 
 // eslint-disable-next-line func-call-spacing
-export const in_keyword_evidence_chain = evidence.Text.search<user_model.TRawDocKeyword>
+export const in_keyword_surmise_chain = surmise.Text.search<user_model.TRawDocKeyword>
 (
 	...user_model.keyword,
 
 )
 
 // eslint-disable-next-line func-call-spacing
-export const in_keyword_populate_evidence_chain = evidence.Model.search<user_model.TRawDocKeyword>
+export const in_keyword_populate_surmise_chain = surmise.Model.search<user_model.TRawDocKeyword>
 (
 	user_model.default, ...user_model.keyword,
 
@@ -49,15 +49,15 @@ router.post(
 
 		let { _id } = req.usable_token!
 
-		let suspect = evidence.suspect<Suspect>(req.body)
+		let suspect = surmise.capture<Suspect>(req.body)
 
 		await suspect.infer_signed<'appid'>(
-			evidence.Text.required.signed('appid'),
+			surmise.Text.required.signed('appid'),
 
 		)
 
 		await suspect.infer_signed<'code'>(
-			evidence.Text.required.signed('code'),
+			surmise.Text.required.signed('code'),
 
 		)
 
@@ -179,34 +179,34 @@ router.get(
 
 	...token_router.checkpoint(),
 
-	async function retrieve_pagination (req, res)
+	async function retrieves (req, res)
 	{
 		type Suspect = {
-			'$or'?: evidence.Keyword<user_model.TRawDocKeyword>
+			'weapp' : Types.ObjectId
+			'active': true
+
+			'$or'?: surmise.Keyword<user_model.TRawDocKeyword>
 
 			'scope'?     : null | { $ne: null }
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'scope.lock'?: false | { $ne: true }
 
-			'weapp' : Types.ObjectId
-			'active': true
-
 		}
 
 		let { weapp } = req.survive_token!
 
-		let pagin = evidence.pagination<Suspect>()
-		let suspect = evidence.suspect<Suspect>(req.query)
+		let segment = surmise.fritter<Suspect>()
+		let suspect = surmise.capture<Suspect>(req.query)
 
 		await suspect.infer_signed<'$or', 'keyword'>(
-			in_keyword_evidence_chain.signed('keyword'),
+			in_keyword_surmise_chain.signed('keyword'),
 
 			{ rename: '$or', quiet: true },
 
 		)
 
 		await suspect.infer_signed<'scope'>(
-			evidence.Text.is_boolean
+			surmise.Text.is_boolean
 				.to(
 					v => v ? { $ne: null } : null,
 
@@ -242,14 +242,14 @@ router.get(
 		)
 
 
-		await pagin.linker(suspect)
+		await segment.fit(suspect)
 
 		let doc = await user_model.default
-			.find(pagin.find)
+			.find(segment.find)
 			.select('+phone')
-			.sort(pagin.sort)
-			.skip(pagin.skip)
-			.limit(pagin.limit)
+			.sort(segment.sort)
+			.skip(segment.skip)
+			.limit(segment.limit)
 
 
 		res.json(doc)
@@ -297,18 +297,18 @@ router.put(
 
 		let doc = req.user!
 
-		let suspect = evidence.suspect<Suspect>(req.body)
+		let suspect = surmise.capture<Suspect>(req.body)
 
 
 		await suspect.infer_signed<'nickname'>(
-			evidence.Text.required.signed('nickname'),
+			surmise.Text.required.signed('nickname'),
 
 			{ quiet: true },
 
 		)
 
 		await suspect.infer_signed<'phone'>(
-			evidence.Text.is_phone_number.signed('phone'),
+			surmise.Text.is_phone_number.signed('phone'),
 
 			{ quiet: true },
 
