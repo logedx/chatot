@@ -49,7 +49,7 @@ export type TInstanceMethods = storage.TInstanceMethods<
 		get_access_token(this: THydratedDocumentType): Promise<string>
 
 		// eslint-disable-next-line no-use-before-define
-		get_wx_session(this: THydratedDocumentType, code: string): Promise<weapp.WxSession>
+		to_wx_session(this: THydratedDocumentType, code: string): Promise<weapp.WxSession>
 
 		// eslint-disable-next-line no-use-before-define
 		to_phone_number(this: THydratedDocumentType, code: string): Promise<string>
@@ -77,10 +77,14 @@ export type TInstanceMethods = storage.TInstanceMethods<
 		>
 
 		// eslint-disable-next-line no-use-before-define
-		get_transactions_api_v3(this: THydratedDocumentType): Promise<wepay.Transactions>
+		to_transactions_api_v3(this: THydratedDocumentType): Promise<wepay.Transactions>
 
 		// eslint-disable-next-line no-use-before-define
-		get_refund_api_v3(this: THydratedDocumentType): Promise<wepay.Refund>
+		to_refund_api_v3(this: THydratedDocumentType): Promise<wepay.Refund>
+
+		send_subscribe_message
+		// eslint-disable-next-line no-use-before-define
+		(this: THydratedDocumentType, wxopenid: string, template: string, page: string, data: Record<string, string>): Promise<void>
 
 
 	}
@@ -101,7 +105,8 @@ export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtua
 
 const drive = await storage.mongodb()
 
-export const schema = new Schema<
+export const schema = new Schema
+<
 	TRawDocType,
 	TModel,
 	TInstanceMethods,
@@ -109,7 +114,9 @@ export const schema = new Schema<
 	TVirtuals,
 	TStaticMethods
 
->(
+// eslint-disable-next-line func-call-spacing
+>
+(
 	{
 		// 微信小程序APPID
 		appid: {
@@ -260,10 +267,10 @@ schema.method(
 )
 
 schema.method(
-	'get_wx_session',
+	'to_wx_session',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['get_wx_session']>
+	<TInstanceMethods['to_wx_session']>
 	async function (code)
 	{
 		let doc = await this.select_sensitive_fields('+secret')
@@ -342,10 +349,10 @@ schema.method(
 )
 
 schema.method(
-	'get_transactions_api_v3',
+	'to_transactions_api_v3',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['get_transactions_api_v3']>
+	<TInstanceMethods['to_transactions_api_v3']>
 	async function ()
 	{
 		let option = await this.to_api_v3_option()
@@ -379,15 +386,46 @@ schema.method(
 )
 
 schema.method(
-	'get_refund_api_v3',
+	'to_refund_api_v3',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['get_refund_api_v3']>
+	<TInstanceMethods['to_refund_api_v3']>
 	async function ()
 	{
 		let option = await this.to_api_v3_option()
 
 		return new wepay.Refund(option)
+
+	},
+
+
+)
+
+schema.method(
+	'send_subscribe_message',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['send_subscribe_message']>
+	async function (wxopenid, template, page, data)
+	{
+		let token = await this.get_access_token()
+
+		await weapp.send_subscribe_message(
+			token,
+			wxopenid,
+			template,
+			page,
+
+			Object.keys(data)
+				.reduce(
+					// eslint-disable-next-line no-return-assign
+					(a, b) => (a[b] = { value: data[b] }, a),
+
+					{} as Record<string, { value: string }>,
+
+				),
+
+		)
 
 	},
 
