@@ -273,7 +273,7 @@ export function is_boolean_string
 
 
 export function is_object
-<T extends object = Record<PropertyKey, unknown>>
+<T extends object = Record<PropertyKey, unknown> >
 (v: unknown): v is T
 {
 	if (Array.isArray(v) )
@@ -287,7 +287,7 @@ export function is_object
 }
 
 export function is_object_legitimism
-<T extends object = Record<PropertyKey, unknown>>
+<T extends object = Record<PropertyKey, unknown> >
 (v: unknown): v is T
 {
 	if (v?.constructor?.name === 'Object')
@@ -386,7 +386,7 @@ export function is_24_hour_system_string
 export function is_real_number_string
 (v: unknown): v is string
 {
-	return is_required_string(v) && (/^-?[1-9]+(\.[0-9]+)?$/).test(v)
+	return is_required_string(v) && v === Number(v).toString()
 
 }
 
