@@ -17,7 +17,7 @@ export type TRawDocType = storage.TRawDocType<
 	{
 		weapp : Types.ObjectId
 		name  : string
-		label : string
+		color : string
 		value : string
 		letter: string
 
@@ -117,7 +117,7 @@ export const schema = new Schema
 
 		},
 
-		label: {
+		color: {
 			type     : String,
 			lowercase: true,
 			trim     : true,
@@ -141,7 +141,7 @@ export const schema = new Schema
 
 
 schema.index(
-	{ weapp: 1, name: 1, label: 1, value: 1 },
+	{ weapp: 1, name: 1, color: 1, value: 1 },
 
 	{ unique: true, sparse: true },
 

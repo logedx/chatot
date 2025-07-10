@@ -24,7 +24,7 @@ router.post(
 			weapp: Types.ObjectId
 
 			name : string
-			label: string
+			color: string
 			value: string
 
 			letter: string
@@ -43,8 +43,8 @@ router.post(
 
 		)
 
-		await suspect.infer_signed<'label'>(
-			evidence.Text.optional.signed('label'),
+		await suspect.infer_signed<'color'>(
+			evidence.Text.optional.signed('color'),
 
 		)
 
@@ -78,7 +78,7 @@ router.get(
 			weapp: Types.ObjectId
 
 			name? : string
-			label?: string
+			color?: string
 			value?: RegExp
 
 			letter?: string
@@ -101,8 +101,8 @@ router.get(
 
 		)
 
-		await suspect.infer_signed<'label'>(
-			evidence.Text.required.signed('label'),
+		await suspect.infer_signed<'color'>(
+			evidence.Text.required.signed('color'),
 
 			{ quiet: true },
 
