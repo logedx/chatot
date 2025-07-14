@@ -68,6 +68,11 @@ export type Keyword<
 	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 	: [...Keyword<Exclude<T, L>>, { [k in L]: RegExp }]
 
+export type Between<T extends number | Date> = {
+	$gte: T
+	$lte: T
+
+}
 
 
 
@@ -951,6 +956,13 @@ export class Digital
 
 	)
 
+	static is_month_number = Chain.infer<number>(
+		'is not a month number',
+
+		detective.is_month_number,
+
+	)
+
 	static is_24_hour_system_number = Chain.infer<number>(
 		'is not a 24 hour system number',
 
@@ -1265,6 +1277,13 @@ export class Pagination<T extends object = Record<PropertyKey, never>>
 		let map = (k: unknown) => ({ [k as string]: new RegExp(value) })
 
 		return keyword.map(map) as Keyword<T>
+
+	}
+
+	static between
+	<T extends number | Date>([early, lastly]: detective.Range<T>): Between<T>
+	{
+		return { $gte: early, $lte: lastly }
 
 	}
 

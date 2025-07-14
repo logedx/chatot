@@ -213,6 +213,18 @@ export function is_timestamp_number
 
 }
 
+export function is_month_number
+(v: unknown): v is number
+{
+	return is_number(v)
+		&& v >= 0 && v <= 207712
+		&& (/^\d{4}(0[1-9]|1[0-2])$/).test(
+			v.toString(),
+
+		)
+
+}
+
 export function is_24_hour_system_number
 (v: unknown): v is number
 {
