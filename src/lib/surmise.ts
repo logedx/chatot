@@ -1,5 +1,6 @@
 import mongoose, { Types } from 'mongoose'
 
+import * as i18n from './i18n.js'
 import * as reply from './reply.js'
 import * as structure from './structure.js'
 import * as detective from './detective.js'
@@ -354,7 +355,7 @@ export class Clue
 // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 <T = unknown, K extends void | PropertyKey = void>
 {
-	#message = ''
+	#message: string | i18n.Speech = ''
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	#reagent: InferReagent<any, any>
@@ -374,7 +375,7 @@ export class Clue
 
 	constructor
 	(
-		message: string,
+		message: string | i18n.Speech,
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		handle: InferReagent<any, any>,
@@ -399,7 +400,7 @@ export class Clue
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	#buckle <R> (message: string, reagent: InferReagent<any, any>): Clue<R, K>
+	#buckle <R> (message: string | i18n.Speech, reagent: InferReagent<any, any>): Clue<R, K>
 	{
 		return new Clue<R, K>(
 			message, reagent, { signed: this.#signed as K, linker: this },
@@ -490,7 +491,7 @@ export class Clue
 	static async test
 	(
 		value: unknown,
-		message: string,
+		message: string | i18n.Speech,
 
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		fn: InferReagent<any, boolean>,
@@ -512,7 +513,7 @@ export class Clue
 	}
 
 	static infer
-	<T = unknown> (message: string, fn: InferReagent<unknown, boolean>): Clue<T>
+	<T = unknown> (message: string | i18n.Speech, fn: InferReagent<unknown, boolean>): Clue<T>
 	{
 		return new Clue<T>(
 			message,
