@@ -1,11 +1,12 @@
 import express from 'express'
 import * as mongoose from 'mongoose'
 
+import * as i18n from '../lib/i18n.js'
 import * as reply from '../lib/reply.js'
 import * as secret from '../lib/secret.js'
 import * as detective from '../lib/detective.js'
 
-import * as mongo_i18n from '../i18n/mongo.js'
+import * as storage_helper from '../i18n/helper/storage.js'
 
 
 const { NODE_ENV } = process.env
@@ -181,11 +182,14 @@ export const finish: express.ErrorRequestHandler = function finish (e: NodeJS.Er
 {
 	let stack = e.stack ?? ''
 
-	if (e instanceof mongoose.mongo.MongoServerError
-		&& detective.is_number(e.code)
-		&& detective.is_exist(mongo_i18n.server_error[e.code]) )
+	let language = req.get('Accept-Language') ?? ''
+
+	if (e instanceof mongoose.mongo.MongoServerError && detective.is_number(e.code) )
 	{
-		e = new reply.BadRequest(mongo_i18n.server_error[e.code])
+		e = new reply.BadRequest(
+			storage_helper.mongodb.t(e.code),
+
+		)
 
 		e.stack = stack
 
@@ -216,8 +220,8 @@ export const finish: express.ErrorRequestHandler = function finish (e: NodeJS.Er
 		.json(
 			{
 				name   : e.name,
-				message: e.message,
-				stack  : (e as reply.Exception).mute(NODE_ENV === 'production').collect(),
+				message: (e as reply.Exception<i18n.Language>).local(language as i18n.Language),
+				stack  : (e as reply.Exception<i18n.Language>).mute(NODE_ENV === 'production').collect(),
 
 			},
 
