@@ -3,7 +3,7 @@ import express from 'express'
 import * as axios from 'axios'
 
 import * as secret from '../lib/secret.js'
-import * as evidence from '../lib/evidence.js'
+import * as surmise from '../lib/surmise.js'
 import * as structure from '../lib/structure.js'
 
 import * as media_model from '../model/media.js'
@@ -16,17 +16,17 @@ import * as retrieve_router from './retrieve.js'
 
 
 
-export const cypher_decrypt_evidence_chain = evidence.Text.required.to(stamp_model.decrypt)
+export const cypher_decrypt_clue = surmise.Text.required.to(stamp_model.decrypt)
 
-export function symbol_evidence_chain
+export function symbol_clue
 (
 	pathname: `/${string}`,
 	method: Lowercase<axios.Method>,
 
 )
-: evidence.Chain<stamp_model.THydratedDocumentType>
+: surmise.Clue<stamp_model.THydratedDocumentType>
 {
-	return evidence.Text.required.to(
+	return surmise.Text.required.to(
 		v => stamp_model.default.from(v, `${pathname}#${method}`),
 
 	)
@@ -94,18 +94,18 @@ router.post(
 
 		let weapp = await req.survive_token!.to_weapp()
 
-		let suspect = evidence.suspect<Suspect>(req.body)
+		let suspect = surmise.capture<Suspect>(req.body)
 
 
-		await suspect.set('value', secret.hex)
+		await suspect.set('value', secret.hex() )
 
-		await suspect.infer_signed<'path'>(
-			evidence.Text.required.signed('path'),
+		await suspect.infer<'path'>(
+			surmise.Text.required.signed('path'),
 
 		)
 
-		await suspect.infer_signed<'mailer', 'cypher'>(
-			cypher_decrypt_evidence_chain.signed('cypher'),
+		await suspect.infer<'mailer', 'cypher'>(
+			cypher_decrypt_clue.signed('cypher'),
 
 			{ rename: 'mailer' },
 

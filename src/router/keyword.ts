@@ -1,7 +1,7 @@
 import express from 'express'
 import { Types } from 'mongoose'
 
-import * as evidence from '../lib/evidence.js'
+import * as surmise from '../lib/surmise.js'
 
 import * as keyword_model from '../model/keyword.js'
 
@@ -33,23 +33,23 @@ router.post(
 
 		let { weapp } = req.survive_token!
 
-		let suspect = evidence.suspect<Suspect>(req.body)
+		let suspect = surmise.capture<Suspect>(req.body)
 
 
 		await suspect.set('weapp', weapp)
 
-		await suspect.infer_signed<'name'>(
-			evidence.Text.required.signed('name'),
+		await suspect.infer<'name'>(
+			surmise.Text.required.signed('name'),
 
 		)
 
-		await suspect.infer_signed<'color'>(
-			evidence.Text.optional.signed('color'),
+		await suspect.infer<'color'>(
+			surmise.Text.optional.signed('color'),
 
 		)
 
-		await suspect.infer_signed<'value'>(
-			evidence.Text.required.signed('value'),
+		await suspect.infer<'value'>(
+			surmise.Text.required.signed('value'),
 
 			{ alias: 'letter' },
 
@@ -72,7 +72,7 @@ router.get(
 
 	...token_router.checkpoint(),
 
-	async function retrieve_pagination (req, res)
+	async function retrieves (req, res)
 	{
 		type Suspect = {
 			weapp: Types.ObjectId
@@ -88,48 +88,40 @@ router.get(
 
 		let { weapp } = req.survive_token!
 
-		let pagin = evidence.pagination<Suspect>()
-		let suspect = evidence.suspect<Suspect>(req.query)
+		let fritter = surmise.fritter<Suspect>()
+		let suspect = surmise.capture<Suspect>(req.query)
 
 
 		await suspect.set('weapp', weapp)
 
-		await suspect.infer_signed<'name'>(
-			evidence.Text.required.signed('name'),
-
-			{ quiet: true },
+		await suspect.infer_optional<'name'>(
+			surmise.Text.required.signed('name'),
 
 		)
 
-		await suspect.infer_signed<'color'>(
-			evidence.Text.required.signed('color'),
-
-			{ quiet: true },
+		await suspect.infer_optional<'color'>(
+			surmise.Text.required.signed('color'),
 
 		)
 
-		await suspect.infer_signed<'value'>(
-			evidence.Text.is_search.signed('value'),
-
-			{ quiet: true },
+		await suspect.infer_optional<'value'>(
+			surmise.Text.is_search.signed('value'),
 
 		)
 
-		await suspect.infer_signed<'letter'>(
-			evidence.Text.required.signed('letter'),
-
-			{ quiet: true },
+		await suspect.infer_optional<'letter'>(
+			surmise.Text.required.signed('letter'),
 
 		)
 
 
-		await pagin.linker(suspect)
+		await fritter.fit(suspect)
 
 		let doc = await keyword_model.default
-			.find(pagin.find)
-			.sort(pagin.sort)
-			.skip(pagin.skip)
-			.limit(pagin.limit)
+			.find(fritter.find)
+			.sort(fritter.sort)
+			.skip(fritter.skip)
+			.limit(fritter.limit)
 
 		res.json(doc)
 
