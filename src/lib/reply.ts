@@ -110,9 +110,9 @@ export class Exception extends Error implements NodeJS.ErrnoException
 
 	}
 
-	mute (): this
+	mute (when: boolean): this
 	{
-		this.#mute = true
+		this.#mute = when
 
 		return this
 

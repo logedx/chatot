@@ -217,7 +217,7 @@ export const finish: express.ErrorRequestHandler = function finish (e: NodeJS.Er
 			{
 				name   : e.name,
 				message: e.message,
-				stack  : (e as reply.Exception).mute().collect(),
+				stack  : (e as reply.Exception).mute(NODE_ENV === 'production').collect(),
 
 			},
 
