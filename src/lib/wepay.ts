@@ -140,52 +140,49 @@ export class APIv3
 
 	}
 
-	on (
+	on
+	(
 		name: 'update',
 
 		listener: (name: 'sign' | 'verify', ctx: string | Buffer) => void,
 
-	): void
+	)
+	: void
 
 
-	on (
+	on
+	(
 		name: 'create',
 
-		listener: (
-			...args: unknown[]
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		listener: (...args: any[]) => void,
 
-		) => void,
+	)
+	: void
 
-	): void
+	on
+	(
+		name: string,
 
-	on (
-		name: 'update' | 'create',
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		listener:(...args: any[]) => any,
 
-		listener:
-			(
-				(name: 'sign' | 'verify', ctx: string | Buffer) => void
-			)
-
-			|
-
-			(
-				(...args: unknown[]) => void
-			),
-
-
-	): void
+	)
+	: void
 	{
 		this.#defend.on(name, listener)
 
 	}
 
-	sign (
+	sign
+	(
 		url: string,
 		method: 'GET' | 'PUT' | 'POST' | 'DELETE',
 		data: unknown = null,
 		params: Record<string, string> = {},
 
-	): APIv3Sign
+	)
+	: APIv3Sign
 	{
 		let { serial } = this.#defend
 		let search = new URLSearchParams(params).toString()
@@ -215,7 +212,15 @@ export class APIv3
 
 	}
 
-	verify (timestamp: number | string, nonce: string, data: unknown, signature: string | Buffer): boolean
+	verify
+	(
+		timestamp: number | string,
+		nonce: string,
+		data: unknown,
+		signature: string | Buffer,
+
+	)
+	: boolean
 	{
 		let stringify = ''
 
@@ -233,7 +238,15 @@ export class APIv3
 
 	}
 
-	decrypt (cipher: string | Buffer, iv: string | Buffer, aad?: string | Buffer): Buffer
+	decrypt
+	(
+		cipher: string | Buffer,
+		iv: string | Buffer,
+
+		aad?: string | Buffer,
+
+	)
+	: Buffer
 	{
 		let gcm = new secret.AES_256_GCM(this.#v3key, iv)
 
@@ -247,7 +260,15 @@ export class APIv3
 
 	}
 
-	format (serial: string, nonce: string, timestamp: number, signature: string): string
+	format
+	(
+		serial: string,
+		nonce: string,
+		timestamp: number,
+		signature: string,
+
+	)
+	: string
 	{
 		let value = [
 			`mchid="${this.#mchid}"`,
@@ -261,12 +282,16 @@ export class APIv3
 
 	}
 
-	async newsletter<T>(
+	async newsletter
+	<T>
+	(
 		url: string,
 		method: 'GET' | 'PUT' | 'POST' | 'DELETE',
 		data: null | Record<string, unknown> = null,
 		params: Record<string, string> = {},
-	): Promise<T>
+
+	)
+	: Promise<T>
 	{
 		let sign = this.sign(url, method, data, params)
 		let [sign_serial, verify_serial] = sign.serial
@@ -472,8 +497,13 @@ export type TransactionsCallupResult = {
 export class Transactions extends APIv3
 {
 	create
-	// eslint-disable-next-line @stylistic/space-in-parens
-	( out_trade_no: string, description: string, total: number, openid: string)
+	(
+		out_trade_no: string,
+		description: string,
+		total: number,
+		openid: string,
+
+	)
 	: Promise<TransactionsCreateResult>
 	{
 		description = Buffer.from(description)
@@ -499,7 +529,8 @@ export class Transactions extends APIv3
 
 	}
 
-	retrieve (out_trade_no: string): Promise<TransactionsRetrieveResult>
+	retrieve
+	(out_trade_no: string): Promise<TransactionsRetrieveResult>
 	{
 		let mchid = this.mchid
 
@@ -517,7 +548,8 @@ export class Transactions extends APIv3
 
 	}
 
-	delete (out_trade_no: string): Promise<null>
+	delete
+	(out_trade_no: string): Promise<null>
 	{
 		let mchid = this.mchid
 
@@ -533,7 +565,8 @@ export class Transactions extends APIv3
 
 	}
 
-	callup (prepay_id: string): TransactionsCallupResult
+	callup
+	(prepay_id: string): TransactionsCallupResult
 	{
 		// eslint-disable-next-line @typescript-eslint/naming-convention
 		let appId = this.appid
@@ -624,7 +657,8 @@ export class Refund extends APIv3
 
 	}
 
-	retrieve (out_refund_no: string): Promise<RefundCreateResult>
+	retrieve
+	(out_refund_no: string): Promise<RefundCreateResult>
 	{
 		return this.newsletter<RefundRetrieveResult>(
 			`/v3/refund/domestic/refunds/${out_refund_no}`,

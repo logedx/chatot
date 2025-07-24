@@ -55,11 +55,11 @@ wxopen_api.interceptors.response.use(
 
 	res =>
 	{
-		let error = new reply.BadRequest()
+		let e = new reply.BadRequest()
 
 		if (res instanceof Error)
 		{
-			error.message = res.message
+			e.message = res.message
 
 		}
 
@@ -72,13 +72,13 @@ wxopen_api.interceptors.response.use(
 
 				if (data instanceof Error)
 				{
-					error.message = data.message
+					e.message = data.message
 
 				}
 
 				if (is_wxopen_api_error_result(data) )
 				{
-					error.message = data.errmsg
+					e.message = data.errmsg
 
 				}
 
@@ -87,7 +87,7 @@ wxopen_api.interceptors.response.use(
 
 		}
 
-		return Promise.reject(error)
+		return Promise.reject(e)
 
 	},
 

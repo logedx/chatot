@@ -48,10 +48,8 @@ export type TInstanceMethods = storage.TInstanceMethods<
 	TRawDocType,
 
 	{
-		// eslint-disable-next-line no-use-before-define
 		shine(this: THydratedDocumentType): Promise<void>
 
-		// eslint-disable-next-line no-use-before-define
 		overcast(this: THydratedDocumentType): Promise<void>
 
 	}
@@ -85,7 +83,7 @@ export const schema = new Schema
 	TVirtuals,
 	TStaticMethods
 
-// eslint-disable-next-line func-call-spacing
+// eslint-disable-next-line @stylistic/function-call-spacing
 >
 (
 	{

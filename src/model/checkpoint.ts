@@ -46,7 +46,6 @@ export type TQueryHelpers = object
 
 export type TInstanceMethods = {
 	hold
-	// eslint-disable-next-line no-use-before-define
 	(this: THydratedDocumentType, context: unknown): Promise<void>
 
 }
@@ -72,7 +71,7 @@ export const schema = new Schema
 	TVirtuals,
 	TStaticMethods
 
-// eslint-disable-next-line func-call-spacing
+// eslint-disable-next-line @stylistic/function-call-spacing
 >
 (
 	{

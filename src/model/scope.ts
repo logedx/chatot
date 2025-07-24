@@ -57,7 +57,6 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	// eslint-disable-next-line no-use-before-define
 	delay(this: THydratedDocumentType, to: Date): Promise<void>
 
 }
@@ -80,7 +79,7 @@ export const schema = new Schema
 	TVirtuals,
 	TStaticMethods
 
-// eslint-disable-next-line func-call-spacing
+// eslint-disable-next-line @stylistic/function-call-spacing
 >
 (
 	{

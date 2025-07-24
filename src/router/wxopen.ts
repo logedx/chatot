@@ -28,7 +28,7 @@ router.post(
 	{
 		type BodyParse = {
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			Encrypt: string
+			Encrypt : string
 		}
 
 		type Result = {

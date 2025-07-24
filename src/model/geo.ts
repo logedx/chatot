@@ -41,9 +41,7 @@ export const point = new Schema
 	TPointVirtuals,
 	TStaticMethods
 
-// eslint-disable-next-line func-call-spacing
->
-(
+>(
 	{
 		type: {
 			type    : String,

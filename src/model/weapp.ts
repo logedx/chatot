@@ -45,28 +45,21 @@ export type TInstanceMethods = storage.TInstanceMethods<
 	TRawDocType,
 
 	{
-		// eslint-disable-next-line no-use-before-define
 		get_access_token(this: THydratedDocumentType): Promise<string>
 
-		// eslint-disable-next-line no-use-before-define
 		to_wx_session(this: THydratedDocumentType, code: string): Promise<weapp.WxSession>
 
-		// eslint-disable-next-line no-use-before-define
 		to_phone_number(this: THydratedDocumentType, code: string): Promise<string>
 
 		to_unlimited
-		// eslint-disable-next-line no-use-before-define
 		(this: THydratedDocumentType, path: string, scene: string): Promise<weapp.Unlimited>
 
-		// eslint-disable-next-line no-use-before-define
 		to_ali_oss(this: THydratedDocumentType): ali_oss
 
 		to_api_v3_option
-		// eslint-disable-next-line no-use-before-define
 		(this: THydratedDocumentType)
 		: Promise<
 			storage.TRawDocTypeOverwrite<
-				// eslint-disable-next-line no-use-before-define
 				THydratedDocumentType,
 
 				'mchid' | 'v3key' | 'sign' | 'evidence' | 'verify'
@@ -76,14 +69,11 @@ export type TInstanceMethods = storage.TInstanceMethods<
 
 		>
 
-		// eslint-disable-next-line no-use-before-define
 		to_transactions_api_v3(this: THydratedDocumentType): Promise<wepay.Transactions>
 
-		// eslint-disable-next-line no-use-before-define
 		to_refund_api_v3(this: THydratedDocumentType): Promise<wepay.Refund>
 
 		send_subscribe_message
-		// eslint-disable-next-line no-use-before-define
 		(this: THydratedDocumentType, wxopenid: string, template: string, page: string, data: Record<string, string>): Promise<void>
 
 
@@ -114,7 +104,7 @@ export const schema = new Schema
 	TVirtuals,
 	TStaticMethods
 
-// eslint-disable-next-line func-call-spacing
+// eslint-disable-next-line @stylistic/function-call-spacing
 >
 (
 	{

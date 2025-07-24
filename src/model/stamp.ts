@@ -44,14 +44,12 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	// eslint-disable-next-line no-use-before-define
 	eternal(this: THydratedDocumentType): Promise<THydratedDocumentType>
 
 }
 
 export type TStaticMethods = {
 	from
-	// eslint-disable-next-line no-use-before-define
 	(this: TModel, value: string, symbol?: TRawDocType['symbol']): Promise<THydratedDocumentType>
 
 }
@@ -78,7 +76,7 @@ export const schema = new Schema
 	TVirtuals,
 	TStaticMethods
 
-// eslint-disable-next-line func-call-spacing
+// eslint-disable-next-line @stylistic/function-call-spacing
 >
 (
 	{

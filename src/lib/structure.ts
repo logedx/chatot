@@ -24,8 +24,7 @@ export type GetInterLastElement<U> = U extends Array<infer R> ? R : never
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type GetTupleLastElement<U> = U extends [...infer _, infer L] ? L : never
 
-// eslint-disable-next-line no-use-before-define
-export type GetUnionLastElement<U> = GetInterLastElement<UnionToInter<U>>
+export type GetUnionLastElement<U> = GetInterLastElement<UnionToInter<U> >
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type UnionToInter <U> = (U extends any ? (k: U[]) => void : never) extends (k: infer I) => void
@@ -40,17 +39,17 @@ export type UnionToTuple<
 
 > = [E] extends [never]
 	? []
-	: [...UnionToTuple<Exclude<E, L>>, L]
+	: [...UnionToTuple<Exclude<E, L> >, L]
 
 export type Replace<T, U, V> = T extends U
 	? V
 	: T extends Array<infer A>
-		? Array<Replace<A, U, V>>
+		? Array<Replace<A, U, V> >
 		: T extends object
 			? { [K in keyof T]: Replace<T[K], U, V> }
 			: T
 
-export type Overwrite<T, U, O = Omit<T, keyof U> & Required<U>> = {
+export type Overwrite<T, U, O = Omit<T, keyof U> & Required<U> > = {
 	[K in keyof O]: Exclude<
 		K extends keyof U
 			? U[K]

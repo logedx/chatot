@@ -66,7 +66,7 @@
 			"\tTVirtuals,",
 			"\tTStaticMethods",
 			"",
-			"// eslint-disable-next-line func-call-spacing",
+			"// eslint-disable-next-line @stylistic/function-call-spacing",
 			">",
 			"(",
 			"\t{",

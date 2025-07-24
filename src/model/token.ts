@@ -53,25 +53,19 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	// eslint-disable-next-line no-use-before-define
 	replenish(this: THydratedDocumentType, value?: string): Promise<THydratedDocumentType>
 
-	// eslint-disable-next-line no-use-before-define
 	to_user(this: THydratedDocumentType): Promise<user_model.THydratedDocumentType>
 
-	// eslint-disable-next-line no-use-before-define
 	to_weapp(this: THydratedDocumentType): Promise<weapp_model.THydratedDocumentType>
 
-	// eslint-disable-next-line no-use-before-define
 	to_usable(this: THydratedDocumentType): TSurviveHydratedDocumentType
 
-	// eslint-disable-next-line no-use-before-define
 	to_survive(this: THydratedDocumentType): TSurviveHydratedDocumentType
 
 }
 
 export type TStaticMethods = {
-	// eslint-disable-next-line no-use-before-define
 	replenish(this: TModel, refresh: string): Promise<THydratedDocumentType>
 
 }
@@ -104,7 +98,7 @@ export const schema = new Schema
 	TVirtuals,
 	TStaticMethods
 
-// eslint-disable-next-line func-call-spacing
+// eslint-disable-next-line @stylistic/function-call-spacing
 >
 (
 	{

@@ -66,7 +66,7 @@ router.post(
 
 					>
 
-				// eslint-disable-next-line func-call-spacing
+				// eslint-disable-next-line @stylistic/function-call-spacing
 				>
 				(
 					'amber is not a object id',

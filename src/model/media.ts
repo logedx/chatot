@@ -61,20 +61,16 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	// eslint-disable-next-line no-use-before-define
 	safe_push(this: THydratedDocumentType, body: stream.Readable): Promise<THydratedDocumentType>
 
-	// eslint-disable-next-line no-use-before-define
 	safe_delete(this: THydratedDocumentType): Promise<void>
 
-	// eslint-disable-next-line no-use-before-define
 	safe_access(this: THydratedDocumentType, expires?: number): Promise<URL>
 
 }
 
 export type TStaticMethods = {
 	safe_delete
-	// eslint-disable-next-line no-use-before-define
 	(this: TModel, weapp: Types.ObjectId, ...src: string[])
 	: Promise<
 		Array<
@@ -85,12 +81,10 @@ export type TStaticMethods = {
 	>
 
 	safe_access
-	// eslint-disable-next-line no-use-before-define
 	(this: TModel, weapp: Types.ObjectId, src: string, expires?: number,): Promise<URL>
 
 	safe_to_link
 	(
-		// eslint-disable-next-line no-use-before-define
 		this: TModel,
 
 		name: string,
@@ -99,7 +93,6 @@ export type TStaticMethods = {
 		query: { hash: string } | { src: string }
 
 	)
-	// eslint-disable-next-line no-use-before-define
 	: Promise<null | THydratedDocumentType>
 
 }
@@ -141,7 +134,6 @@ export class Secret extends String
 
 	async track (): Promise<THydratedDocumentType>
 	{
-		// eslint-disable-next-line no-use-before-define
 		let doc = await drive.model<typeof schema>('Media')
 			.findOne(
 				{ src: this.valueOf() },
@@ -249,7 +241,7 @@ export const schema = new Schema
 	TVirtuals,
 	TStaticMethods
 
-// eslint-disable-next-line func-call-spacing
+// eslint-disable-next-line @stylistic/function-call-spacing
 >
 (
 	{

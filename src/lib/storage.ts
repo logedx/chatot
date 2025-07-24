@@ -45,7 +45,7 @@ export type TInstanceMethods<T, M = unknown> = M & {
 	<
 		F = keyof structure.GetPartial<T>,
 		O = Pick<T, F & keyof T>,
-		H = HydratedDocument<T, TInstanceMethods<T, M>>,
+		H = HydratedDocument<T, TInstanceMethods<T, M> >,
 
 	>
 	(...fields: Array<`+${F & string}`>)
@@ -61,7 +61,7 @@ export type TInstanceMethods<T, M = unknown> = M & {
 
 	select_every_fields
 	<
-		H = HydratedDocument<T, TInstanceMethods<T, M>>,
+		H = HydratedDocument<T, TInstanceMethods<T, M> >,
 
 	>
 	()

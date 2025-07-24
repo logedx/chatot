@@ -44,9 +44,9 @@ type CryptoPipelineCreateHandler = (
 	option: { algorithm: string, key: Buffer, iv: Buffer },
 
 )
-=> crypto.Cipher
+=> crypto.Cipheriv
 
-type CryptoPipelineConcatHandler = (transfer: crypto.Cipher | crypto.Decipher, valuve: Buffer) => Buffer
+type CryptoPipelineConcatHandler = (transfer: crypto.Cipheriv | crypto.Decipheriv, valuve: Buffer) => Buffer
 
 type CryptoPipelinePaddingHandler = (valuve: Buffer) => Buffer
 
@@ -127,7 +127,7 @@ class CryptoManager
 
 class Encrypt extends CryptoManager implements CryptoPipeline
 {
-	#create (value: Buffer): crypto.Cipher
+	#create (value: Buffer): crypto.Cipheriv
 	{
 		if (this.create_handler)
 		{
@@ -146,7 +146,7 @@ class Encrypt extends CryptoManager implements CryptoPipeline
 	}
 
 
-	#concat (cipher: crypto.Cipher, value: Buffer): Buffer
+	#concat (cipher: crypto.Cipheriv, value: Buffer): Buffer
 	{
 		if (this.concat_handler)
 		{
@@ -184,7 +184,7 @@ class Encrypt extends CryptoManager implements CryptoPipeline
 
 class Decrypt extends CryptoManager implements CryptoPipeline
 {
-	#create (value: Buffer): crypto.Cipher
+	#create (value: Buffer): crypto.Cipheriv
 	{
 		if (this.create_handler)
 		{
@@ -202,7 +202,7 @@ class Decrypt extends CryptoManager implements CryptoPipeline
 
 	}
 
-	#concat (cipher: crypto.Decipher, value: Buffer): Buffer
+	#concat (cipher: crypto.Decipheriv, value: Buffer): Buffer
 	{
 		if (this.concat_handler)
 		{

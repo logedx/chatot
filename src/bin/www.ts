@@ -40,7 +40,7 @@ function listen
 
 }
 
-function error
+function error_exit
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (port: number): (...arg: any[]) => never
 {
@@ -180,7 +180,7 @@ export async function run
 	)
 
 	server.on(
-		'error', error(_port),
+		'error', error_exit(_port),
 
 	)
 

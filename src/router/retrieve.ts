@@ -102,7 +102,7 @@ export const user_scope: express.RequestHandler = async function user_scope (req
 
 			>
 
-		// eslint-disable-next-line func-call-spacing
+		// eslint-disable-next-line @stylistic/function-call-spacing
 		>
 		(
 			['+scope'],

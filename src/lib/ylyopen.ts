@@ -63,6 +63,7 @@ export class Service
 	async post<T>(url: string, params: Record<string, unknown>): Promise<T>
 	{
 		type Result = {
+			// eslint-disable-next-line id-denylist
 			error            : string
 			error_description: string
 			body             : T

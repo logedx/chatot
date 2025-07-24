@@ -10,7 +10,9 @@ import * as detective from './detective.js'
 
 export type InferReagent<V, T> = (v: V) => T | Promise<T>
 
-export type InferAlias<T extends object, V extends keyof T>
+export type InferAlias
+<T extends object, V extends keyof T>
+// eslint-disable-next-line @stylistic/operator-linebreak
 =
 Exclude<
 	keyof {
@@ -24,6 +26,7 @@ Exclude<
 
 export type InferOption
 <T extends object = object, K extends keyof T = keyof T>
+// eslint-disable-next-line @stylistic/operator-linebreak
 =
 {
 	rename?  : K
@@ -34,6 +37,7 @@ export type InferOption
 
 export type InferOptiond
 <C, T extends object = object, K extends keyof T = keyof T, P extends PropertyKey = K>
+// eslint-disable-next-line @stylistic/operator-linebreak
 =
 K extends P
 	? [chain: C, option?: { alias? : InferAlias<T, K> }]
@@ -48,14 +52,18 @@ export type PagerSuspect = {
 }
 
 
-export type Keyword<
+export type Keyword
+<
 	T extends string,
 	L = structure.GetUnionLastElement<T>,
 
-> = [T] extends [never]
+>
+// eslint-disable-next-line @stylistic/operator-linebreak
+=
+[T] extends [never]
 	? []
 	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-	: [...Keyword<Exclude<T, L>>, { [k in L as string]: RegExp }]
+	: [...Keyword<Exclude<T, L> >, { [k in L as string]: RegExp }]
 
 export type Between<T extends number | Date> = {
 	$gte: T
@@ -363,7 +371,7 @@ export class Clue
 
 	#signed?: PropertyKey
 
-	// eslint-disable-next-line no-use-before-define, @typescript-eslint/no-explicit-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	#linker?: Clue<any, any>
 
 
@@ -411,7 +419,7 @@ export class Clue
 
 	async verify (value: unknown): Promise<T>
 	{
-		let error: null | reply.Exception = null
+		let e: null | reply.Exception = null
 
 		try
 		{
@@ -427,26 +435,26 @@ export class Clue
 
 		}
 
-		catch (e)
+		catch (ee)
 		{
-			if (detective.is_error(e) )
+			if (detective.is_error(ee) )
 			{
-				e = new reply.BadRequest(e.message)
+				ee = new reply.BadRequest(ee.message)
 
 			}
 
-			if (e instanceof reply.Exception)
+			if (ee instanceof reply.Exception)
 			{
-				error = e
+				e = ee
 
 			}
 
 		}
 
 
-		if (detective.is_exist(error) )
+		if (detective.is_exist(e) )
 		{
-			throw error
+			throw e
 
 		}
 
@@ -708,7 +716,7 @@ export class Text
 
 
 	static search
-	<T extends string> (...keyword: structure.UnionToTuple<T>): Clue<Keyword<T>>
+	<T extends string> (...keyword: structure.UnionToTuple<T>): Clue<Keyword<T> >
 	{
 		return Clue
 			.infer<string>(
@@ -717,7 +725,7 @@ export class Text
 				detective.is_required_string,
 
 			)
-			.to<Keyword<T>>(
+			.to<Keyword<T> >(
 				v => Pager.match(v, ...keyword),
 
 			)
@@ -1028,7 +1036,7 @@ export class Model
 
 
 export class Pager
-<T extends Record<PropertyKey, unknown> = Record<PropertyKey, never>>
+<T extends Record<PropertyKey, unknown> = Record<PropertyKey, never> >
 {
 	#skip = 0
 
@@ -1123,7 +1131,7 @@ export class Pager
 	<T extends string>(model: mongoose.Model<any>, keyword: Keyword<T>): Promise<Types.ObjectId[]>
 	{
 		let doc = await model.find(
-			{ $or: keyword as Array<Record<string, RegExp>> },
+			{ $or: keyword as Array<Record<string, RegExp> > },
 
 		)
 
