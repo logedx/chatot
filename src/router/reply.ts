@@ -187,7 +187,7 @@ export const finish: express.ErrorRequestHandler = function finish (e: NodeJS.Er
 	if (e instanceof mongoose.mongo.MongoServerError && detective.is_number(e.code) )
 	{
 		e = new reply.BadRequest(
-			storage_helper.mongodb.t(e.code),
+			storage_helper.mongodb.n(e.code),
 
 		)
 

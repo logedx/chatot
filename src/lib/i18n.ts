@@ -122,19 +122,24 @@ export class Helper
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	t (text: keyof T, ...ctx: any[]): Speech<L>
 	{
-		if (detective.is_number(text) && detective.is_string(this.#map[text]) )
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		return this.#translate(text as string, ...ctx)
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	n (text: number, ...ctx: any[]): Speech<L>
+	{
+		let text_ = `${text}`
+
+		if (detective.is_object_keyof(this.#map, text) )
 		{
-			text = this.#map[text] as keyof T
+			text_ = this.#map[text] as string
 
 		}
 
-		return this.#translate(
-			(this.#map[text] ?? text) as string,
-
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-			...ctx,
-
-		)
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		return this.#translate(text_, ...ctx)
 
 	}
 
