@@ -221,3 +221,107 @@ export function omit
 	return value
 
 }
+
+
+
+
+export class Auspice<T>
+{
+	#v: unknown
+
+	#x: null | Error = null
+
+
+	set value (v: T extends Error ? never : T)
+	{
+		this.#v = v
+
+	}
+
+	get value (): T extends Error ? never : T
+	{
+		if (detective.is_exist(this.#x) )
+		{
+			throw this.#x
+
+		}
+
+		return this.#v as T extends Error ? never : T
+
+	}
+
+	get x (): null | Error
+	{
+		return this.#x
+
+	}
+
+
+	is_ok (): boolean
+	{
+		return detective.is_empty(this.#x)
+
+	}
+
+	is_error (): boolean
+	{
+		return detective.is_exist(this.#x)
+
+	}
+
+
+	call
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	<F extends (...args: any[]) => T> (fn: F, ...params: Parameters<F>): this
+	{
+		try
+		{
+			this.#v = fn(...params)
+
+		}
+
+		catch (e)
+		{
+			this.#x = e as Error
+
+		}
+
+		return this
+
+	}
+
+	async over
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+	(..._: T extends Promise<any> ? [] : never): Promise<boolean>
+	{
+		if (this.is_error() )
+		{
+			return true
+
+		}
+
+		try
+		{
+			await this.#v
+
+		}
+
+		catch (e)
+		{
+			this.#x = e as Error
+
+		}
+
+		return this.is_error()
+
+	}
+
+	static call
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	<T, F extends (...args: any[]) => T = (...args: any[]) => T> (fn: F, ...params: Parameters<F>): Auspice<T>
+	{
+		return new Auspice<T>().call(fn, ...params)
+
+	}
+
+}
