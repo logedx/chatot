@@ -43,14 +43,9 @@ export type UnionToTuple<
 
 export type Replace<T, U, V> = T extends U
 	? V
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	: T extends readonly [...any]
+	: T extends object
 		? { [K in keyof T]: Replace<T[K], U, V> }
-		: T extends Array<infer A>
-			? Array<Replace<A, U, V>>
-			: T extends object
-				? { [K in keyof T]: Replace<T[K], U, V> }
-				: T
+		: T
 
 export type Overwrite<T, U, O = Omit<T, keyof U> & Required<U> > = {
 	[K in keyof O]: Exclude<
