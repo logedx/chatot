@@ -122,7 +122,7 @@ export class Exception<L extends i18n.Language = never> extends Error implements
 		}
 		else
 		{
-			super(message.default)
+			super(message.local('en') )
 
 			this.#speech = message
 
@@ -140,7 +140,7 @@ export class Exception<L extends i18n.Language = never> extends Error implements
 
 	}
 
-	local (lang: Exclude<L, void>): string
+	local (lang: 'en' | L): string
 	{
 		return this.#speech?.local(lang) ?? this.message
 

@@ -18,40 +18,37 @@ export class Speech<L extends Language = never>
 
 	}
 
-	get default (): string
+	map (lang: L, text: string): void
 	{
-		return this.#default
+		this.#local[lang] = text
 
 	}
 
-	local (lang: L): string
-
-	local (lang: 'default' | L, text: string): void
-
-	// eslint-disable-next-line consistent-return
-	local (lang: 'default' | L, text?: string): string | void
+	local (lang: 'en' | L): string
 	{
-		if (detective.is_required_string(text) === false)
+		if (lang === 'en')
 		{
-			let [v] = lang.toLocaleLowerCase().split(',')
-
-			return this.#local[v] ?? this.#default
+			return this.#default
 
 		}
 
-		if (lang === 'default')
+		for (let v of lang.toLocaleLowerCase().split(',') )
 		{
-			this.#default = text
+			if (v === 'en')
+			{
+				return this.#default
 
-			// eslint-disable-next-line consistent-return
-			return
+			}
+
+			if (detective.is_required_string(this.#local[v]) )
+			{
+				return this.#local[v]
+
+			}
 
 		}
 
-
-		this.#local[lang] = text
-
-
+		return this.#default
 
 	}
 
@@ -60,21 +57,19 @@ export class Speech<L extends Language = never>
 
 
 export class Helper
-<
-	T extends object,
-	L extends Language = never,
-
-	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-	M extends { [m in keyof T & string]: string } = { [m in keyof T & string]: string },
-
->
+<T extends object, L extends Language = never>
 {
 	#map: T
 
-	#lang: Record<string, M>
+	#lang: Record<string, Record<string, string> >
 
-	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-	constructor (map: T, lang?: { [k in L]?: M })
+	constructor
+	(
+		map: T,
+		// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+		lang?: { [k in L]?: { [m in keyof T & string]: string } },
+
+	)
 	{
 		this.#map = map
 		this.#lang = { ...lang }
@@ -90,13 +85,13 @@ export class Helper
 
 		)
 
-		for (let [k, v] of Object.entries<M>(this.#lang) )
+		for (let [k, v] of Object.entries(this.#lang) )
 		{
-			message.local(
+			message.map(
 				k as Exclude<L, void>,
 
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-				this.#replace(v[text as keyof M] ?? '', ...ctx),
+				this.#replace(v[text] ?? '', ...ctx),
 
 			)
 
@@ -130,16 +125,16 @@ export class Helper
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	n (text: number, ...ctx: any[]): Speech<L>
 	{
-		let text_ = `${text}`
+		let m = `${text}`
 
 		if (detective.is_object_keyof(this.#map, text) )
 		{
-			text_ = this.#map[text] as string
+			m = this.#map[text] as string
 
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		return this.#translate(text_, ...ctx)
+		return this.#translate(m, ...ctx)
 
 	}
 
