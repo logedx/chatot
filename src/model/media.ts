@@ -21,14 +21,13 @@ export type TRawDocType = storage.TRawDocType<
 	{
 		weapp: Types.ObjectId
 
-		size: number
+		name: string
 		mime: string
+		size: number
 
-		folder  : string
-		filename: string
-
-		store : 'alioss'
 		bucket: string
+		folder: string
+		store : 'alioss'
 
 
 		src : string
@@ -54,6 +53,7 @@ export type TPopulatePaths = {
 }
 
 export type TVirtuals = {
+	filename: string
 	pathname: string
 
 }
@@ -253,11 +253,14 @@ export const schema = new Schema
 
 		},
 
-		size: {
-			type    : Number,
-			required: true,
-			min     : 0,
-			default : 0,
+		name: {
+			type     : String,
+			required : true,
+			lowercase: true,
+			trim     : true,
+			validate : (v: string) => (/^[0-9a-z]+$/).test(v),
+
+			default: () => Date.now().toString(36),
 
 		},
 
@@ -267,16 +270,21 @@ export const schema = new Schema
 			lowercase: true,
 			trim     : true,
 
-			set (v: string)
-			{
-				let name = Date.now().toString(36)
-				let extension = mime_types.extension(v)
+		},
 
-				this.filename = `${name}.${extension}`
+		size: {
+			type    : Number,
+			required: true,
+			min     : 0,
+			default : 0,
 
-				return v
+		},
 
-			},
+
+		bucket: {
+			type    : String,
+			required: true,
+			trim    : true,
 
 		},
 
@@ -290,29 +298,12 @@ export const schema = new Schema
 
 		},
 
-		filename: {
-			type    : String,
-			unique  : true,
-			required: true,
-			trim    : true,
-
-			validate: (v: string) => (/^[0-9a-z]+\.[a-z]+$/).test(v),
-
-		},
-
 		store: {
 			type    : String,
 			required: true,
 			trim    : true,
 			enum    : ['alioss'],
 			default : 'alioss',
-
-		},
-
-		bucket: {
-			type    : String,
-			required: true,
-			trim    : true,
 
 		},
 
@@ -374,6 +365,15 @@ export const schema = new Schema
 
 )
 
+
+schema.virtual('filename').get(
+	function (): TVirtuals['filename']
+	{
+		return `${this.name}.${mime_types.extension(this.mime)}`
+
+	},
+
+)
 
 schema.virtual('pathname').get(
 	function (): TVirtuals['pathname']
