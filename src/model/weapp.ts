@@ -54,7 +54,7 @@ export type TInstanceMethods = storage.TInstanceMethods<
 		to_unlimited
 		(this: THydratedDocumentType, path: string, scene: string): Promise<weapp.Unlimited>
 
-		to_ali_oss(this: THydratedDocumentType): ali_oss
+		to_store(this: THydratedDocumentType, name: storage.Store): ali_oss
 
 		to_api_v3_option
 		(this: THydratedDocumentType)
@@ -307,13 +307,13 @@ schema.method(
 )
 
 schema.method(
-	'to_ali_oss',
+	'to_store',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_ali_oss']>
-	function ()
+	<TInstanceMethods['to_store']>
+	function (name)
 	{
-		const client = storage.ali_oss()
+		const client = storage.store(name)
 
 		client.useBucket(this.bucket)
 
