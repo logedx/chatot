@@ -20,6 +20,9 @@ jobs:
       packages: write
       contents: read
 
+    env:
+      TZ: Asia/Shanghai
+
     steps:
       - name: Set GITHUB ENV
         run: echo "VERSION=$(date +%y.%m.%d)" >> $GITHUB_ENV
