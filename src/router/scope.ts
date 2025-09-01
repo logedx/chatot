@@ -60,7 +60,7 @@ router.post(
 			.select('+scope')
 
 
-		reply.NotFound.asserts(doc, 'user')
+		reply.NotFound.asserts(doc, 'user is not found')
 
 		if (doc.scope)
 		{
@@ -212,7 +212,7 @@ router.delete(
 		)
 
 
-		reply.NotFound.asserts(doc, 'user')
+		reply.NotFound.asserts(doc, 'user is not found')
 
 		await ctx.hold(doc.scope)
 		await token_model.default.findOneAndUpdate(

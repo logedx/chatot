@@ -70,7 +70,7 @@ router.post(
 			.select('+secret')
 
 
-		reply.NotFound.asserts(weapp, 'weapp')
+		reply.NotFound.asserts(weapp, 'weapp is not found')
 
 		let wx_session = await weapp.to_wx_session(
 			suspect.get('code'),

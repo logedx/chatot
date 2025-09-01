@@ -185,7 +185,7 @@ describe(
 			// eslint-disable-next-line @typescript-eslint/require-await
 			async () =>
 			{
-				let e = new reply.NotFound('test')
+				let e = new reply.NotFound('test is not found')
 
 				chai.expect(e).instanceof(Error)
 				chai.expect(e.name).equals('NotFound')

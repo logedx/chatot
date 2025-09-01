@@ -89,8 +89,8 @@ router.post(
 			.findById(user)
 			.select('+scope')
 
-		reply.NotFound.asserts(doc, 'user')
-		reply.NotFound.asserts(doc.scope, 'scope')
+		reply.NotFound.asserts(doc, 'user is not found')
+		reply.NotFound.asserts(doc.scope, 'scope is not found')
 
 		await token_model.default.findByIdAndUpdate(
 			suspect.get('value'),

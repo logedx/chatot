@@ -184,7 +184,7 @@ schema.static<'from'>(
 
 		)
 
-		reply.NotFound.asserts(doc, 'stamp')
+		reply.NotFound.asserts(doc, 'stamp is not found')
 
 		return doc
 
