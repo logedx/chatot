@@ -242,7 +242,7 @@ schema.method(
 			>('user')
 
 
-		reply.NotFound.asserts(doc.user, 'user is not exist')
+		reply.NotFound.asserts(doc.user, 'user is not found')
 
 		return doc.user
 
@@ -264,7 +264,7 @@ schema.method(
 		>('weapp')
 
 
-		reply.NotFound.asserts(doc.weapp, 'weapp is not exist')
+		reply.NotFound.asserts(doc.weapp, 'weapp is not found')
 
 		return doc.weapp
 
@@ -324,7 +324,7 @@ schema.static<'replenish'>(
 
 		)
 
-		reply.NotFound.asserts(doc, 'token')
+		reply.NotFound.asserts(doc, 'token is not found')
 
 		return doc.replenish()
 

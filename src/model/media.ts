@@ -140,7 +140,7 @@ export class Secret extends String
 
 			)
 
-		reply.NotFound.asserts(doc, 'media')
+		reply.NotFound.asserts(doc, 'media is not found')
 
 		return doc
 
@@ -582,7 +582,7 @@ schema.static<'safe_access'>(
 
 		)
 
-		reply.NotFound.asserts(doc, 'media')
+		reply.NotFound.asserts(doc, 'media is not found')
 
 		return doc.safe_access(expires)
 

@@ -54,7 +54,7 @@ export const weapp: express.RequestHandler = async function weapp (req, res, nex
 	let doc = await weapp_model.default.findById(_id)
 
 
-	reply.NotFound.asserts(doc, 'weapp')
+	reply.NotFound.asserts(doc, 'weapp is not found')
 
 	req.weapp = doc
 
@@ -75,7 +75,7 @@ export const user: express.RequestHandler = async function user (req, res, next)
 		)
 
 
-	reply.NotFound.asserts(doc, 'user')
+	reply.NotFound.asserts(doc, 'user is not found')
 
 	req.user = doc
 
@@ -110,8 +110,8 @@ export const user_scope: express.RequestHandler = async function user_scope (req
 		)
 
 
-	reply.NotFound.asserts(doc, 'user')
-	reply.NotFound.asserts(doc.scope, 'scope')
+	reply.NotFound.asserts(doc, 'user is not found')
+	reply.NotFound.asserts(doc.scope, 'scope is not found')
 
 	req.user_scope = doc.scope
 
@@ -132,7 +132,7 @@ export const keyword: express.RequestHandler = async function keyword (req, res,
 		)
 
 
-	reply.NotFound.asserts(doc, 'keyword')
+	reply.NotFound.asserts(doc, 'keyword is not found')
 
 	req.keyword = doc
 
@@ -152,7 +152,7 @@ export const stamp: express.RequestHandler = async function stamp (req, res, nex
 		)
 
 
-	reply.NotFound.asserts(doc, 'stamp')
+	reply.NotFound.asserts(doc, 'stamp is not found')
 
 	req.stamp = doc
 
@@ -174,7 +174,7 @@ export const usable_token: express.RequestHandler = async function usable_token 
 	)
 
 
-	reply.NotFound.asserts(doc, 'token')
+	reply.NotFound.asserts(doc, 'token is not found')
 
 	req.usable_token = doc.to_usable()
 
@@ -196,7 +196,7 @@ export const survive_token: express.RequestHandler = async function survive_toke
 	)
 
 
-	reply.NotFound.asserts(doc, 'token')
+	reply.NotFound.asserts(doc, 'token is not found')
 
 	req.survive_token = doc.to_survive()
 
