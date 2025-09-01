@@ -61,4 +61,4 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 EXPOSE 80
 EXPOSE 443
 
-CMD [ "node", "--experimental-specifier-resolution=node", "./bin/www" ]
+CMD [ "node", "--enable-source-maps", "--experimental-specifier-resolution=node", "./bin/www" ]
