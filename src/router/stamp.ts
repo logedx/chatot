@@ -26,10 +26,17 @@ export function symbol_clue
 )
 : surmise.Clue<stamp_model.THydratedDocumentType>
 {
-	return surmise.Text.required.to(
-		v => stamp_model.default.from(v, `${pathname}#${method}`),
+	return surmise.Text.required
+		.to(
+			v => stamp_model.default.from(v),
 
-	)
+		)
+		.and(
+			'invalid symbol',
+
+			v => v.touch(pathname, method),
+
+		)
 
 
 }
@@ -54,7 +61,7 @@ export function symbol_encrypt
 		let expire = option?.expire ?? 600
 
 		let cypher = stamp_model.encrypt(
-			`${pathname}#${method}`, secret.delay(expire), option?.amber ?? null,
+			stamp_model.sign(pathname, method), secret.delay(expire), option?.amber ?? null,
 
 		)
 

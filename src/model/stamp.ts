@@ -21,7 +21,7 @@ import * as detective from '../lib/detective.js'
 export type TRawDocType = storage.TRawDocType<
 	{
 		value : string
-		symbol: `${string}#${Lowercase<axios.Method>}`
+		symbol: `/${string}#${Lowercase<axios.Method>}`
 
 		expire: Date
 
@@ -44,13 +44,23 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
+	touch
+	(
+		this: THydratedDocumentType,
+
+		pathname: `/${string}`,
+		method: Lowercase<axios.Method>,
+
+	)
+	: boolean
+
 	eternal(this: THydratedDocumentType): Promise<THydratedDocumentType>
 
 }
 
 export type TStaticMethods = {
 	from
-	(this: TModel, value: string, symbol?: TRawDocType['symbol']): Promise<THydratedDocumentType>
+	(this: TModel, value: string): Promise<THydratedDocumentType>
 
 }
 
@@ -139,9 +149,7 @@ schema.virtual('lave').get(
 schema.virtual('method').get(
 	function (): TVirtuals['method']
 	{
-		let symbol = this.symbol ?? ''
-
-		let [, v] = symbol.split('#')
+		let [, v] = split(this.symbol ?? '')
 
 		if (detective.is_string(v) )
 		{
@@ -156,6 +164,20 @@ schema.virtual('method').get(
 
 )
 
+
+schema.method(
+	'touch',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['touch']>
+	function (pathname, method)
+	{
+		return this.symbol === sign(pathname, method)
+
+	},
+
+
+)
 
 schema.method(
 	'eternal',
@@ -177,10 +199,10 @@ schema.method(
 schema.static<'from'>(
 	'from',
 
-	async function (value, symbol)
+	async function (value)
 	{
 		let doc = await this.findOne(
-			{ value, symbol, expire: { $gte: new Date() } },
+			{ value, expire: { $gte: new Date() } },
 
 		)
 
@@ -226,10 +248,27 @@ export function is_mailer (v: unknown): v is Mailer
 }
 
 
+export function sign
+(pathname: `/${string}`, method: Lowercase<axios.Method>): TRawDocType['symbol']
+{
+	return `${pathname}#${method}`
+
+}
+
+
+export function split
+(symbol: string): [`/${string}`, Lowercase<axios.Method>]
+{
+	return symbol.split('#') as [`/${string}`, Lowercase<axios.Method>]
+
+}
+
+
 /**
  * 加密
  */
-export function encrypt (
+export function encrypt
+(
 	symbol: TRawDocType['symbol'],
 
 	expire: Date,
