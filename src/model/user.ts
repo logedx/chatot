@@ -21,6 +21,7 @@ export type TRawDocType = storage.TRawDocType<
 
 		avatar  : string
 		nickname: string
+		color   : string
 
 		phone?: string
 
@@ -110,6 +111,13 @@ export const schema = new Schema
 		},
 
 		nickname: {
+			type   : String,
+			trim   : true,
+			default: '',
+
+		},
+
+		color: {
 			type   : String,
 			trim   : true,
 			default: '',

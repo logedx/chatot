@@ -122,7 +122,7 @@ router.post(
 		await token_model.default.findByIdAndUpdate(
 			_id,
 
-			{ weapp, user, scope: user.scope?.value ?? scope_model.Role.普通 },
+			{ weapp, user, color: user.color, scope: user.scope?.value ?? scope_model.Role.普通 },
 
 		)
 
@@ -288,7 +288,9 @@ router.put(
 	async function update (req, res)
 	{
 		type Suspect = {
+			active?  : boolean
 			nickname?: string
+			color?   : string
 			phone?   : string
 
 		}
@@ -298,8 +300,18 @@ router.put(
 		let suspect = surmise.capture<Suspect>(req.body)
 
 
+		await suspect.infer_optional<'active'>(
+			surmise.Switch.is_boolean.signed('active'),
+
+		)
+
 		await suspect.infer_optional<'nickname'>(
 			surmise.Text.required.signed('nickname'),
+
+		)
+
+		await suspect.infer_optional<'color'>(
+			surmise.Text.required.signed('color'),
 
 		)
 
