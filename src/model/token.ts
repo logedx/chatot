@@ -20,6 +20,7 @@ import * as weapp_model from './weapp.js'
 
 export type TRawDocType = storage.TRawDocType<
 	{
+		color: string
 		scope: number
 
 		weapp: null | Types.ObjectId
@@ -102,6 +103,13 @@ export const schema = new Schema
 >
 (
 	{
+		color: {
+			type   : String,
+			trim   : true,
+			default: '',
+
+		},
+
 		//  权限范围
 		scope: {
 			type    : Number,

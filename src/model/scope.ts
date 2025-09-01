@@ -194,6 +194,12 @@ export function some (value: Role, ...role: Role[]): boolean
 
 }
 
+export function never (value: Role, ...role: Role[]): boolean
+{
+	return some(value, ...role) === false
+
+}
+
 export function mixed (value: Role, ...role: Role[]): Role
 {
 	value = Math.abs(value)
