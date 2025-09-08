@@ -241,8 +241,13 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 		)
 		{
-			throw new reply.BadRequest('invalid key')
+			if (detective.is_undefined(arg2) )
+			{
+				throw new reply.BadRequest('invalid key')
 
+			}
+
+			return arg2
 
 		}
 
