@@ -145,8 +145,6 @@ router.put(
 
 		let doc = req.user_scope!
 
-		let { user } = req.survive_token!
-
 		let suspect = surmise.capture<Suspect>(req.body)
 
 		await suspect.infer_optional<'value'>(
@@ -170,7 +168,7 @@ router.put(
 		await doc.$parent()!.save()
 
 		await token_model.default.findOneAndUpdate(
-			{ user },
+			{ user: doc._id },
 
 			{ scope: doc.value },
 
