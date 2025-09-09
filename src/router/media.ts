@@ -57,20 +57,22 @@ export async function create
 	}
 
 
-	let doc = await media_model.default.create(
-		{
-			weapp,
-			mime  : option.mime, folder: option.folder,
-			bucket: weapp.bucket,
+	let doc = await media_model.default
+		.create(
+			{
+				weapp,
 
-			linker: [
-				{ name: option.name, model: option.model },
+				mime  : option.mime,
+				bucket: weapp.bucket, folder: option.folder,
 
-			],
+				linker: [
+					{ name: option.name, model: option.model },
 
-		},
+				],
 
-	)
+			},
+
+		)
 
 	return doc.safe_push(body)
 
@@ -86,11 +88,11 @@ router.post(
 	async function create_ (req, res)
 	{
 		type Suspect = {
-			name  : string
-			model : string
-			folder: string
+			name : string
+			model: string
 
-			mime: string
+			mime  : string
+			folder: string
 
 			hash?: string
 
@@ -108,11 +110,6 @@ router.post(
 
 		await suspect.infer<'model'>(
 			surmise.Text.required.signed('model'),
-
-		)
-
-		await suspect.infer<'folder'>(
-			surmise.Text.is_path.signed('folder'),
 
 		)
 
@@ -137,6 +134,11 @@ router.post(
 				.signed('accept'),
 
 			{ rename: 'mime' },
+
+		)
+
+		await suspect.infer<'folder'>(
+			surmise.Text.is_path.signed('folder'),
 
 		)
 

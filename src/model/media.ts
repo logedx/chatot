@@ -21,15 +21,12 @@ export type TRawDocType = storage.TRawDocType<
 	{
 		weapp: Types.ObjectId
 
-		size: number
 		mime: string
+		size: number
 
-		folder  : string
-		filename: string
-
-		store : 'alioss'
+		store : storage.Store
 		bucket: string
-
+		folder: string
 
 		src : string
 		hash: string
@@ -54,6 +51,7 @@ export type TPopulatePaths = {
 }
 
 export type TVirtuals = {
+	filename: string
 	pathname: string
 
 }
@@ -61,6 +59,8 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
+	seize(this: THydratedDocumentType): string
+
 	safe_push(this: THydratedDocumentType, body: stream.Readable): Promise<THydratedDocumentType>
 
 	safe_delete(this: THydratedDocumentType): Promise<void>
@@ -253,6 +253,14 @@ export const schema = new Schema
 
 		},
 
+		mime: {
+			type     : String,
+			required : true,
+			lowercase: true,
+			trim     : true,
+
+		},
+
 		size: {
 			type    : Number,
 			required: true,
@@ -261,44 +269,6 @@ export const schema = new Schema
 
 		},
 
-		mime: {
-			type     : String,
-			required : true,
-			lowercase: true,
-			trim     : true,
-
-			set (v: string)
-			{
-				let name = Date.now().toString(36)
-				let extension = mime_types.extension(v)
-
-				this.filename = `${name}.${extension}`
-
-				return v
-
-			},
-
-		},
-
-		folder: {
-			type    : String,
-			required: true,
-			trim    : true,
-			set     : (v: string) => v.replace(/\\/g, '/')
-				.replace(/\/{2,}/g, '/')
-				.replace(/^([^/])/g, '/$1'),
-
-		},
-
-		filename: {
-			type    : String,
-			unique  : true,
-			required: true,
-			trim    : true,
-
-			validate: (v: string) => (/^[0-9a-z]+\.[a-z]+$/).test(v),
-
-		},
 
 		store: {
 			type    : String,
@@ -315,6 +285,17 @@ export const schema = new Schema
 			trim    : true,
 
 		},
+
+		folder: {
+			type    : String,
+			required: true,
+			trim    : true,
+			set     : (v: string) => v.replace(/\\/g, '/')
+				.replace(/\/{2,}/g, '/')
+				.replace(/^([^/])/g, '/$1'),
+
+		},
+
 
 		src: {
 			type  : String,
@@ -375,10 +356,43 @@ export const schema = new Schema
 )
 
 
+schema.virtual('filename').get(
+	function (): TVirtuals['filename']
+	{
+		return this.pathname.split('/').pop() ?? ''
+
+	},
+
+)
+
 schema.virtual('pathname').get(
 	function (): TVirtuals['pathname']
 	{
-		return path.join(this.folder, this.filename).replace(/\\/g, '/')
+		if (detective.is_empty(this.src) )
+		{
+			return ''
+
+		}
+
+		return new URL(this.src)
+			.pathname.replace(/\\/g, '/')
+
+	},
+
+)
+
+
+schema.method(
+	'seize',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['seize']>
+	function ()
+	{
+		let name = Date.now().toString(36)
+		let extension = mime_types.extension(this.mime)
+
+		return path.join(this.folder, `${name}.${extension}`).replace(/\\/g, '/')
 
 	},
 
@@ -437,14 +451,10 @@ schema.method(
 
 		let doc = await this.populate<TPopulatePaths>('weapp')
 
-		let client = doc.weapp.to_ali_oss()
+		let store = doc.weapp.to_store(doc.store)
 
-		let result = await client.append(
-			this.pathname,
-
-			body.pipe(size),
-
-			{ mime: this.mime },
+		let result = await store.append(
+			this.seize(), body.pipe(size), { mime: this.mime },
 
 		)
 
@@ -482,9 +492,9 @@ schema.method(
 	{
 		let doc = await this.populate<TPopulatePaths>('weapp')
 
-		let client = doc.weapp.to_ali_oss()
+		let store = doc.weapp.to_store(doc.store)
 
-		await client.delete(this.pathname)
+		await store.delete(this.pathname)
 
 		await this.deleteOne()
 
@@ -502,20 +512,24 @@ schema.method(
 	{
 		let doc = await this.populate<TPopulatePaths>('weapp')
 
-		let client = doc.weapp.to_ali_oss()
+		let store = doc.weapp.to_store(doc.store)
 
-		return new URL(
-			client.signatureUrl(
-				this.pathname,
 
-				{
-					expires,
+		return storage.ImageStore
+			.signature(
+				doc.store,
 
-				},
+				store.signatureUrl(
+					this.pathname,
 
-			),
+					{
+						expires,
 
-		)
+					},
+
+				),
+
+			)
 
 	},
 
@@ -590,27 +604,19 @@ schema.static<'safe_to_link'>(
 
 		}
 
-		name = name.toLowerCase()
-		model = model.toLowerCase()
+		await doc.updateOne(
+			{
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				$addToSet: {
+					linker: { name: name.toLowerCase(), model: model.toLowerCase() },
 
-		let some = doc.linker.some(
-			v => name === v.name.toLowerCase() && model === v.model.toLowerCase(),
+				},
 
-		)
-
-		if (some)
-		{
-			return doc
-
-		}
-
-		doc.linker.push(
-			{ name, model },
+			},
 
 		)
 
-		return doc.save()
-
+		return doc
 
 	},
 
