@@ -24,6 +24,32 @@ export function stdio (id: string, e: unknown): void
 
 			}
 
+			let stringify = JSON.stringify(
+				data,
+
+				(_, v) =>
+				{
+					if (detective.is_buffer(v) )
+					{
+						return `Buffer(${v.length} bytes)`
+
+					}
+
+					if (detective.is_array_buffer(v) )
+					{
+						return `ArrayBuffer(${v.byteLength} bytes)`
+
+					}
+
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+					return v
+
+				},
+
+				'  ',
+
+			)
+
 			console.group()
 
 			console.warn(
@@ -36,7 +62,7 @@ export function stdio (id: string, e: unknown): void
 
 			console.warn(
 				chalk.italic(
-					JSON.stringify(data, null, '  ').split('\n')
+					stringify.split('\n')
 						.map(v => `  ${v}`)
 						.join('\n'),
 
@@ -98,6 +124,11 @@ export function stdio_ (req: express.Request, e: NodeJS.ErrnoException): void
 
 }
 
+export function asserts (e: unknown): asserts e is Exception<i18n.Language>
+{
+	//
+
+}
 
 export class Exception<L extends i18n.Language = never> extends Error implements NodeJS.ErrnoException
 {
@@ -106,6 +137,11 @@ export class Exception<L extends i18n.Language = never> extends Error implements
 	#data: Array<[string, unknown]> = []
 
 	#speech?: i18n.Speech<L>
+
+
+
+
+	errno?: number
 
 	get data (): Array<[string, unknown]>
 	{
@@ -155,6 +191,23 @@ export class Exception<L extends i18n.Language = never> extends Error implements
 		}
 
 		this.#data.push(
+			[name, data],
+
+		)
+
+		return this
+
+	}
+
+	unshift (name: string, data: unknown): this
+	{
+		if (detective.is_undefined(data) )
+		{
+			data = null
+
+		}
+
+		this.#data.unshift(
 			[name, data],
 
 		)

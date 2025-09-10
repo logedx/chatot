@@ -165,11 +165,7 @@ export const issue: express.RequestHandler = function issue (req, res, next)
  */
 export const not_found: express.RequestHandler = function not_found (req)
 {
-	let e = new reply.NotFound(req.path)
-
-	e.push('headers', req.headers)
-
-	throw e
+	throw new reply.NotFound(req.path)
 
 }
 
@@ -203,6 +199,11 @@ export const finish: express.ErrorRequestHandler = function finish (e: NodeJS.Er
 
 	}
 
+	reply.asserts(e)
+
+	e.unshift('body', req.body)
+	e.unshift('headers', req.headers)
+
 	// eslint-disable-next-line @typescript-eslint/unbound-method
 	if (detective.is_function(res.stdio) )
 	{
@@ -220,8 +221,8 @@ export const finish: express.ErrorRequestHandler = function finish (e: NodeJS.Er
 		.json(
 			{
 				name   : e.name,
-				message: (e as reply.Exception<i18n.Language>).local(language as i18n.Language),
-				stack  : (e as reply.Exception<i18n.Language>).mute(NODE_ENV === 'production').collect(),
+				message: e.local(language as i18n.Language),
+				stack  : e.mute(NODE_ENV === 'production').collect(),
 
 			},
 

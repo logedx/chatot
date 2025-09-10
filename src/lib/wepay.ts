@@ -7,6 +7,7 @@ import * as axios from 'axios'
 import * as reply from './reply.js'
 import * as secret from './secret.js'
 import * as detective from './detective.js'
+import * as structure from './structure.js'
 
 const host = config.get<string>('host')
 
@@ -294,6 +295,7 @@ export class APIv3
 	: Promise<T>
 	{
 		let sign = this.sign(url, method, data, params)
+
 		let [sign_serial, verify_serial] = sign.serial
 
 		let headers = {
@@ -334,46 +336,26 @@ export class APIv3
 
 		catch (e)
 		{
-			if (axios.default.isAxiosError(e) )
+			if (axios.default.isAxiosError(e) === false)
 			{
-				let ee = new reply.BadRequest('Wepay APIv3 Newsletter Fail')
-
-				if (e.response)
-				{
-					type APIv3ResultErrorData = APIv3ResultError & {
-						detail: {
-							sign_information: {
-								method                : string
-								sign_message_length   : number
-								truncated_sign_message: string
-								url                   : string
-							}
-						}
-
-					}
-
-					let result = e.response.data as APIv3ResultErrorData
-
-					ee.message = result.message
-
-					ee.push('sign', sign)
-					ee.push('headers', headers)
-					ee.push('data', data)
-					ee.push('result', result)
-
-				}
-
-				throw ee
+				throw e
 
 			}
 
-			if (e instanceof Error)
-			{
-				throw new reply.BadRequest(e.message)
 
-			}
+			let x = new reply.BadRequest(
+				structure.get(e, 'response.data.message', 'wepay APIv3 newsletter fail'),
 
-			throw e
+			)
+
+			x.push('sign', sign_serial)
+			x.push('verify', verify_serial)
+
+			x.push('request', e.request)
+			x.push('response', e.response)
+
+
+			throw x
 
 		}
 

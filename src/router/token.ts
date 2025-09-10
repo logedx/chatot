@@ -21,7 +21,6 @@ export function checkpoint (...point: number[]): express.RequestHandler[]
 		async function (req, res, next)
 		{
 			let method = req.method
-			let headers = req.headers
 			let original = req.originalUrl
 
 			let data = req.survive_token!.toObject()
@@ -48,7 +47,6 @@ export function checkpoint (...point: number[]): express.RequestHandler[]
 			{
 				let e = new reply.Unauthorized('permission denied')
 
-				e.push('headers', headers)
 				e.push('data', data)
 
 				throw e
