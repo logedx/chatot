@@ -1,5 +1,3 @@
-import stream from 'node:stream'
-
 import express from 'express'
 import mime_types from 'mime-types'
 
@@ -19,32 +17,94 @@ import * as retrieve_router from './retrieve.js'
 
 
 
+type Suspect = {
+	name : string
+	model: string
+
+	mime  : string
+	folder: string
+
+	hash?: string
+
+}
+
+
+export async function capture
+(
+	weapp: weapp_model.THydratedDocumentType,
+
+	data: unknown,
+
+)
+: Promise<Suspect>
+{
+	let suspect = surmise.capture<Suspect>(data)
+
+	await suspect.infer<'name'>(
+		surmise.Text.required.signed('name'),
+
+	)
+
+	await suspect.infer<'model'>(
+		surmise.Text.required.signed('model'),
+
+	)
+
+	await suspect.infer<'mime', 'accept'>(
+		surmise.Text.required
+			.to(
+				v =>
+				{
+					let vv = mime_types.contentType(v)
+
+					if (vv === false)
+					{
+						throw new Error('accept error, it not in type list')
+
+					}
+
+					return vv
+
+				},
+
+			)
+			.signed('accept'),
+
+		{ rename: 'mime' },
+
+	)
+
+	await suspect.infer<'folder'>(
+		surmise.Text.is_path.signed('folder'),
+
+	)
+
+	await suspect.infer_optional<'hash'>(
+		surmise.Text.required.signed('hash'),
+
+	)
+
+	return suspect.get()
+
+}
 
 export async function create
 (
 	weapp: weapp_model.THydratedDocumentType,
 
-	body: stream.Readable,
-
-	option: {
-		name : string
-		model: string
-
-		mime  : string
-		folder: string
-
-		hash?: string
-
-	},
+	option: Suspect,
 
 )
 : Promise<media_model.THydratedDocumentType>
 {
-	if (detective.is_hex_string(option.hash) )
+	if (detective.is_exist(option.hash) )
 	{
 		let doc = await media_model.default
 			.safe_to_link(
-				option.name, option.model, { hash: option.hash },
+				option.name,
+				option.model,
+
+				{ hash: option.hash },
 
 			)
 
@@ -56,8 +116,7 @@ export async function create
 
 	}
 
-
-	let doc = await media_model.default
+	return media_model.default
 		.create(
 			{
 				weapp,
@@ -74,11 +133,42 @@ export async function create
 
 		)
 
-	return doc.safe_push(body)
 
 }
 
 export const router = express.Router()
+
+router.options(
+	'/media',
+
+	retrieve_router.survive_token,
+
+	async function create_ (req, res)
+	{
+		let weapp = await req.survive_token!.to_weapp()
+
+		let option = await capture(weapp, req.headers)
+
+		let doc = await create(weapp, option)
+
+		let uri = await doc.goal()
+
+
+		res.set(
+			'X-Access-URI', uri.href,
+
+		)
+
+		res.set(
+			'X-Oss-Process', uri.searchParams.toString(),
+
+		)
+
+		res.json(doc._id)
+
+	},
+
+)
 
 router.post(
 	'/media',
@@ -87,72 +177,18 @@ router.post(
 
 	async function create_ (req, res)
 	{
-		type Suspect = {
-			name : string
-			model: string
-
-			mime  : string
-			folder: string
-
-			hash?: string
-
-		}
-
-
 		let weapp = await req.survive_token!.to_weapp()
 
-		let suspect = surmise.capture<Suspect>(req.headers)
+		let option = await capture(weapp, req.headers)
 
-		await suspect.infer<'name'>(
-			surmise.Text.required.signed('name'),
+		let doc = await create(weapp, option)
+			.then(
+				v => v.safe_push(req),
 
-		)
-
-		await suspect.infer<'model'>(
-			surmise.Text.required.signed('model'),
-
-		)
-
-		await suspect.infer<'mime', 'accept'>(
-			surmise.Text.required
-				.to(
-					v =>
-					{
-						let vv = mime_types.contentType(v)
-
-						if (vv === false)
-						{
-							throw new Error('accept error, it not in type list')
-
-						}
-
-						return vv
-
-					},
-
-				)
-				.signed('accept'),
-
-			{ rename: 'mime' },
-
-		)
-
-		await suspect.infer<'folder'>(
-			surmise.Text.is_path.signed('folder'),
-
-		)
-
-		await suspect.infer_optional<'hash'>(
-			surmise.Text.required.signed('hash'),
-
-		)
-
-		let doc = await create(
-			weapp, req, suspect.get(),
-
-		)
+			)
 
 		let uri = await doc.safe_access()
+
 
 		res.set(
 			'X-Access-URI', uri.href,
@@ -195,6 +231,7 @@ router.delete(
 
 	async function delete_ (req, res)
 	{
+		// eslint-disable-next-line @typescript-eslint/no-shadow
 		type Suspect = string[]
 
 

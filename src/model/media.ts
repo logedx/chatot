@@ -61,6 +61,8 @@ export type TQueryHelpers = object
 export type TInstanceMethods = {
 	seize(this: THydratedDocumentType): string
 
+	goal(this: THydratedDocumentType, expires?: number): Promise<URL>
+
 	safe_push(this: THydratedDocumentType, body: stream.Readable): Promise<THydratedDocumentType>
 
 	safe_delete(this: THydratedDocumentType): Promise<void>
@@ -398,6 +400,28 @@ schema.method(
 
 )
 
+
+schema.method(
+	'goal',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['goal']>
+	async function (expires = 300)
+	{
+		let doc = await this.populate<TPopulatePaths>('weapp')
+
+		let store = doc.weapp.to_store(doc.store)
+
+		let src = store.signatureUrl(
+			this.seize(), { expires },
+
+		)
+
+		return new URL(src)
+
+	},
+
+)
 
 schema.method(
 	'safe_push',

@@ -124,10 +124,14 @@ router.post(
 
 		)
 
-		let media = await media_router.create(
-			weapp, unlimited.body, { name: 'src', model: 'stamp', mime: 'image/png', folder: '/stamp' },
+		let media = await media_router
+			.create(
+				weapp, { name: 'src', model: 'stamp', mime: 'image/png', folder: '/stamp' },
 
-		)
+			)
+			.then(
+				v => v.safe_push(unlimited.body),
+			)
 
 		let doc = await stamp_model.default.create(
 			{ src: media.src, value: suspect.get('value'), ...suspect.get('mailer') },
