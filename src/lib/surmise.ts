@@ -424,7 +424,7 @@ export class Clue
 
 	async verify (value: unknown): Promise<T>
 	{
-		let e: null | reply.Exception = null
+		let x: null | reply.Exception = null
 
 		try
 		{
@@ -440,26 +440,26 @@ export class Clue
 
 		}
 
-		catch (ee)
+		catch (e)
 		{
-			if (detective.is_error(ee) )
+			if (detective.is_error(e) )
 			{
-				ee = new reply.BadRequest(ee.message)
+				e = new reply.BadRequest(e.message)
 
 			}
 
-			if (ee instanceof reply.Exception)
+			if (e instanceof reply.Exception)
 			{
-				e = ee
+				x = e
 
 			}
 
 		}
 
 
-		if (detective.is_exist(e) )
+		if (detective.is_exist(x) )
 		{
-			throw e
+			throw x
 
 		}
 

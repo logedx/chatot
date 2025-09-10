@@ -19,7 +19,7 @@ describe(
 				let id = Date.now().toString()
 
 				let e = new Error('test')
-				let ee = new reply.Exception('test')
+				let x = new reply.Exception('test')
 
 
 				let warn_stub = sinon.stub(console, 'warn')
@@ -27,10 +27,10 @@ describe(
 				let group_stub = sinon.stub(console, 'group')
 
 
-				ee.push('test', 'test')
+				x.push('test', 'test')
 
 				reply.stdio(id, e)
-				reply.stdio(id, ee)
+				reply.stdio(id, x)
 
 
 				warn_stub.restore()
