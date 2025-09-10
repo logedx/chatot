@@ -23,7 +23,9 @@ export type APIv3Option = {
 }
 
 export type APIv3Sign = {
-	serial   : [string, string]
+	value : string
+	verify: string
+
 	nonce    : string
 	timestamp: number
 	stringify: string
@@ -185,7 +187,8 @@ export class APIv3
 	)
 	: APIv3Sign
 	{
-		let { serial } = this.#defend
+		let defend = this.#defend
+
 		let search = new URLSearchParams(params).toString()
 
 		let nonce = secret.hex()
@@ -207,9 +210,14 @@ export class APIv3
 
 		let plain = `${method}\n${url}\n${timestamp}\n${nonce}\n${stringify}\n`
 
-		let signature = this.#defend.sign(plain).toString('base64')
+		let signature = defend.sign(plain).toString('base64')
 
-		return { serial, nonce, timestamp, stringify, plain, signature }
+		return {
+			...defend.serial,
+
+			nonce, timestamp, stringify, plain, signature,
+
+		}
 
 	}
 
@@ -296,7 +304,6 @@ export class APIv3
 	{
 		let sign = this.sign(url, method, data, params)
 
-		let [sign_serial, verify_serial] = sign.serial
 
 		let headers = {
 			// eslint-disable-next-line @typescript-eslint/naming-convention
@@ -306,7 +313,7 @@ export class APIv3
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'Accept-Encoding': 'zlib',
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			'Authorization'  : this.format(sign_serial, sign.nonce, sign.timestamp, sign.signature),
+			'Authorization'  : this.format(sign.value, sign.nonce, sign.timestamp, sign.signature),
 
 		}
 
@@ -317,12 +324,12 @@ export class APIv3
 
 			)
 
-			let wechatpay_serial = `${result.headers['Wechatpay-Serial'] ?? result.headers['wechatpay-serial'] ?? ''}`
-			let wechatpay_timestamp = `${result.headers['Wechatpay-Timestamp'] ?? result.headers['wechatpay-timestamp'] ?? ''}`
-			let wechatpay_nonce = `${result.headers['Wechatpay-Nonce'] ?? result.headers['wechatpay-nonce'] ?? ''}`
-			let wechatpay_signature = `${result.headers['Wechatpay-Signature'] ?? result.headers['wechatpay-signature'] ?? ''}`
+			let wechatpay_serial = structure.get(result, 'headers.wechatpay-serial', '')
+			let wechatpay_timestamp = structure.get(result, 'headers.wechatpay-timestamp', '')
+			let wechatpay_nonce = structure.get(result, 'headers.wechatpay-nonce', '')
+			let wechatpay_signature = structure.get(result, 'headers.wechatpay-signature', '')
 
-			if (verify_serial !== wechatpay_serial)
+			if (sign.verify !== wechatpay_serial)
 			{
 				await this.download()
 
@@ -348,8 +355,7 @@ export class APIv3
 
 			)
 
-			x.push('sign', sign_serial)
-			x.push('verify', verify_serial)
+			x.push('sign', sign)
 
 			x.push('request', e.request)
 			x.push('response', e.response)
@@ -398,11 +404,10 @@ export class APIv3
 		const method = 'GET'
 
 		let sign = this.sign(url, method)
-		let [sign_serial] = sign.serial
 
 		let headers = {
 			// eslint-disable-next-line @typescript-eslint/naming-convention
-			Authorization: this.format(sign_serial, sign.nonce, sign.timestamp, sign.signature),
+			Authorization: this.format(sign.value, sign.nonce, sign.timestamp, sign.signature),
 
 		}
 

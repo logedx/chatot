@@ -757,9 +757,11 @@ export class RSA extends EventEmitter
 
 	}
 
-	get serial (): [string, string]
+	get serial (): { value: string, verify: string }
 	{
-		return this.#serial
+		let [value, verify] = this.#serial
+
+		return { value, verify }
 
 	}
 
