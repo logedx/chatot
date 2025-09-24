@@ -277,23 +277,15 @@ export class NotFound<L extends i18n.Language> extends Exception<L>
 
 	readonly errno = 404
 
-	static asserts<T>(value: T, message: string | i18n.Speech): asserts value is Exclude<T, null | undefined>
-
-	static asserts<T>(value: T, condition: boolean, message: string | i18n.Speech): asserts value is Exclude<T, null | undefined>
-
-	static asserts<T>(value: T, a: string | i18n.Speech | boolean, b?: string | i18n.Speech): asserts value is Exclude<T, null | undefined>
+	static asserts<T>
+	(value: T, message: string | i18n.Speech): asserts value is Exclude<T, null | undefined>
 	{
-		if (detective.is_string(a) )
+		if (detective.is_empty(value) )
 		{
-			;[a, b] = [true, a]
+			throw new NotFound(message)
 
 		}
 
-		if (a === false || detective.is_empty(value) )
-		{
-			throw new NotFound(b)
-
-		}
 
 	}
 
