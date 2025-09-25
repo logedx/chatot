@@ -184,6 +184,8 @@ router.get(
 		type Suspect = {
 			'$or'?: surmise.Keyword<user_model.TRawDocKeyword>
 
+			'color'?: string
+
 			'scope'?     : null | { $ne: null }
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			'scope.lock'?: false | { $ne: true }
@@ -202,6 +204,11 @@ router.get(
 			in_keyword_clue.signed('keyword'),
 
 			{ rename: '$or' },
+
+		)
+
+		await suspect.infer_optional<'color'>(
+			surmise.Text.optional.signed('color'),
 
 		)
 
@@ -311,7 +318,7 @@ router.put(
 		)
 
 		await suspect.infer_optional<'color'>(
-			surmise.Text.required.signed('color'),
+			surmise.Text.optional.signed('color'),
 
 		)
 
