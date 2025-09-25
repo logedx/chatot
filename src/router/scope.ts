@@ -62,31 +62,7 @@ router.post(
 
 		reply.NotFound.asserts(doc, 'user is not found')
 
-		if (doc.scope)
-		{
-			doc.scope.value = scope_model.mixed(
-				doc.scope.value,
-
-				scope_model.Role.运营,
-
-			)
-
-		}
-
-		else
-		{
-			doc.scope = { value: scope_model.Role.运营 } as scope_model.THydratedDocumentType
-
-		}
-
-		await doc.save()
-
-		await token_model.default.findOneAndUpdate(
-			{ user },
-
-			{ scope: doc.scope.value },
-
-		)
+		await doc.authorize()
 
 		res.json()
 

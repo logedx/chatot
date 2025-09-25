@@ -1,12 +1,14 @@
 /**
  * 用户模型
  */
+import moment from 'moment'
 import { Schema, Model, Types, HydratedDocument } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
 
 import * as scope_model from './scope.js'
+import * as token_model from './token.js'
 import * as weapp_model from './weapp.js'
 
 
@@ -53,12 +55,19 @@ export type TInstanceMethods = storage.TInstanceMethods<
 
 		overcast(this: THydratedDocumentType): Promise<void>
 
+		authorize(this: THydratedDocumentType, expire?: Date): Promise<void>
+
 	}
 
 >
 
 export type TStaticMethods = storage.TStaticMethods<
-	TRawDocType
+	TRawDocType,
+
+	{
+		authorize(this: TModel, _id: Types.ObjectId): Promise<void>
+
+	}
 
 >
 
@@ -231,5 +240,49 @@ schema.method(
 
 
 )
+
+schema.method(
+	'authorize',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['authorize']>
+	// eslint-disable-next-line @stylistic/newline-per-chained-call
+	async function (expire = moment().add(1, 'w').toDate() )
+	{
+		if (this.scope)
+		{
+			this.scope.value = scope_model.mixed(
+				this.scope.value,
+
+				scope_model.Role.运营,
+
+			)
+
+		}
+
+		else
+		{
+			this.scope = { value: scope_model.Role.运营 } as scope_model.THydratedDocumentType
+
+		}
+
+		this.scope.expire = expire
+
+
+		await this.save()
+
+		await token_model.default.findOneAndUpdate(
+			{ user: this._id },
+
+			{ scope: this.scope.value },
+
+		)
+
+
+	},
+
+
+)
+
 
 export default drive.model('User', schema)
