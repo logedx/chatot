@@ -152,20 +152,7 @@ router.post(
 	{
 		let doc = req.user!
 
-		let fields = await doc.select_sensitive_fields('+scope')
-
-		if (detective.is_empty(fields.scope) )
-		{
-			let v = {
-				value: scope_model.Role.运营,
-
-			}
-
-			fields.scope = v as scope_model.THydratedDocumentType
-
-			await fields.save()
-
-		}
+		await doc.authorize()
 
 		res.json()
 

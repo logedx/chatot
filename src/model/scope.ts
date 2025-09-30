@@ -1,7 +1,6 @@
 /**
  * 权限范围模型
  */
-import moment from 'moment'
 import { Schema, Model, HydratedDocument } from 'mongoose'
 
 import * as reply from '../lib/reply.js'
@@ -95,7 +94,6 @@ export const schema = new Schema
 		value: {
 			type    : Number,
 			required: true,
-			default : 0,
 
 		},
 
@@ -103,8 +101,6 @@ export const schema = new Schema
 		expire: {
 			type    : Date,
 			required: true,
-			default : () => moment().add(1, 'w')
-				.toDate(),
 
 		},
 
