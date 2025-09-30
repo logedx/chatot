@@ -284,6 +284,7 @@ router.put(
 	{
 		type Suspect = {
 			active?  : boolean
+			avatar?  : string
 			nickname?: string
 			color?   : string
 			phone?   : string
@@ -297,6 +298,11 @@ router.put(
 
 		await suspect.infer_optional<'active'>(
 			surmise.Switch.is_boolean.signed('active'),
+
+		)
+
+		await suspect.infer_optional<'avatar'>(
+			surmise.Text.is_media_uri.signed('avatar'),
 
 		)
 
