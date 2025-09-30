@@ -1,4 +1,5 @@
 import express from 'express'
+import { Types } from 'mongoose'
 
 import * as reply from '../lib/reply.js'
 import * as surmise from '../lib/surmise.js'
@@ -8,6 +9,7 @@ import * as token_model from '../model/token.js'
 import * as scope_model from '../model/scope.js'
 import * as stamp_model from '../model/stamp.js'
 
+import * as user_router from './user.js'
 import * as token_router from './token.js'
 import * as stamp_router from './stamp.js'
 import * as retrieve_router from './retrieve.js'
@@ -94,6 +96,84 @@ router.get(
 	},
 
 )
+
+router.get(
+	'/scopes',
+
+	...token_router.checkpoint(
+		scope_model.chmod(
+			scope_model.Role.管理,
+
+			scope_model.Mode.管理,
+
+		),
+
+	),
+
+	async function retrieves (req, res)
+	{
+		type Suspect = {
+			'$or'?: surmise.Keyword<user_model.TRawDocKeyword>
+
+			'color'?: string
+
+
+			'weapp' : Types.ObjectId
+			'active': true
+
+			'scope'     : { $ne: null }
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			'scope.lock': { $ne: true }
+
+		}
+
+		let { weapp } = req.survive_token!
+
+		let fritter = surmise.fritter<Suspect>()
+		let suspect = surmise.capture<Suspect>(req.query)
+
+		await suspect.infer_optional<'$or', 'keyword'>(
+			user_router.in_keyword_clue.signed('keyword'),
+
+			{ rename: '$or' },
+
+		)
+
+		await suspect.infer_optional<'color'>(
+			surmise.Text.optional.signed('color'),
+
+		)
+
+		await suspect.set('weapp', weapp)
+		await suspect.set('active', true)
+
+		await suspect.set(
+			'scope', { $ne: null },
+
+		)
+
+		await suspect.set(
+			'scope.lock', { $ne: true },
+
+		)
+
+		await fritter.fit(suspect)
+
+
+		let doc = await user_model.default
+			.find(fritter.find)
+			.select('+phone')
+			.sort(fritter.sort)
+			.skip(fritter.skip)
+			.limit(fritter.limit)
+
+
+		res.json(doc)
+
+	},
+
+)
+
 
 router.put(
 	'/scope/:_id',

@@ -68,7 +68,7 @@ router.post(
 )
 
 router.get(
-	'/keyword',
+	'/keywords',
 
 	...token_router.checkpoint(),
 

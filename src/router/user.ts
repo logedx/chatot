@@ -162,7 +162,29 @@ router.post(
 
 
 router.get(
-	'/user',
+	'/user/:_id',
+
+	...token_router.checkpoint(),
+
+	retrieve_router.user,
+
+	async function retrieve (req, res)
+	{
+		let doc = req.user!
+
+		let fields = await doc.select_sensitive_fields('+phone')
+
+		res.json(
+			{ ...doc.toJSON(), ...fields.toJSON() },
+
+		)
+
+	},
+
+)
+
+router.get(
+	'/users',
 
 	...token_router.checkpoint(),
 
@@ -250,27 +272,6 @@ router.get(
 
 )
 
-router.get(
-	'/user/:_id',
-
-	...token_router.checkpoint(),
-
-	retrieve_router.user,
-
-	async function retrieve (req, res)
-	{
-		let doc = req.user!
-
-		let fields = await doc.select_sensitive_fields('+phone')
-
-		res.json(
-			{ ...doc.toJSON(), ...fields.toJSON() },
-
-		)
-
-	},
-
-)
 
 router.put(
 	'/user/:_id',

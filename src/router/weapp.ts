@@ -18,7 +18,30 @@ import * as retrieve_router from './retrieve.js'
 export const router = express.Router()
 
 router.get(
-	'/weapp',
+	'/weapp/:_id',
+
+	...token_router.checkpoint(
+		scope_model.chmod(
+			scope_model.Role.运营,
+
+			scope_model.Mode.系统,
+
+		),
+
+	),
+
+	retrieve_router.weapp,
+
+	function retrieve (req, res)
+	{
+		res.json(req.weapp)
+
+	},
+
+)
+
+router.get(
+	'/weapps',
 
 	...token_router.checkpoint(
 		scope_model.chmod(
@@ -59,28 +82,6 @@ router.get(
 
 )
 
-router.get(
-	'/weapp/:_id',
-
-	...token_router.checkpoint(
-		scope_model.chmod(
-			scope_model.Role.运营,
-
-			scope_model.Mode.系统,
-
-		),
-
-	),
-
-	retrieve_router.weapp,
-
-	function retrieve (req, res)
-	{
-		res.json(req.weapp)
-
-	},
-
-)
 
 router.put(
 	'/weapp/:_id',
