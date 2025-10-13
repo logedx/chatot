@@ -424,7 +424,8 @@ export class Clue
 
 	async verify (value: unknown): Promise<T>
 	{
-		let x: null | reply.Exception = null
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		let x: reply.Exception<any> = new reply.BadRequest(this.#message)
 
 		try
 		{
@@ -444,7 +445,7 @@ export class Clue
 		{
 			if (detective.is_error(e) )
 			{
-				e = new reply.BadRequest(e.message)
+				x = new reply.BadRequest(e.message)
 
 			}
 
@@ -456,14 +457,9 @@ export class Clue
 
 		}
 
+		x.push('symbol', String(this.#signed) )
 
-		if (detective.is_exist(x) )
-		{
-			throw x
-
-		}
-
-		throw new reply.BadRequest(this.#message)
+		throw x
 
 
 	}
