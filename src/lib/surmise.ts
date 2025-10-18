@@ -253,7 +253,7 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 		let v = this.#value[arg1 as keyof T]
 
-		if (detective.is_exist(v) )
+		if (detective.is_undefined(v) === false)
 		{
 			return structure.clone(v)
 
