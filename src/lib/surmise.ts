@@ -33,6 +33,9 @@ export type InferOption
 	alias?   : InferAlias<T, K>
 	optional?: true
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	when?    : boolean | Promise<boolean> | ( (...args: any[]) => Promise<boolean>)
+
 }
 
 export type InferOptiond
@@ -40,8 +43,8 @@ export type InferOptiond
 // eslint-disable-next-line @stylistic/operator-linebreak
 =
 K extends P
-	? [chain: C, option?: { alias? : InferAlias<T, K> }]
-	: [chain: C, option: { alias? : InferAlias<T, K>, rename: K }]
+	? [chain: C, option?: { alias? : InferAlias<T, K>, when?: InferOption['when'] } ]
+	: [chain: C, option: { alias? : InferAlias<T, K>, when?: InferOption['when'], rename: K }]
 
 
 export type PagerSuspect = {
@@ -120,6 +123,25 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		let rename = option?.rename
 		let optional = option?.optional
+		let when = option?.when
+
+		if (detective.is_any_function(when) )
+		{
+			when = when()
+
+		}
+
+		if (detective.is_promise(when) )
+		{
+			when = await when
+
+		}
+
+		if (when === false)
+		{
+			return
+
+		}
 
 
 		try
@@ -275,11 +297,23 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 		value: T[K] | Promise<T[K]> | ( (v: Partial<T>) => T[K] | Promise<T[K]>),
 
-		when?: boolean,
+		when?: InferOption['when'],
 
 	)
 	: Promise<void>
 	{
+		if (detective.is_any_function(when) )
+		{
+			when = when()
+
+		}
+
+		if (detective.is_promise(when) )
+		{
+			when = await when
+
+		}
+
 		if (when === false)
 		{
 			return
