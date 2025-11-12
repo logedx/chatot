@@ -2,25 +2,13 @@ import mongoose, { Types } from 'mongoose'
 
 
 
+
 export type Range<T> = [T, T]
 
-export type RangeTime = Range<string>
-
-export type RangeDate = Range<Date>
-
-export type RangeRealNumber = Range<number>
-
-export type RangeNaturalNumber = Range<number>
+export type Between<T> = [T?, T?]
 
 
-export type Expired = { $gte: Date } | { $lte: Date }
-
-export type PointCoordinates = {
-	type       : 'Point'
-	coordinates: Range<number>
-
-}
-
+export type Predicate<T> = (value: unknown) => value is T
 
 
 
@@ -391,7 +379,7 @@ export function is_date_string
 export function is_24_hour_system_string
 (v: unknown): v is string
 {
-	return is_required_string(v) && (/^[0-2][0-9]:[0-5][0-9]$/).test(v)
+	return is_required_string(v) && (/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/).test(v)
 
 }
 
@@ -425,37 +413,20 @@ export function is_phone_number_string
 }
 
 export function is_range
-<T = unknown> (v: unknown): v is T[]
+<T> (v: unknown, predicate: Predicate<T>): v is Range<T>
 {
-	return Array.isArray(v) && v.length === 2
+	return Array.isArray(v)
+		&& v.length === 2
+		&& v.every(predicate)
 
 }
 
-export function is_time_range
-(v: unknown): v is RangeTime
+export function is_between
+<T> (v: unknown, predicate: Predicate<T>): v is Between<T>
 {
-	return is_range(v) && is_24_hour_system_string(v[0]) && is_24_hour_system_string(v[1])
-
-}
-
-export function is_date_range
-(v: unknown): v is RangeDate
-{
-	return is_range(v) && is_date(v[0]) && is_date(v[1])
-
-}
-
-export function is_real_number_range
-(v: unknown): v is RangeRealNumber
-{
-	return is_range(v) && is_real_number(v[0]) && is_real_number(v[1])
-
-}
-
-export function is_natural_number_range
-(v: unknown): v is RangeNaturalNumber
-{
-	return is_range(v) && is_natural_number(v[0]) && is_natural_number(v[1])
+	return Array.isArray(v)
+		&& v.length === 2
+		&& v.every(vv => is_empty(vv) || predicate(vv) )
 
 }
 

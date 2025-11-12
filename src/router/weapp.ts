@@ -2,7 +2,6 @@ import express from 'express'
 import { Types } from 'mongoose'
 
 import * as surmise from '../lib/surmise.js'
-import * as detective from '../lib/detective.js'
 
 import * as user_model from '../model/user.js'
 import * as scope_model from '../model/scope.js'
@@ -56,7 +55,7 @@ router.get(
 	async function retrieves (req, res)
 	{
 		type Suspect = {
-			closed?: detective.Expired
+			closed?: surmise.BetweenQuery<Date>
 
 		}
 
@@ -64,7 +63,7 @@ router.get(
 		let suspect = surmise.capture<Suspect>(req.query)
 
 		await suspect.infer_optional<'closed'>(
-			surmise.Switch.is_expired.signed('closed'),
+			surmise.Text.between('date').signed('closed'),
 
 		)
 

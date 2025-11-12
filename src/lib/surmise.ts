@@ -66,6 +66,7 @@ export type PagerSuspect = {
 }
 
 
+
 export type Keyword
 <
 	T extends string,
@@ -79,12 +80,13 @@ export type Keyword
 	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 	: [...Keyword<Exclude<T, L> >, { [k in L as string]: RegExp }]
 
-export type Between<T extends number | Date> = {
-	$gte: T
-	$lte: T
+export type BetweenQuery<T extends number | Date> = null | { $gte?: T, $lte?: T }
+
+export type PointCoordinates = {
+	type       : 'Point'
+	coordinates: detective.Range<number>
 
 }
-
 
 
 export class Dossier<T extends Record<PropertyKey, unknown> >
@@ -852,6 +854,22 @@ export class Text
 
 	}
 
+
+	static between (type: 'date', pattern?: string): Clue<BetweenQuery<Date> >
+
+	static between (type: 'number', pattern?: string): Clue<BetweenQuery<number> >
+
+	static between (type: unknown, pattern = ','): unknown
+	{
+		return this.split(pattern)
+			.to(
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+				v => Pager.between(type as any, ...v),
+
+			)
+
+	}
+
 }
 
 
@@ -919,61 +937,156 @@ export class Switch
 		)
 
 
-	static is_expired = this.is_string
-		.to(
-			v => ({ [['$gte', '$lte'][~~v]]: new Date() } as detective.Expired),
-
-		)
-
-
 }
 
 
 export class Range
 {
-	static is_time = Clue.infer<detective.RangeTime>(
-		'is not a time range array',
+	static is <T>
+	(message: string, predicate: detective.Predicate<T>): Clue<detective.Range<T> >
+	{
+		return Clue.infer<detective.Range<T> >(
+			message,
 
-		detective.is_time_range,
-
-	)
-
-
-	static is_date = Clue.infer<detective.RangeDate>(
-		'is not a date range array',
-
-		detective.is_date_range,
-
-	)
-
-
-	static is_real_number = Clue.infer<detective.RangeRealNumber>(
-		'is not a real number range array',
-
-		detective.is_real_number_range,
-
-	)
-
-
-	static is_natura_number = Clue.infer<detective.RangeNaturalNumber>(
-		'is not a real number range array',
-
-		detective.is_natural_number_range,
-
-	)
-
-
-	static is_point_coordinates = Clue
-		.infer<detective.RangeRealNumber>(
-			'is not a real number range array',
-
-			detective.is_real_number_range,
+			v => detective.is_range(v, predicate),
 
 		)
-		.to<detective.PointCoordinates>(
+
+	}
+
+
+	static is_24_hour_system_string = this.is<string>(
+		'is not a 24 hour system range array',
+
+		detective.is_24_hour_system_string,
+
+	)
+
+
+	static is_24_hour_system_number = this.is<number>(
+		'is not a 24 hour system range array',
+
+		detective.is_24_hour_system_number,
+
+	)
+
+
+	static is_date = this.is<Date>(
+		'is not a date range array',
+
+		detective.is_date,
+
+	)
+
+
+	static is_date_string = this.is<string>(
+		'is not a date string range array',
+
+		detective.is_date_string,
+
+	)
+		.to(
+			v => v.map(vv => new Date(vv) ),
+
+		)
+
+
+	static is_real_number = this.is<number>(
+		'is not a real number range array',
+
+		detective.is_real_number,
+
+	)
+
+
+	static is_natural_number = this.is<number>(
+		'is not a natural number range array',
+
+		detective.is_natural_number,
+
+	)
+
+
+	static is_point_coordinates = this.is<number>(
+		'is not a point coordinates range array',
+
+		detective.is_real_number,
+
+	)
+		.to<PointCoordinates>(
 			v => ({ type: 'Point', coordinates: v }),
 
 		)
+
+}
+
+
+export class Between
+{
+	static is <T>
+	(message: string, predicate: detective.Predicate<T>): Clue<detective.Range<T> >
+	{
+		return Clue.infer<detective.Range<T> >(
+			message,
+
+			v => detective.is_between(v, predicate),
+
+		)
+
+	}
+
+
+	static is_24_hour_system_string = this.is<string>(
+		'is not a 24 hour system between array',
+
+		detective.is_24_hour_system_string,
+
+	)
+
+
+	static is_24_hour_system_number = this.is<number>(
+		'is not a 24 hour system between array',
+
+		detective.is_24_hour_system_number,
+
+	)
+
+
+	static is_date = this.is<Date>(
+		'is not a date between array',
+
+		detective.is_date,
+
+	)
+
+
+	static is_date_string = this.is<string>(
+		'is not a date string between array',
+
+		detective.is_date_string,
+
+	)
+		.to(
+			v => v.map(vv => new Date(vv) ),
+
+		)
+
+
+	static is_real_number = this.is<number>(
+		'is not a real number between array',
+
+		detective.is_real_number,
+
+	)
+
+
+	static is_natural_number = this.is<number>(
+		'is not a natural number between array',
+
+		detective.is_natural_number,
+
+	)
+
 
 }
 
@@ -1181,10 +1294,61 @@ export class Pager
 
 	}
 
-	static between
-	<T extends number | Date>([early, lastly]: detective.Range<T>): Between<T>
+
+	static between (type: 'date', early?: unknown, lastly?: unknown): BetweenQuery<Date>
+
+	static between (type: 'number', early?: unknown, lastly?: unknown): BetweenQuery<number>
+
+	static between (type: unknown, early?: unknown, lastly?: unknown): unknown
 	{
-		return { $gte: early, $lte: lastly }
+		if (detective.is_empty(early) && detective.is_empty(lastly) )
+		{
+			return null
+
+		}
+
+		let map: BetweenQuery<number | Date> = {}
+
+		if (type === 'number')
+		{
+			let early_ = Number(early)
+			let lastly_ = Number(lastly)
+
+			if (Number.isNaN(early_) === false)
+			{
+				map.$gte = early_
+
+			}
+
+			if (Number.isNaN(lastly_) === false)
+			{
+				map.$lte = lastly_
+
+			}
+
+		}
+
+		if (type === 'date')
+		{
+			let early_ = new Date(early as string | number | Date)
+			let lastly_ = new Date(lastly as string | number | Date)
+
+			if (detective.is_date(early_) )
+			{
+				map.$gte = early_
+
+			}
+
+			if (detective.is_date(lastly_) )
+			{
+				map.$lte = lastly_
+
+			}
+
+		}
+
+		return map
+
 
 	}
 
