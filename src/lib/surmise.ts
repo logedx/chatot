@@ -29,8 +29,10 @@ export type InferOption
 // eslint-disable-next-line @stylistic/operator-linebreak
 =
 {
-	rename?  : K
-	alias?   : InferAlias<T, K>
+	rename?: K
+	alias? : InferAlias<T, K>
+
+	cover?   : true
 	optional?: true
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,12 +41,21 @@ export type InferOption
 }
 
 export type InferOptiond
-<C, T extends object = object, K extends keyof T = keyof T, P extends PropertyKey = K>
+<
+	C,
+	T extends object = object,
+	K extends keyof T = keyof T,
+	P extends PropertyKey = K,
+
+	O = Pick<InferOption<T, K>, 'alias' | 'cover' | 'when'>,
+
+>
 // eslint-disable-next-line @stylistic/operator-linebreak
 =
 K extends P
-	? [chain: C, option?: { alias? : InferAlias<T, K>, when?: InferOption['when'] } ]
-	: [chain: C, option: { alias? : InferAlias<T, K>, when?: InferOption['when'], rename: K }]
+	? [chain: C, option?: O]
+	// eslint-disable-next-line @stylistic/type-named-tuple-spacing
+	: [chain: C, option : O & { rename: K } ]
 
 
 export type PagerSuspect = {
@@ -95,9 +106,13 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 	}
 
-	#del (key: PropertyKey): void
+	#del <K extends keyof T> (key: K): T[K]
 	{
+		let v = this.#value[key]
+
 		delete this.#value[key]
+
+		return v as T[K]
 
 	}
 
@@ -122,7 +137,10 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 		let alias = option?.alias
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		let rename = option?.rename
+
+		let cover = option?.cover
 		let optional = option?.optional
+
 		let when = option?.when
 
 		if (detective.is_any_function(when) )
@@ -148,7 +166,6 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 		{
 			let value = await chain.verify(this.#target[key])
 
-
 			if (detective.is_object_key(alias) )
 			{
 				this.#set(alias, value)
@@ -157,35 +174,46 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 			if (detective.is_object_key(rename) )
 			{
-				key = rename
+				this.#set(rename, value)
 
 			}
 
-			this.#set(key, value)
+			else
+			{
+				this.#set(key, value)
+
+			}
+
 
 		}
 
 		catch (e)
 		{
+			if (cover)
+			{
+				this.#del(key)
+
+				if (detective.is_object_key(alias) )
+				{
+					this.#del(alias)
+
+				}
+
+				if (detective.is_object_key(rename) )
+				{
+					this.#del(rename)
+
+				}
+
+
+			}
+
 			if (detective.is_empty(optional) )
 			{
 				throw e
 
 			}
 
-			if (detective.is_object_key(alias) )
-			{
-				this.#del(alias)
-
-			}
-
-			if (detective.is_object_key(rename) )
-			{
-				key = rename
-
-			}
-
-			this.#del(key)
 
 		}
 
@@ -335,7 +363,8 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 	<K extends keyof T, V = Exclude<T[K], undefined> > (
 		key: K,
 
-		fn: (v: V) => void | Promise<void>,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		fn?: (v: V) => any,
 
 	)
 	: Promise<void>
@@ -346,9 +375,7 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 		}
 
-		await fn(this.get(key) as V)
-
-		this.#del(key)
+		await fn?.(this.#del(key) as V)
 
 	}
 
