@@ -2,12 +2,10 @@ import express from 'express'
 import { Types } from 'mongoose'
 
 
-import * as reply from '../lib/reply.js'
 import * as surmise from '../lib/surmise.js'
 import * as detective from '../lib/detective.js'
 import * as structure from '../lib/structure.js'
 
-import * as user_model from '../model/user.js'
 import * as token_model from '../model/token.js'
 import * as stamp_model from '../model/stamp.js'
 
@@ -53,7 +51,7 @@ router.post(
 
 		}
 
-		let { user } = req.survive_token!
+		let doc = req.survive_token!
 
 		let suspect = surmise.capture<Suspect>(req.body)
 
@@ -85,19 +83,13 @@ router.post(
 
 		)
 
-		let doc = await user_model.default
-			.findById(user)
-			.select('+scope')
+		await token_model.default
+			.findByIdAndUpdate(
+				suspect.get('value'),
 
-		reply.NotFound.asserts(doc, 'user is not found')
-		reply.NotFound.asserts(doc.scope, 'scope is not found')
+				structure.pick(doc, 'weapp', 'user', 'color', 'scope'),
 
-		await token_model.default.findByIdAndUpdate(
-			suspect.get('value'),
-
-			{ scope: doc.scope.value },
-
-		)
+			)
 
 		res.json()
 
