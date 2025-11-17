@@ -161,6 +161,25 @@ export const issue: express.RequestHandler = function issue (req, res, next)
 }
 
 /**
+ * CORS
+ */
+export const cors: express.RequestHandler = function cors (req, res, next)
+{
+	res.header('Access-Control-Allow-Origin', '*')
+	res.header('Access-Control-Allow-Methods', '*')
+
+	res.header(
+		'Access-Control-Allow-Headers',
+
+		req.get('Access-Control-Request-Headers') ?? 'Origin, Content-Type, Accept, Authorization',
+
+	)
+
+	next()
+
+}
+
+/**
  * NotFound
  */
 export const not_found: express.RequestHandler = function not_found (req)
