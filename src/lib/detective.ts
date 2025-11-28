@@ -372,7 +372,7 @@ export function is_media_uri_string
 export function is_date_string
 (v: unknown): v is string
 {
-	return is_required_string(v) && new Date(v).valueOf() > 0
+	return is_required_string(v) && Number.isInteger(new Date(v).valueOf() )
 
 }
 
