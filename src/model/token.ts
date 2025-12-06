@@ -45,6 +45,7 @@ export type TVirtuals = {
 	is_super: boolean
 
 	is_usable : boolean
+	is_deposit: boolean
 	is_survive: boolean
 
 	mode: scope_model.Mode
@@ -61,6 +62,8 @@ export type TInstanceMethods = {
 	to_weapp(this: THydratedDocumentType): Promise<weapp_model.THydratedDocumentType>
 
 	to_usable(this: THydratedDocumentType): TSurviveHydratedDocumentType
+
+	to_deposit(this: THydratedDocumentType): TSurviveHydratedDocumentType
 
 	to_survive(this: THydratedDocumentType): TSurviveHydratedDocumentType
 
@@ -182,13 +185,19 @@ schema.virtual('is_usable').get(
 
 )
 
+schema.virtual('is_deposit').get(
+	function (): TVirtuals['is_deposit']
+	{
+		return this.is_usable && detective.is_null(this.weapp) === false
+
+	},
+
+)
+
 schema.virtual('is_survive').get(
 	function (): TVirtuals['is_survive']
 	{
-		let is_expired = this.expire > new Date()
-		let is_anonymous = detective.is_null(this.user) || detective.is_null(this.weapp)
-
-		return is_expired && !is_anonymous
+		return this.is_deposit && detective.is_null(this.user) === false
 
 	},
 
@@ -281,6 +290,26 @@ schema.method(
 	function ()
 	{
 		if (this.is_usable)
+		{
+			return this as TSurviveHydratedDocumentType
+
+		}
+
+		throw new reply.Unauthorized('authentication failed')
+
+	},
+
+
+)
+
+schema.method(
+	'to_deposit',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['to_deposit']>
+	function ()
+	{
+		if (this.is_deposit)
 		{
 			return this as TSurviveHydratedDocumentType
 

@@ -65,12 +65,15 @@ export const router = express.Router()
 router.post(
 	'/token',
 
+	retrieve_router.xapp,
+
 	async function create (req, res)
 	{
-		let doc = await token_model.default.create(
-			{},
+		let doc = await token_model.default
+			.create(
+				{ weapp: req.xapp },
 
-		)
+			)
 
 		res.json(
 			structure.pick(doc, 'value', 'refresh', 'expire'),
