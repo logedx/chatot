@@ -25,6 +25,8 @@ declare global
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			issue(fn: () => any): void
 
+			custom (field: string, value?: string | string[]): void
+
 		}
 
 	}
@@ -155,6 +157,45 @@ export const issue: express.RequestHandler = function issue (req, res, next)
 		}
 
 	}
+
+	next()
+
+}
+
+/**
+ * CORS
+ */
+export const cors: express.RequestHandler = function cors (req, res, next)
+{
+	res.set('Access-Control-Allow-Origin', '*')
+	res.set('Access-Control-Allow-Methods', '*')
+	res.set(
+		'Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization, X-App',
+
+	)
+
+	res.set('Access-Control-Max-Age', '86400')
+	res.set('Access-Control-Expose-Headers', 'Date')
+
+	res.custom = function (field: string, value: string | string[])
+	{
+		res.set(field, value)
+
+		res.append('Access-Control-Expose-Headers', field)
+
+	}
+
+	let access = req.get('Access-Control-Request-Headers')
+
+	if (detective.is_required_string(access) )
+	{
+		res.status(204)
+		res.end()
+
+		return
+
+	}
+
 
 	next()
 
