@@ -154,12 +154,12 @@ router.post(
 
 		let uri = await doc.safe_access()
 
-		res.set(
+		res.expose(
 			'X-Access-URI', uri.href,
 
 		)
 
-		res.set(
+		res.expose(
 			'X-Oss-Process', uri.searchParams.toString(),
 
 		)

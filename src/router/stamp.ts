@@ -65,12 +65,12 @@ export function symbol_encrypt
 
 		)
 
-		res.set(
+		res.expose(
 			'Access-Control-Max-Age', `${expire}`,
 
 		)
 
-		res.set(
+		res.expose(
 			'Access-Control-Allow-Methods', method.toUpperCase(),
 
 		)
@@ -137,13 +137,23 @@ router.post(
 
 		let uri = await media.safe_access()
 
-		res.set(
+		res.expose(
 			'X-Access-URI', uri.href,
 
 		)
 
-		res.set(
+		res.expose(
 			'X-Oss-Process', uri.searchParams.toString(),
+
+		)
+
+		res.expose(
+			'Access-Control-Max-Age', `${doc.lave}`,
+
+		)
+
+		res.expose(
+			'Access-Control-Allow-Methods', doc.method,
 
 		)
 
@@ -173,22 +183,22 @@ router.options(
 		let uri = await media_model.default.safe_access(weapp, doc.src)
 
 
-		res.set(
+		res.expose(
 			'X-Access-URI', uri.href,
 
 		)
 
-		res.set(
+		res.expose(
 			'X-Oss-Process', uri.searchParams.toString(),
 
 		)
 
-		res.set(
+		res.expose(
 			'Access-Control-Max-Age', `${doc.lave}`,
 
 		)
 
-		res.set(
+		res.expose(
 			'Access-Control-Allow-Methods', doc.method,
 
 		)
@@ -217,23 +227,22 @@ router.get(
 
 		let uri = await media_model.default.safe_access(weapp, doc.src)
 
-
-		res.set(
+		res.expose(
 			'X-Access-URI', uri.href,
 
 		)
 
-		res.set(
+		res.expose(
 			'X-Oss-Process', uri.searchParams.toString(),
 
 		)
 
-		res.set(
+		res.expose(
 			'Access-Control-Max-Age', `${doc.lave}`,
 
 		)
 
-		res.set(
+		res.expose(
 			'Access-Control-Allow-Methods', doc.method,
 
 		)

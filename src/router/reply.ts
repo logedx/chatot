@@ -13,6 +13,18 @@ const { NODE_ENV } = process.env
 
 
 
+
+type KebabCase<T extends string> = T extends `${string} ${string}`
+	? never
+	: T extends `${infer A}-${infer B}`
+		? `${KebabCase<A>}-${KebabCase<B>}`
+		: Capitalize<T>
+
+type Expose<T extends string> = T extends KebabCase<T>
+	? T
+	: never
+
+
 declare global
 {
 	// eslint-disable-next-line @typescript-eslint/no-namespace
@@ -24,6 +36,8 @@ declare global
 			stdio(e: unknown): void
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			issue(fn: () => any): void
+
+			expose<T extends string>(name: Expose<T>, value: string | string[]): void
 
 		}
 
@@ -155,6 +169,63 @@ export const issue: express.RequestHandler = function issue (req, res, next)
 		}
 
 	}
+
+	next()
+
+}
+
+/**
+ * CORS
+ */
+export const cors: express.RequestHandler = function cors (req, res, next)
+{
+	let expose = ['Date']
+
+	let access = req.get('Access-Control-Request-Headers')
+
+	res.set('Access-Control-Allow-Origin', '*')
+	res.set('Access-Control-Allow-Methods', '*')
+	res.set(
+		'Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization, X-App',
+
+	)
+
+	res.set('Access-Control-Max-Age', '86400')
+	res.set('Access-Control-Expose-Headers', expose.join(', ') )
+
+	res.expose = function (name, value)
+	{
+		let n = name.toLocaleLowerCase()
+
+		if (expose.every(v => v.toLocaleLowerCase() !== n) )
+		{
+			expose.push(name)
+
+		}
+
+		if (detective.is_array(value) )
+		{
+			value = value.join(', ')
+
+		}
+
+
+		res.set(name, value)
+
+		res.set('Access-Control-Expose-Headers', expose.join(', ') )
+
+	}
+
+
+	if (detective.is_required_string(access) )
+	{
+		res.status(204)
+		res.end()
+
+		return
+
+	}
+
 
 	next()
 

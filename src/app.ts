@@ -78,6 +78,8 @@ export const base_behavior_bundle: HandlerBundle = [
 
 	) as express.Handler,
 
+	reply.cors,
+
 	reply.stdio,
 	reply.issue,
 
