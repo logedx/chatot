@@ -23,6 +23,7 @@ declare global
 		// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 		interface Request
 		{
+			xapp? : null | weapp_model.THydratedDocumentType
 			weapp?: weapp_model.THydratedDocumentType
 
 			user?      : user_model.THydratedDocumentType
@@ -34,7 +35,9 @@ declare global
 			checkpoint?: checkpoint_model.THydratedDocumentType
 
 
+			token?        : token_model.THydratedDocumentType
 			usable_token? : token_model.THydratedDocumentType
+			deposit_token?: token_model.THydratedDocumentType
 			survive_token?: token_model.TSurviveHydratedDocumentType
 
 		}
@@ -46,13 +49,33 @@ declare global
 }
 
 
+export const xapp: express.RequestHandler = async function xapp (req, res, next)
+{
+	let appid = req.get('X-App') ?? ''
+
+	let doc = await weapp_model.default
+		.findOne(
+			{ appid },
+
+		)
+
+	req.xapp = doc
+
+	next()
+
+}
 
 export const weapp: express.RequestHandler = async function weapp (req, res, next)
 {
 	let { _id } = req.params
 
-	let doc = await weapp_model.default.findById(_id)
+	let appid = req.get('X-App') ?? ''
 
+	let doc = await weapp_model.default
+		.findOne(
+			{ _id, appid },
+
+		)
 
 	reply.NotFound.asserts(doc, 'weapp is not found')
 
@@ -161,6 +184,29 @@ export const stamp: express.RequestHandler = async function stamp (req, res, nex
 }
 
 
+export const token: express.RequestHandler = async function token (req, res, next)
+{
+	let authorization = req.get('Authorization') ?? ''
+
+	let [, value] = authorization.split(' ')
+
+
+	let doc = await token_model.default
+		.findOne(
+			{ value },
+
+		)
+
+
+	reply.NotFound.asserts(doc, 'token is not found')
+
+	req.token = doc
+
+	next()
+
+}
+
+
 export const usable_token: express.RequestHandler = async function usable_token (req, res, next)
 {
 	let authorization = req.get('Authorization') ?? ''
@@ -168,15 +214,39 @@ export const usable_token: express.RequestHandler = async function usable_token 
 	let [, value] = authorization.split(' ')
 
 
-	let doc = await token_model.default.findOne(
-		{ value },
+	let doc = await token_model.default
+		.findOne(
+			{ value },
 
-	)
+		)
 
 
 	reply.NotFound.asserts(doc, 'token is not found')
 
 	req.usable_token = doc.to_usable()
+
+	next()
+
+}
+
+
+export const deposit_token: express.RequestHandler = async function deposit_token (req, res, next)
+{
+	let authorization = req.get('Authorization') ?? ''
+
+	let [, value] = authorization.split(' ')
+
+
+	let doc = await token_model.default
+		.findOne(
+			{ value },
+
+		)
+
+
+	reply.NotFound.asserts(doc, 'token is not found')
+
+	req.deposit_token = doc.to_deposit()
 
 	next()
 
@@ -190,10 +260,11 @@ export const survive_token: express.RequestHandler = async function survive_toke
 	let [, value] = authorization.split(' ')
 
 
-	let doc = await token_model.default.findOne(
-		{ value },
+	let doc = await token_model.default
+		.findOne(
+			{ value },
 
-	)
+		)
 
 
 	reply.NotFound.asserts(doc, 'token is not found')

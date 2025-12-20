@@ -20,11 +20,11 @@ export const router = express.Router()
 router.options(
 	'/authorize',
 
-	retrieve_router.survive_token,
+	retrieve_router.deposit_token,
 
 	function query (req, res, next)
 	{
-		let { _id } = req.survive_token!
+		let { _id } = req.deposit_token!
 
 		let handler = stamp_router.symbol_encrypt(
 			'/authorize', 'post', { amber: _id },

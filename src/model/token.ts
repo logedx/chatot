@@ -45,6 +45,7 @@ export type TVirtuals = {
 	is_super: boolean
 
 	is_usable : boolean
+	is_deposit: boolean
 	is_survive: boolean
 
 	mode: scope_model.Mode
@@ -54,7 +55,7 @@ export type TVirtuals = {
 export type TQueryHelpers = object
 
 export type TInstanceMethods = {
-	replenish(this: THydratedDocumentType, value?: string): Promise<THydratedDocumentType>
+	replenish(this: THydratedDocumentType, value: string): Promise<THydratedDocumentType>
 
 	to_user(this: THydratedDocumentType): Promise<user_model.THydratedDocumentType>
 
@@ -62,14 +63,13 @@ export type TInstanceMethods = {
 
 	to_usable(this: THydratedDocumentType): TSurviveHydratedDocumentType
 
+	to_deposit(this: THydratedDocumentType): TSurviveHydratedDocumentType
+
 	to_survive(this: THydratedDocumentType): TSurviveHydratedDocumentType
 
 }
 
-export type TStaticMethods = {
-	replenish(this: TModel, refresh: string): Promise<THydratedDocumentType>
-
-}
+export type TStaticMethods = object
 
 export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
 
@@ -154,7 +154,7 @@ export const schema = new Schema
 		// 过期时间
 		expire: {
 			type    : Date,
-			expires : 0,
+			expires : 300,
 			required: true,
 			default : () => secret.delay(7200),
 
@@ -182,13 +182,19 @@ schema.virtual('is_usable').get(
 
 )
 
+schema.virtual('is_deposit').get(
+	function (): TVirtuals['is_deposit']
+	{
+		return this.is_usable && detective.is_null(this.weapp) === false
+
+	},
+
+)
+
 schema.virtual('is_survive').get(
 	function (): TVirtuals['is_survive']
 	{
-		let is_expired = this.expire > new Date()
-		let is_anonymous = detective.is_null(this.user) || detective.is_null(this.weapp)
-
-		return is_expired && !is_anonymous
+		return this.is_deposit && detective.is_null(this.user) === false
 
 	},
 
@@ -208,17 +214,19 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['replenish']>
-	async function ()
+	async function (value)
 	{
-		if (
-			this.expire > secret.delay(-3600) )
+		if (this.refresh !== value)
 		{
-			throw new reply.Unauthorized('value is expired')
+			throw new reply.Unauthorized('refresh is invalid')
 
 		}
 
-		this.expire = secret.delay(7200)
+
+		this.value = secret.hex()
 		this.refresh = secret.hex()
+
+		this.expire = secret.delay(7200)
 
 		await this.save()
 
@@ -294,6 +302,26 @@ schema.method(
 )
 
 schema.method(
+	'to_deposit',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<TInstanceMethods['to_deposit']>
+	function ()
+	{
+		if (this.is_deposit)
+		{
+			return this as TSurviveHydratedDocumentType
+
+		}
+
+		throw new reply.Unauthorized('authentication failed')
+
+	},
+
+
+)
+
+schema.method(
 	'to_survive',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -307,26 +335,6 @@ schema.method(
 		}
 
 		throw new reply.Unauthorized('authentication failed')
-
-	},
-
-
-)
-
-
-schema.static<'replenish'>(
-	'replenish',
-
-	async function (refresh)
-	{
-		let doc = await this.findOne(
-			{ refresh },
-
-		)
-
-		reply.NotFound.asserts(doc, 'token is not found')
-
-		return doc.replenish()
 
 	},
 

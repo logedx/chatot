@@ -9,7 +9,6 @@ import * as structure from '../lib/structure.js'
 import * as media_model from '../model/media.js'
 import * as stamp_model from '../model/stamp.js'
 
-import * as token_router from './token.js'
 import * as media_router from './media.js'
 import * as retrieve_router from './retrieve.js'
 
@@ -87,7 +86,7 @@ export const router = express.Router()
 router.post(
 	'/stamp',
 
-	...token_router.checkpoint(),
+	retrieve_router.deposit_token,
 
 	async function create (req, res)
 	{
@@ -99,7 +98,7 @@ router.post(
 
 		}
 
-		let weapp = await req.survive_token!.to_weapp()
+		let weapp = await req.deposit_token!.to_weapp()
 
 		let suspect = surmise.capture<Suspect>(req.body)
 
