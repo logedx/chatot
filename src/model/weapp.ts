@@ -45,7 +45,7 @@ export type TInstanceMethods = storage.TInstanceMethods<
 	TRawDocType,
 
 	{
-		get_access_token(this: THydratedDocumentType): Promise<string>
+		get_access_token(this: THydratedDocumentType, force?: true): Promise<string>
 
 		to_wx_session(this: THydratedDocumentType, code: string): Promise<weapp.WxSession>
 
@@ -229,27 +229,29 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<TInstanceMethods['get_access_token']>
-	async function ()
+	async function (force)
 	{
 		let doc = await this.select_sensitive_fields('+secret', '+token', '+refresh', '+expired')
 
-		if (doc.token && doc.expired > new Date() )
+		if (force !== true && doc.token && doc.expired > new Date() )
 		{
 			return doc.token
 
 		}
 
-		if (doc.secret)
+		if (detective.is_empty(doc.secret) )
 		{
-			let result = await weapp.get_access_token(doc.appid, doc.secret)
-
-			await doc.updateOne(result)
-
-			return result.token
+			throw new reply.NotFound('secret is empty')
 
 		}
 
-		throw new reply.NotFound('access token is not exist')
+
+		let result = await weapp.get_access_token(doc.appid, doc.secret, force)
+
+		await doc.updateOne(result)
+
+		return result.token
+
 
 	},
 
@@ -282,6 +284,19 @@ schema.method(
 	{
 		let token = await this.get_access_token()
 
+		try
+		{
+			return await weapp.get_unlimited(token, path, scene)
+
+		}
+
+		catch
+		{
+			token = await this.get_access_token(true)
+
+
+		}
+
 		return weapp.get_unlimited(token, path, scene)
 
 	},
@@ -297,6 +312,18 @@ schema.method(
 	async function (code)
 	{
 		let token = await this.get_access_token()
+
+		try
+		{
+			return await weapp.get_phone_number(token, code)
+
+		}
+
+		catch
+		{
+			token = await this.get_access_token(true)
+
+		}
 
 		return weapp.get_phone_number(token, code)
 

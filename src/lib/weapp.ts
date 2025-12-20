@@ -102,7 +102,8 @@ export type AccessToken = {
 /**
  * 获取授权方接口调用令牌
  */
-export async function get_access_token (appid: string, secret: string): Promise<AccessToken>
+export async function get_access_token
+(appid: string, secret: string, force_refresh = false): Promise<AccessToken>
 {
 	type Result = {
 		access_token: string
@@ -110,12 +111,10 @@ export async function get_access_token (appid: string, secret: string): Promise<
 	}
 
 
-	let params = { appid, secret, grant_type: 'client_credential' }
+	let { data } = await wxopen_api.post<Result>(
+		'/cgi-bin/stable_token ',
 
-	let { data } = await wxopen_api.get<Result>(
-		'/cgi-bin/token',
-
-		{ params },
+		{ appid, secret, force_refresh, grant_type: 'client_credential' },
 
 	)
 
@@ -124,7 +123,7 @@ export async function get_access_token (appid: string, secret: string): Promise<
 	let expired = new Date()
 
 	expired.setSeconds(
-		expired.getSeconds() + Number(data.expires_in),
+		expired.getSeconds() + Math.max(0, Number(data.expires_in) - 300),
 
 	)
 
