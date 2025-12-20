@@ -1,8 +1,3 @@
-import mongoose, { Types } from 'mongoose'
-
-
-
-
 export type Range<T> = [T, T]
 
 export type Between<T> = [T?, T?]
@@ -37,7 +32,14 @@ export function is_exist
 export function is_empty
 <T> (v: T): v is Extract<T, undefined | null | '' | 0>
 {
-	return is_null(v) || is_undefined(v) || is_empty_string(v) || v === 0
+	return is_null(v) || is_undefined(v) || is_empty_string(v)
+
+}
+
+export function is_logic_false
+<T> (v: T): v is Extract<T, undefined | null | '' | 0>
+{
+	return is_empty(v) || v === 0 || v === false || is_empty_array(v)
 
 }
 
@@ -62,10 +64,10 @@ export function is_promise
 
 }
 
-export function is_buffer
-(v: unknown): v is Buffer
+export function is_blob
+(v: unknown): v is Blob
 {
-	return v instanceof Buffer
+	return v instanceof Blob
 
 }
 
@@ -81,6 +83,13 @@ export function is_array_every
 (v: unknown, fn: (value: unknown, index?: number, array?: T[]) => boolean): v is T[]
 {
 	return Array.isArray(v) && v.every(fn)
+
+}
+
+export function is_empty_array
+(v: unknown): v is []
+{
+	return is_array(v) && v.length === 0
 
 }
 
@@ -427,12 +436,5 @@ export function is_between
 	return Array.isArray(v)
 		&& v.length === 2
 		&& v.every(vv => is_empty(vv) || predicate(vv) )
-
-}
-
-export function is_object_id
-(v: unknown): v is Types.ObjectId
-{
-	return v instanceof mongoose.Types.ObjectId
 
 }

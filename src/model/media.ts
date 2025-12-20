@@ -431,11 +431,24 @@ schema.method(
 
 			): void
 			{
-				if (detective.is_buffer(chunk)
-					|| detective.is_array_buffer(chunk) )
+				if (chunk instanceof Buffer)
 				{
-					this.#hash.update(chunk as Buffer)
+					this.#hash.update(chunk)
 					this.#value = this.#value + chunk.byteLength
+
+				}
+
+				else if (detective.is_array_buffer(chunk) )
+				{
+					this.#hash.update(chunk as unknown as Buffer)
+					this.#value = this.#value + chunk.byteLength
+
+				}
+
+				else if (detective.is_blob(chunk) )
+				{
+					this.#hash.update(chunk as unknown as Buffer)
+					this.#value = this.#value + chunk.size
 
 				}
 

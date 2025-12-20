@@ -29,15 +29,21 @@ export function stdio (id: string, e: unknown): void
 
 				(_, v) =>
 				{
-					if (detective.is_buffer(v) )
+					if (v instanceof Buffer)
 					{
-						return `Buffer(${v.length} bytes)`
+						return `Buffer(${v.byteLength} bytes)`
 
 					}
 
-					if (detective.is_array_buffer(v) )
+					else if (detective.is_array_buffer(v) )
 					{
 						return `ArrayBuffer(${v.byteLength} bytes)`
+
+					}
+
+					else if (detective.is_blob(v) )
+					{
+						return `Blob(${v.size} bytes)`
 
 					}
 

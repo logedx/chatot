@@ -1154,13 +1154,6 @@ export class Every
 
 	)
 
-	static is_object_id = this.is<Types.ObjectId>(
-		'object id',
-
-		detective.is_object_id,
-
-	)
-
 	static is_object_id_string = this
 		.is<string>(
 			'object id string',
@@ -1182,13 +1175,6 @@ export class Every
 
 export class Model
 {
-	static object_id = Clue.infer<Types.ObjectId>(
-		'is not a object id',
-
-		detective.is_object_id,
-
-	)
-
 	static search
 	<T extends string> (
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
