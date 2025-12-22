@@ -23,21 +23,21 @@ declare global
 		// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 		interface Request
 		{
-			xapp? : null | weapp_model.THydratedDocumentType
-			weapp?: weapp_model.THydratedDocumentType
+			xapp? : null | weapp_model.Tm['HydratedDocument']
+			weapp?: weapp_model.Tm['HydratedDocument']
 
-			user?      : user_model.THydratedDocumentType
-			user_scope?: scope_model.THydratedDocumentType
+			user?      : user_model.Tm['HydratedDocument']
+			user_scope?: scope_model.Tm['HydratedDocument']
 
-			keyword?: keyword_model.THydratedDocumentType
+			keyword?: keyword_model.Tm['HydratedDocument']
 
-			stamp?     : stamp_model.THydratedDocumentType
-			checkpoint?: checkpoint_model.THydratedDocumentType
+			stamp?     : stamp_model.Tm['HydratedDocument']
+			checkpoint?: checkpoint_model.Tm['HydratedDocument']
 
 
-			token?        : token_model.THydratedDocumentType
-			usable_token? : token_model.THydratedDocumentType
-			deposit_token?: token_model.THydratedDocumentType
+			token?        : token_model.Tm['HydratedDocument']
+			usable_token? : token_model.Tm['HydratedDocument']
+			deposit_token?: token_model.Tm['HydratedDocument']
 			survive_token?: token_model.TSurviveHydratedDocumentType
 
 		}
@@ -121,7 +121,7 @@ export const user_scope: express.RequestHandler = async function user_scope (req
 		.select
 		<
 			Required<Pick<
-				user_model.THydratedDocumentType, 'scope'>
+				user_model.Tm['HydratedDocument'], 'scope'>
 
 			>
 

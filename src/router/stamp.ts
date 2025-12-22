@@ -23,7 +23,7 @@ export function symbol_clue
 	method: Lowercase<axios.Method>,
 
 )
-: surmise.Clue<stamp_model.THydratedDocumentType>
+: surmise.Clue<stamp_model.Tm['HydratedDocument']>
 {
 	return surmise.Text.required
 		.to(
@@ -47,7 +47,7 @@ export function symbol_encrypt
 
 	option?: {
 		expire?: number
-		amber? : stamp_model.TRawDocType['amber']
+		amber? : stamp_model.Tm['DocType']['amber']
 
 	},
 

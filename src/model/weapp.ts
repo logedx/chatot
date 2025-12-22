@@ -2,7 +2,7 @@
  * 小程序模型
  */
 import ali_oss from 'ali-oss'
-import { Schema, Model, HydratedDocument } from 'mongoose'
+import { Schema } from 'mongoose'
 
 
 import * as reply from '../lib/reply.js'
@@ -14,7 +14,7 @@ import * as detective from '../lib/detective.js'
 
 
 
-export type TRawDocType = storage.TRawDocType<
+export type Tm = storage.Tm<
 	{
 		appid : string
 		bucket: string
@@ -31,36 +31,26 @@ export type TRawDocType = storage.TRawDocType<
 
 		closed: Date
 
-	}
+	},
 
->
-
-export type TPopulatePaths = object
-
-export type TVirtuals = object
-
-export type TQueryHelpers = object
-
-export type TInstanceMethods = storage.TInstanceMethods<
-	TRawDocType,
+	object,
 
 	{
-		get_access_token(this: THydratedDocumentType, force?: true): Promise<string>
+		get_access_token(force?: true): Promise<string>
 
-		to_wx_session(this: THydratedDocumentType, code: string): Promise<weapp.WxSession>
+		to_wx_session(code: string): Promise<weapp.WxSession>
 
-		to_phone_number(this: THydratedDocumentType, code: string): Promise<string>
+		to_phone_number(code: string): Promise<string>
 
 		to_unlimited
-		(this: THydratedDocumentType, path: string, scene: string): Promise<weapp.Unlimited>
+		(path: string, scene: string): Promise<weapp.Unlimited>
 
-		to_store(this: THydratedDocumentType, name: storage.Store): ali_oss
+		to_store(name: storage.Store): ali_oss
 
-		to_api_v3_option
-		(this: THydratedDocumentType)
+		to_api_v3_option()
 		: Promise<
-			storage.TRawDocTypeOverwrite<
-				THydratedDocumentType,
+			storage.TDocTypeOverwrite<
+				Tm['HydratedDocument'],
 
 				'mchid' | 'v3key' | 'sign' | 'evidence' | 'verify'
 
@@ -69,25 +59,18 @@ export type TInstanceMethods = storage.TInstanceMethods<
 
 		>
 
-		to_transactions_api_v3(this: THydratedDocumentType): Promise<wepay.Transactions>
+		to_transactions_api_v3(): Promise<wepay.Transactions>
 
-		to_refund_api_v3(this: THydratedDocumentType): Promise<wepay.Refund>
+		to_refund_api_v3(): Promise<wepay.Refund>
 
 		send_subscribe_message
-		(this: THydratedDocumentType, wxopenid: string, template: string, page: string, data: Record<string, string>): Promise<void>
+		(wxopenid: string, template: string, page: string, data: Record<string, string>): Promise<void>
 
 
 	}
 
+
 >
-
-export type TStaticMethods = object
-
-export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
-
-export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
-
-
 
 
 
@@ -95,14 +78,14 @@ export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtua
 
 const drive = await storage.mongodb()
 
-export const schema = new Schema
+export const schema: Tm['TSchema'] = new Schema
 <
-	TRawDocType,
-	TModel,
-	TInstanceMethods,
-	TQueryHelpers,
-	TVirtuals,
-	TStaticMethods
+	Tm['DocType'],
+	Tm['TModel'],
+	Tm['TInstanceMethods'],
+	Tm['TQueryHelpers'],
+	Tm['TVirtuals'],
+	Tm['TStaticMethods']
 
 // eslint-disable-next-line @stylistic/function-call-spacing
 >
@@ -228,7 +211,7 @@ schema.method(
 	'get_access_token',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['get_access_token']>
+	<Tm['TInstanceMethods']['get_access_token']>
 	async function (force)
 	{
 		let doc = await this.select_sensitive_fields('+secret', '+token', '+refresh', '+expired')
@@ -262,7 +245,7 @@ schema.method(
 	'to_wx_session',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_wx_session']>
+	<Tm['TInstanceMethods']['to_wx_session']>
 	async function (code)
 	{
 		let doc = await this.select_sensitive_fields('+secret')
@@ -279,7 +262,7 @@ schema.method(
 	'to_unlimited',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_unlimited']>
+	<Tm['TInstanceMethods']['to_unlimited']>
 	async function (path, scene)
 	{
 		let token = await this.get_access_token()
@@ -308,7 +291,7 @@ schema.method(
 	'to_phone_number',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_phone_number']>
+	<Tm['TInstanceMethods']['to_phone_number']>
 	async function (code)
 	{
 		let token = await this.get_access_token()
@@ -337,7 +320,7 @@ schema.method(
 	'to_store',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_store']>
+	<Tm['TInstanceMethods']['to_store']>
 	function (name)
 	{
 		const client = storage.store(name)
@@ -355,7 +338,7 @@ schema.method(
 	'to_api_v3_option',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_api_v3_option']>
+	<Tm['TInstanceMethods']['to_api_v3_option']>
 	function ()
 	{
 		return this.select_sensitive_fields('+mchid', '+v3key', '+sign', '+evidence', '+verify')
@@ -369,7 +352,7 @@ schema.method(
 	'to_transactions_api_v3',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_transactions_api_v3']>
+	<Tm['TInstanceMethods']['to_transactions_api_v3']>
 	async function ()
 	{
 		let option = await this.to_api_v3_option()
@@ -406,7 +389,7 @@ schema.method(
 	'to_refund_api_v3',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_refund_api_v3']>
+	<Tm['TInstanceMethods']['to_refund_api_v3']>
 	async function ()
 	{
 		let option = await this.to_api_v3_option()
@@ -422,7 +405,7 @@ schema.method(
 	'send_subscribe_message',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['send_subscribe_message']>
+	<Tm['TInstanceMethods']['send_subscribe_message']>
 	async function (wxopenid, template, page, data)
 	{
 		let token = await this.get_access_token()
@@ -450,4 +433,4 @@ schema.method(
 )
 
 
-export default drive.model('Weapp', schema)
+export default drive.model('Weapp', schema) as Tm['Model']

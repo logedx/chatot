@@ -1,7 +1,7 @@
 /**
  * 令牌模型
  */
-import { Schema, Model, Types, HydratedDocument } from 'mongoose'
+import { Schema, Types } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
 
@@ -18,7 +18,7 @@ import * as weapp_model from './weapp.js'
 
 
 
-export type TRawDocType = storage.TRawDocType<
+export type Tm = storage.Tm<
 	{
 		color: string
 		scope: number
@@ -31,53 +31,45 @@ export type TRawDocType = storage.TRawDocType<
 
 		expire: Date
 
+	},
+
+	{
+		is_super: boolean
+
+		is_usable : boolean
+		is_deposit: boolean
+		is_survive: boolean
+
+		mode: scope_model.Mode
+
+	},
+
+	{
+		replenish(value: string): Promise<Tm['HydratedDocument']>
+
+		to_user(): Promise<user_model.Tm['HydratedDocument']>
+
+		to_weapp(): Promise<weapp_model.Tm['HydratedDocument']>
+
+		to_usable(): TSurviveHydratedDocumentType
+
+		to_deposit(): TSurviveHydratedDocumentType
+
+		to_survive(): TSurviveHydratedDocumentType
+
 	}
 
 >
 
 export type TPopulatePaths = {
-	weapp: null | weapp_model.THydratedDocumentType
-	user : null | user_model.THydratedDocumentType
+	weapp: null | weapp_model.Tm['HydratedDocument']
+	user : null | user_model.Tm['HydratedDocument']
 
 }
-
-export type TVirtuals = {
-	is_super: boolean
-
-	is_usable : boolean
-	is_deposit: boolean
-	is_survive: boolean
-
-	mode: scope_model.Mode
-
-}
-
-export type TQueryHelpers = object
-
-export type TInstanceMethods = {
-	replenish(this: THydratedDocumentType, value: string): Promise<THydratedDocumentType>
-
-	to_user(this: THydratedDocumentType): Promise<user_model.THydratedDocumentType>
-
-	to_weapp(this: THydratedDocumentType): Promise<weapp_model.THydratedDocumentType>
-
-	to_usable(this: THydratedDocumentType): TSurviveHydratedDocumentType
-
-	to_deposit(this: THydratedDocumentType): TSurviveHydratedDocumentType
-
-	to_survive(this: THydratedDocumentType): TSurviveHydratedDocumentType
-
-}
-
-export type TStaticMethods = object
-
-export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
-
-export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
 
 
 export type TSurviveHydratedDocumentType = structure.Overwrite<
-	THydratedDocumentType,
+	Tm['HydratedDocument'],
 
 	{ user: Types.ObjectId, weapp: Types.ObjectId }
 
@@ -90,14 +82,14 @@ export type TSurviveHydratedDocumentType = structure.Overwrite<
 
 const drive = await storage.mongodb()
 
-export const schema = new Schema
+export const schema: Tm['TSchema'] = new Schema
 <
-	TRawDocType,
-	TModel,
-	TInstanceMethods,
-	TQueryHelpers,
-	TVirtuals,
-	TStaticMethods
+	Tm['DocType'],
+	Tm['TModel'],
+	Tm['TInstanceMethods'],
+	Tm['TQueryHelpers'],
+	Tm['TVirtuals'],
+	Tm['TStaticMethods']
 
 // eslint-disable-next-line @stylistic/function-call-spacing
 >
@@ -165,7 +157,7 @@ export const schema = new Schema
 )
 
 schema.virtual('is_super').get(
-	function (): TVirtuals['is_super']
+	function (): Tm['TVirtuals']['is_super']
 	{
 		return this.scope > 0
 
@@ -174,7 +166,7 @@ schema.virtual('is_super').get(
 )
 
 schema.virtual('is_usable').get(
-	function (): TVirtuals['is_usable']
+	function (): Tm['TVirtuals']['is_usable']
 	{
 		return this.expire > new Date()
 
@@ -183,7 +175,7 @@ schema.virtual('is_usable').get(
 )
 
 schema.virtual('is_deposit').get(
-	function (): TVirtuals['is_deposit']
+	function (): Tm['TVirtuals']['is_deposit']
 	{
 		return this.is_usable && detective.is_null(this.weapp) === false
 
@@ -192,7 +184,7 @@ schema.virtual('is_deposit').get(
 )
 
 schema.virtual('is_survive').get(
-	function (): TVirtuals['is_survive']
+	function (): Tm['TVirtuals']['is_survive']
 	{
 		return this.is_deposit && detective.is_null(this.user) === false
 
@@ -201,7 +193,7 @@ schema.virtual('is_survive').get(
 )
 
 schema.virtual('mode').get(
-	function (): TVirtuals['mode']
+	function (): Tm['TVirtuals']['mode']
 	{
 		return scope_model.vtmod(this.scope)
 
@@ -213,7 +205,7 @@ schema.method(
 	'replenish',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['replenish']>
+	<Tm['TInstanceMethods']['replenish']>
 	async function (value)
 	{
 		if (this.refresh !== value)
@@ -241,7 +233,7 @@ schema.method(
 	'to_user',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_user']>
+	<Tm['TInstanceMethods']['to_user']>
 	async function ()
 	{
 		let doc = await this.populate<
@@ -263,7 +255,7 @@ schema.method(
 	'to_weapp',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_weapp']>
+	<Tm['TInstanceMethods']['to_weapp']>
 	async function ()
 	{
 		let doc = await this.populate<
@@ -285,12 +277,12 @@ schema.method(
 	'to_usable',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_usable']>
+	<Tm['TInstanceMethods']['to_usable']>
 	function ()
 	{
 		if (this.is_usable)
 		{
-			return this as TSurviveHydratedDocumentType
+			return this
 
 		}
 
@@ -305,12 +297,12 @@ schema.method(
 	'to_deposit',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_deposit']>
+	<Tm['TInstanceMethods']['to_deposit']>
 	function ()
 	{
 		if (this.is_deposit)
 		{
-			return this as TSurviveHydratedDocumentType
+			return this
 
 		}
 
@@ -325,12 +317,12 @@ schema.method(
 	'to_survive',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['to_survive']>
+	<Tm['TInstanceMethods']['to_survive']>
 	function ()
 	{
 		if (this.is_survive)
 		{
-			return this as TSurviveHydratedDocumentType
+			return this
 
 		}
 
@@ -342,4 +334,4 @@ schema.method(
 )
 
 
-export default drive.model('Token', schema)
+export default drive.model('Token', schema) as Tm['Model']

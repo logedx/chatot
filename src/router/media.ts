@@ -22,7 +22,7 @@ import * as retrieve_router from './retrieve.js'
 
 export async function create
 (
-	weapp: weapp_model.THydratedDocumentType,
+	weapp: weapp_model.Tm['HydratedDocument'],
 
 	body: stream.Readable,
 
@@ -38,7 +38,7 @@ export async function create
 	},
 
 )
-: Promise<media_model.THydratedDocumentType>
+: Promise<media_model.Tm['HydratedDocument']>
 {
 	if (detective.is_hex_string(option.hash) )
 	{

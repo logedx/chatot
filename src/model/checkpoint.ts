@@ -2,7 +2,7 @@
  * 检查点模型
  */
 import * as axios from 'axios'
-import { Schema, Model, Types, HydratedDocument, Document } from 'mongoose'
+import { Schema, Types, Document } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
 
@@ -16,7 +16,7 @@ import * as weapp_model from './weapp.js'
 
 
 
-export type TRawDocType = storage.TRawDocType<
+export type Tm = storage.Tm<
 	{
 		scope   : number
 		weapp   : null | Types.ObjectId
@@ -26,50 +26,39 @@ export type TRawDocType = storage.TRawDocType<
 		expire  : Date
 		context : null | Schema.Types.Mixed
 
+	},
+
+	{
+		mode: scope_model.Mode
+
+	},
+
+	{
+		hold(context: unknown): Promise<void>
+
 	}
 
 >
 
 export type TPopulatePaths = {
-	weapp: null | weapp_model.THydratedDocumentType
-	user : null | user_model.THydratedDocumentType
+	weapp: null | weapp_model.Tm['HydratedDocument']
+	user : null | user_model.Tm['HydratedDocument']
 
 }
-
-export type TVirtuals = {
-	mode: scope_model.Mode
-
-}
-
-
-export type TQueryHelpers = object
-
-export type TInstanceMethods = {
-	hold
-	(this: THydratedDocumentType, context: unknown): Promise<void>
-
-}
-
-export type TStaticMethods = object
-
-export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
-
-export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
-
 
 
 
 
 const drive = await storage.mongodb()
 
-export const schema = new Schema
+export const schema: Tm['TSchema'] = new Schema
 <
-	TRawDocType,
-	TModel,
-	TInstanceMethods,
-	TQueryHelpers,
-	TVirtuals,
-	TStaticMethods
+	Tm['DocType'],
+	Tm['TModel'],
+	Tm['TInstanceMethods'],
+	Tm['TQueryHelpers'],
+	Tm['TVirtuals'],
+	Tm['TStaticMethods']
 
 // eslint-disable-next-line @stylistic/function-call-spacing
 >
@@ -133,7 +122,7 @@ export const schema = new Schema
 
 
 schema.virtual('mode').get(
-	function (): TVirtuals['mode']
+	function (): Tm['TVirtuals']['mode']
 	{
 		return scope_model.vtmod(this.scope)
 
@@ -146,7 +135,7 @@ schema.method(
 	'hold',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['hold']>
+	<Tm['TInstanceMethods']['hold']>
 	async function (context)
 	{
 		if (context instanceof Document)
@@ -166,4 +155,4 @@ schema.method(
 )
 
 
-export default drive.model('Checkpoint', schema)
+export default drive.model('Checkpoint', schema) as Tm['Model']

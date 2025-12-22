@@ -6,7 +6,7 @@ import crypto from 'node:crypto'
 import stream from 'node:stream'
 
 import mime_types from 'mime-types'
-import { Schema, Model, Types, SchemaType, HydratedDocument } from 'mongoose'
+import { Schema, Types, SchemaType } from 'mongoose'
 
 import * as reply from '../lib/reply.js'
 import * as storage from '../lib/storage.js'
@@ -17,7 +17,7 @@ import * as weapp_model from './weapp.js'
 
 
 
-export type TRawDocType = storage.TRawDocType<
+export type Tm = storage.Tm<
 	{
 		weapp: Types.ObjectId
 
@@ -41,65 +41,59 @@ export type TRawDocType = storage.TRawDocType<
 		>
 
 
+	},
+
+
+	{
+		filename: string
+		pathname: string
+
+	},
+
+
+	{
+		seize(): string
+
+		safe_push(body: stream.Readable): Promise<Tm['HydratedDocument']>
+
+		safe_delete(): Promise<void>
+
+		safe_access(expires?: number): Promise<URL>
+
+	},
+
+	{
+		safe_delete
+		(weapp: Types.ObjectId, ...src: string[])
+		: Promise<
+			Array<
+				PromiseSettledResult<void>
+
+			>
+
+		>
+
+		safe_access(weapp: Types.ObjectId, src: string, expires?: number,): Promise<URL>
+
+		safe_to_link
+		(
+			name: string,
+			model: string,
+
+			query: { hash: string } | { src: string }
+
+		)
+		: Promise<null | Tm['HydratedDocument']>
+
 	}
 
 >
 
 export type TPopulatePaths = {
-	weapp: weapp_model.THydratedDocumentType
+	weapp: weapp_model.Tm['HydratedDocument']
 
 }
 
-export type TVirtuals = {
-	filename: string
-	pathname: string
-
-}
-
-export type TQueryHelpers = object
-
-export type TInstanceMethods = {
-	seize(this: THydratedDocumentType): string
-
-	safe_push(this: THydratedDocumentType, body: stream.Readable): Promise<THydratedDocumentType>
-
-	safe_delete(this: THydratedDocumentType): Promise<void>
-
-	safe_access(this: THydratedDocumentType, expires?: number): Promise<URL>
-
-}
-
-export type TStaticMethods = {
-	safe_delete
-	(this: TModel, weapp: Types.ObjectId, ...src: string[])
-	: Promise<
-		Array<
-			PromiseSettledResult<void>
-
-		>
-
-	>
-
-	safe_access
-	(this: TModel, weapp: Types.ObjectId, src: string, expires?: number,): Promise<URL>
-
-	safe_to_link
-	(
-		this: TModel,
-
-		name: string,
-		model: string,
-
-		query: { hash: string } | { src: string }
-
-	)
-	: Promise<null | THydratedDocumentType>
-
-}
-
-export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
-
-export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
 
 
 
@@ -132,10 +126,10 @@ export class Secret extends String
 
 	}
 
-	async track (): Promise<THydratedDocumentType>
+	async track (): Promise<Tm['HydratedDocument']>
 	{
 		let doc = await drive.model<typeof schema>('Media')
-			.findOne(
+			.findOne<Tm['HydratedDocument']>(
 				{ src: this.valueOf() },
 
 			)
@@ -232,14 +226,14 @@ class SecretSchemaType extends SchemaType
 drive.Schema.Types.Secret = SecretSchemaType
 
 
-export const schema = new Schema
+export const schema: Tm['TSchema'] = new Schema
 <
-	TRawDocType,
-	TModel,
-	TInstanceMethods,
-	TQueryHelpers,
-	TVirtuals,
-	TStaticMethods
+	Tm['DocType'],
+	Tm['TModel'],
+	Tm['TInstanceMethods'],
+	Tm['TQueryHelpers'],
+	Tm['TVirtuals'],
+	Tm['TStaticMethods']
 
 // eslint-disable-next-line @stylistic/function-call-spacing
 >
@@ -357,7 +351,7 @@ export const schema = new Schema
 
 
 schema.virtual('filename').get(
-	function (): TVirtuals['filename']
+	function (): Tm['TVirtuals']['filename']
 	{
 		return this.pathname.split('/').pop() ?? ''
 
@@ -366,7 +360,7 @@ schema.virtual('filename').get(
 )
 
 schema.virtual('pathname').get(
-	function (): TVirtuals['pathname']
+	function (): Tm['TVirtuals']['pathname']
 	{
 		if (detective.is_empty(this.src) )
 		{
@@ -386,7 +380,7 @@ schema.method(
 	'seize',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['seize']>
+	<Tm['TInstanceMethods']['seize']>
 	function ()
 	{
 		let name = Date.now().toString(36)
@@ -403,7 +397,7 @@ schema.method(
 	'safe_push',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['safe_push']>
+	<Tm['TInstanceMethods']['safe_push']>
 	async function (body)
 	{
 		class SizeTrackingStream extends stream.Transform implements stream.Transform
@@ -500,7 +494,7 @@ schema.method(
 	'safe_delete',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['safe_delete']>
+	<Tm['TInstanceMethods']['safe_delete']>
 	async function ()
 	{
 		let doc = await this.populate<TPopulatePaths>('weapp')
@@ -520,7 +514,7 @@ schema.method(
 	'safe_access',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['safe_access']>
+	<Tm['TInstanceMethods']['safe_access']>
 	async function (expires = 1800)
 	{
 		let doc = await this.populate<TPopulatePaths>('weapp')
@@ -637,4 +631,4 @@ schema.static<'safe_to_link'>(
 )
 
 
-export default drive.model('Media', schema)
+export default drive.model('Media', schema) as Tm['Model']

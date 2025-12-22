@@ -1,7 +1,7 @@
 /**
  * 权限范围模型
  */
-import { Schema, Model, HydratedDocument } from 'mongoose'
+import { Schema } from 'mongoose'
 
 import * as reply from '../lib/reply.js'
 import * as storage from '../lib/storage.js'
@@ -35,48 +35,37 @@ export enum Role
 
 
 
-export type TRawDocType = storage.TRawDocType<
+
+export type Tm = storage.Tm<
 	{
 		lock: boolean
 
 		value : number
 		expire: Date
 
+	},
+
+	{
+		is_expire: boolean
+
+	},
+
+	{
+		delay(to: Date): Promise<void>
+
 	}
 
 >
 
-export type TPopulatePaths = object
 
-export type TVirtuals = {
-	is_expire: boolean
-
-}
-
-export type TQueryHelpers = object
-
-export type TInstanceMethods = {
-	delay(this: THydratedDocumentType, to: Date): Promise<void>
-
-}
-
-export type TStaticMethods = object
-
-export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
-
-export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
-
-
-
-
-export const schema = new Schema
+export const schema: Tm['TSchema'] = new Schema
 <
-	TRawDocType,
-	TModel,
-	TInstanceMethods,
-	TQueryHelpers,
-	TVirtuals,
-	TStaticMethods
+	Tm['DocType'],
+	Tm['TModel'],
+	Tm['TInstanceMethods'],
+	Tm['TQueryHelpers'],
+	Tm['TVirtuals'],
+	Tm['TStaticMethods']
 
 // eslint-disable-next-line @stylistic/function-call-spacing
 >
@@ -117,7 +106,7 @@ schema.index(
 
 
 schema.virtual('is_expire').get(
-	function (): TVirtuals['is_expire']
+	function (): Tm['TVirtuals']['is_expire']
 	{
 		return new Date() > this.expire
 
@@ -130,7 +119,7 @@ schema.method(
 	'delay',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['delay']>
+	<Tm['TInstanceMethods']['delay']>
 	async function (to)
 	{
 		if (new Date() > to)

@@ -2,7 +2,7 @@
  * 用户模型
  */
 import moment from 'moment'
-import { Schema, Model, Types, HydratedDocument } from 'mongoose'
+import { Schema, Types } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
@@ -15,7 +15,7 @@ import * as weapp_model from './weapp.js'
 
 
 
-export type TRawDocType = storage.TRawDocType<
+export type Tm = storage.Tm<
 	{
 		weapp: Types.ObjectId
 
@@ -30,7 +30,18 @@ export type TRawDocType = storage.TRawDocType<
 		wxopenid? : string
 		wxsession?: string
 
-		scope?: null | scope_model.THydratedDocumentType
+		scope?: null | scope_model.Tm['HydratedDocument']
+
+	},
+
+	object,
+
+	{
+		shine(): Promise<void>
+
+		overcast(): Promise<void>
+
+		authorize(expire?: Date): Promise<void>
 
 	}
 
@@ -39,42 +50,9 @@ export type TRawDocType = storage.TRawDocType<
 export type TRawDocKeyword = 'nickname' | 'phone'
 
 export type TPopulatePaths = {
-	weapp: weapp_model.THydratedDocumentType
+	weapp: weapp_model.Tm['HydratedDocument']
 
 }
-
-export type TVirtuals = object
-
-export type TQueryHelpers = object
-
-export type TInstanceMethods = storage.TInstanceMethods<
-	TRawDocType,
-
-	{
-		shine(this: THydratedDocumentType): Promise<void>
-
-		overcast(this: THydratedDocumentType): Promise<void>
-
-		authorize(this: THydratedDocumentType, expire?: Date): Promise<void>
-
-	}
-
->
-
-export type TStaticMethods = storage.TStaticMethods<
-	TRawDocType,
-
-	{
-		authorize(this: TModel, _id: Types.ObjectId): Promise<void>
-
-	}
-
->
-
-export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
-
-export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
-
 
 
 
@@ -84,14 +62,14 @@ const drive = await storage.mongodb()
 
 export const keyword = ['nickname', 'phone'] as const
 
-export const schema = new Schema
+export const schema: Tm['TSchema'] = new Schema
 <
-	TRawDocType,
-	TModel,
-	TInstanceMethods,
-	TQueryHelpers,
-	TVirtuals,
-	TStaticMethods
+	Tm['DocType'],
+	Tm['TModel'],
+	Tm['TInstanceMethods'],
+	Tm['TQueryHelpers'],
+	Tm['TVirtuals'],
+	Tm['TStaticMethods']
 
 // eslint-disable-next-line @stylistic/function-call-spacing
 >
@@ -211,7 +189,7 @@ schema.method(
 	'shine',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['shine']>
+	<Tm['TInstanceMethods']['shine']>
 	async function ()
 	{
 		let doc = await this.select_sensitive_fields('+phone')
@@ -229,7 +207,7 @@ schema.method(
 	'overcast',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['overcast']>
+	<Tm['TInstanceMethods']['overcast']>
 	async function ()
 	{
 		this.active = false
@@ -245,7 +223,7 @@ schema.method(
 	'authorize',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['authorize']>
+	<Tm['TInstanceMethods']['authorize']>
 	// eslint-disable-next-line @stylistic/newline-per-chained-call
 	async function (expire = moment().add(1, 'w').toDate() )
 	{
@@ -264,7 +242,7 @@ schema.method(
 
 		else
 		{
-			doc.scope = { value: scope_model.Role.运营 } as scope_model.THydratedDocumentType
+			doc.scope = { value: scope_model.Role.运营 } as scope_model.Tm['HydratedDocument']
 
 		}
 
@@ -287,4 +265,4 @@ schema.method(
 )
 
 
-export default drive.model('User', schema)
+export default drive.model('User', schema) as Tm['Model']

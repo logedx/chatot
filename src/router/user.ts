@@ -86,7 +86,7 @@ router.post(
 
 		if (detective.is_null(user) )
 		{
-			let scope: user_model.TRawDocType['scope'] = null
+			let scope: user_model.Tm['DocType']['scope'] = null
 
 			if (await user_model.default.countDocuments({}) < 1)
 			{
@@ -99,7 +99,7 @@ router.post(
 
 				}
 
-				scope = v as scope_model.THydratedDocumentType
+				scope = v as scope_model.Tm['HydratedDocument']
 
 			}
 

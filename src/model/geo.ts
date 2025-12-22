@@ -1,45 +1,37 @@
-import { Schema, Model, HydratedDocument } from 'mongoose'
+import { Schema } from 'mongoose'
 
-
-export type TPointRawDocType = {
-	type       : string
-	coordinates: [number, number]
-
-}
-
-export type TPointVirtuals = {
-	longitude: number
-	latitude : number
-
-}
-
-export type TPointQueryHelpers = object
-
-export type TPointInstanceMethods = object
-
-export type TStaticMethods = object
-
-
-export type TPointHydratedDocumentType = HydratedDocument<TPointRawDocType, TPointVirtuals >
-
-export type TPointModel = Model<TPointRawDocType, TPointQueryHelpers, TPointInstanceMethods, TPointVirtuals>
+import * as storage from '../lib/storage.js'
 
 
 
 
+export type TmPoint = storage.Tm<
+	{
+		type       : string
+		coordinates: [number, number]
 
+	},
+
+	{
+		longitude: number
+		latitude : number
+
+	}
+
+>
 
 
 // Don't do `{ location: { type: String } }`
 // 'location.type' must be 'Point'
-export const point = new Schema
+export const point: TmPoint['TSchema'] = new Schema
 <
-	TPointRawDocType,
-	TPointModel,
-	TPointInstanceMethods,
-	TPointQueryHelpers,
-	TPointVirtuals,
-	TStaticMethods
+	TmPoint['DocType'],
+	TmPoint['TModel'],
+	TmPoint['TInstanceMethods'],
+	TmPoint['TQueryHelpers'],
+	TmPoint['TVirtuals'],
+	TmPoint['TStaticMethods']
+
 
 >(
 	{
@@ -63,7 +55,7 @@ export const point = new Schema
 )
 
 point.virtual('longitude').get(
-	function (): TPointVirtuals['longitude']
+	function (): TmPoint['TVirtuals']['longitude']
 	{
 		let [v] = this.coordinates
 
@@ -75,7 +67,7 @@ point.virtual('longitude').get(
 )
 
 point.virtual('latitude').get(
-	function (): TPointVirtuals['latitude']
+	function (): TmPoint['TVirtuals']['latitude']
 	{
 		let [, v] = this.coordinates
 

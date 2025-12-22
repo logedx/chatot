@@ -3,7 +3,8 @@
  */
 import config from 'config'
 import moment from 'moment'
-import { Schema, Model, HydratedDocument } from 'mongoose'
+
+import { Schema } from 'mongoose'
 
 import * as axios from 'axios'
 
@@ -18,7 +19,7 @@ import * as detective from '../lib/detective.js'
 
 
 
-export type TRawDocType = storage.TRawDocType<
+export type Tm = storage.Tm<
 	{
 		value : string
 		symbol: `/${string}#${Lowercase<axios.Method>}`
@@ -29,45 +30,29 @@ export type TRawDocType = storage.TRawDocType<
 
 		amber: unknown
 
+	},
+
+	{
+		lave  : number
+		method: '*' | Uppercase<axios.Method>
+
+	},
+
+	{
+		touch(pathname: `/${string}`, method: Lowercase<axios.Method>,): boolean
+
+		eternal(): Promise<Tm['HydratedDocument']>
+
+	},
+
+	{
+		from (value: string): Promise<Tm['HydratedDocument']>
+
 	}
+
 
 >
 
-export type TPopulatePaths = object
-
-export type TVirtuals = {
-	lave  : number
-	method: '*' | Uppercase<axios.Method>
-
-}
-
-export type TQueryHelpers = object
-
-export type TInstanceMethods = {
-	touch
-	(
-		this: THydratedDocumentType,
-
-		pathname: `/${string}`,
-		method: Lowercase<axios.Method>,
-
-	)
-	: boolean
-
-	eternal(this: THydratedDocumentType): Promise<THydratedDocumentType>
-
-}
-
-export type TStaticMethods = {
-	from
-	(this: TModel, value: string): Promise<THydratedDocumentType>
-
-}
-
-
-export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals & TInstanceMethods>
-
-export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
 
 
 const salt = config.get<string>('salt')
@@ -77,14 +62,14 @@ const aes = new secret.AES_256_CBC(salt)
 
 const drive = await storage.mongodb()
 
-export const schema = new Schema
+export const schema: Tm['TSchema'] = new Schema
 <
-	TRawDocType,
-	TModel,
-	TInstanceMethods,
-	TQueryHelpers,
-	TVirtuals,
-	TStaticMethods
+	Tm['DocType'],
+	Tm['TModel'],
+	Tm['TInstanceMethods'],
+	Tm['TQueryHelpers'],
+	Tm['TVirtuals'],
+	Tm['TStaticMethods']
 
 // eslint-disable-next-line @stylistic/function-call-spacing
 >
@@ -137,7 +122,7 @@ export const schema = new Schema
 
 
 schema.virtual('lave').get(
-	function (): TVirtuals['lave']
+	function (): Tm['TVirtuals']['lave']
 	{
 		return 0 - moment().diff(this.expire, 'seconds')
 
@@ -147,7 +132,7 @@ schema.virtual('lave').get(
 
 
 schema.virtual('method').get(
-	function (): TVirtuals['method']
+	function (): Tm['TVirtuals']['method']
 	{
 		let [, v] = split(this.symbol ?? '')
 
@@ -169,7 +154,7 @@ schema.method(
 	'touch',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['touch']>
+	<Tm['TInstanceMethods']['touch']>
 	function (pathname, method)
 	{
 		return this.symbol === sign(pathname, method)
@@ -183,7 +168,7 @@ schema.method(
 	'eternal',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<TInstanceMethods['eternal']>
+	<Tm['TInstanceMethods']['eternal']>
 	function ()
 	{
 		this.expire = new Date(2077, 0, 1)
@@ -217,10 +202,10 @@ schema.static<'from'>(
 )
 
 
-export default drive.model('Stamp', schema)
+export default drive.model('Stamp', schema) as Tm['Model']
 
 export type Mailer = {
-	symbol: TRawDocType['symbol']
+	symbol: Tm['DocType']['symbol']
 
 	expire: Date
 
@@ -249,7 +234,7 @@ export function is_mailer (v: unknown): v is Mailer
 
 
 export function sign
-(pathname: `/${string}`, method: Lowercase<axios.Method>): TRawDocType['symbol']
+(pathname: `/${string}`, method: Lowercase<axios.Method>): Tm['DocType']['symbol']
 {
 	return `${pathname}#${method}`
 
@@ -269,7 +254,7 @@ export function split
  */
 export function encrypt
 (
-	symbol: TRawDocType['symbol'],
+	symbol: Tm['DocType']['symbol'],
 
 	expire: Date,
 

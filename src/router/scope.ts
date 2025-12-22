@@ -44,7 +44,7 @@ router.post(
 	async function create (req, res)
 	{
 		type Suspect = {
-			value: stamp_model.THydratedDocumentType
+			value: stamp_model.Tm['HydratedDocument']
 
 		}
 

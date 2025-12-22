@@ -3,7 +3,7 @@
  */
 import pinyin from 'pinyin'
 
-import { Schema, Model, Types, HydratedDocument } from 'mongoose'
+import { Schema, Types } from 'mongoose'
 
 import * as storage from '../lib/storage.js'
 
@@ -13,7 +13,7 @@ import * as weapp_model from './weapp.js'
 
 
 
-export type TRawDocType = storage.TRawDocType<
+export type Tm = storage.Tm<
 	{
 		weapp : Types.ObjectId
 		name  : string
@@ -26,21 +26,10 @@ export type TRawDocType = storage.TRawDocType<
 >
 
 export type TPopulatePaths = {
-	weapp: weapp_model.THydratedDocumentType
+	weapp: weapp_model.Tm['HydratedDocument']
 
 }
 
-export type TVirtuals = object
-
-export type TQueryHelpers = object
-
-export type TInstanceMethods = object
-
-export type TStaticMethods = object
-
-export type THydratedDocumentType = HydratedDocument<TRawDocType, TVirtuals >
-
-export type TModel = Model<TRawDocType, TQueryHelpers, TInstanceMethods, TVirtuals>
 
 
 
@@ -85,14 +74,14 @@ export const letter_schema = {
 
 }
 
-export const schema = new Schema
+export const schema: Tm['TSchema'] = new Schema
 <
-	TRawDocType,
-	TModel,
-	TInstanceMethods,
-	TQueryHelpers,
-	TVirtuals,
-	TStaticMethods
+	Tm['DocType'],
+	Tm['TModel'],
+	Tm['TInstanceMethods'],
+	Tm['TQueryHelpers'],
+	Tm['TVirtuals'],
+	Tm['TStaticMethods']
 
 // eslint-disable-next-line @stylistic/function-call-spacing
 >
@@ -148,4 +137,4 @@ schema.index(
 )
 
 
-export default drive.model('Keyword', schema)
+export default drive.model('Keyword', schema) as Tm['Model']
