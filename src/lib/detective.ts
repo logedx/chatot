@@ -46,7 +46,7 @@ export function is_logic_false
 export function is_date
 (v: unknown): v is Date
 {
-	return v instanceof Date && v.valueOf() > 0
+	return v instanceof Date && Number.isInteger(v.valueOf() )
 
 }
 
@@ -381,7 +381,7 @@ export function is_media_uri_string
 export function is_date_string
 (v: unknown): v is string
 {
-	return is_required_string(v) && Number.isInteger(new Date(v).valueOf() )
+	return is_required_string(v) && is_date(new Date(v) )
 
 }
 
