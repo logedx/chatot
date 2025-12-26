@@ -26,10 +26,11 @@ export type GetTupleLastElement<U> = U extends [...infer _, infer L] ? L : never
 
 export type GetUnionLastElement<U> = GetInterLastElement<UnionToInter<U> >
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type UnionToInter <U> = (U extends any ? (k: U[]) => void : never) extends (k: infer I) => void
-	? I
-	: never
+export type UnionToInter <U>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	= (U extends any ? (k: U[]) => void : never) extends (k: infer I) => void
+		? I
+		: never
 
 export type UnionToTuple<
 	T,
@@ -47,19 +48,7 @@ export type Replace<T, U, V> = T extends U
 		? { [K in keyof T]: Replace<T[K], U, V> }
 		: T
 
-export type Overwrite<T, U, O = Omit<T, keyof U> & Required<U> > = {
-	[K in keyof O]: Exclude<
-		K extends keyof U
-			? U[K]
-			: K extends keyof T
-				? T[K]
-				: never,
-
-		undefined
-
-	>
-
-}
+export type Overwrite<T, U> = Omit<T, keyof U> & U
 
 
 export function clone<T> (target: T): T
@@ -93,9 +82,7 @@ export function clone<T> (target: T): T
 }
 
 export function get
-<T extends object, K extends keyof T = keyof T>
-(source: T, key: K extends string ? Lowercase<K> : K)
-: T[K]
+<T extends object, K extends keyof T = keyof T> (source: T, key: K extends string ? Lowercase<K> : K): T[K]
 
 export function get
 <T> (source: object, key: PropertyKey, _default: T): T
@@ -165,7 +152,7 @@ export function get
 
 	}
 
-	throw new Error(`${key.toString()} is not exist`)
+	throw new Error(`${key} is not exist`)
 
 }
 
@@ -199,7 +186,7 @@ export function pick
 
 	for (let k of Array.from(map) )
 	{
-		value[k] = clone(source[k] ?? _default[k])
+		value[k] = clone(detective.is_undefined(source[k]) ? _default[k] : source[k])
 
 	}
 
@@ -291,7 +278,7 @@ export class Auspice<T>
 	}
 
 	async over
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
 	(..._: T extends Promise<any> ? [] : never): Promise<boolean>
 	{
 		if (this.is_error() )
