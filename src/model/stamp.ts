@@ -6,9 +6,11 @@ import moment from 'moment'
 
 import { Schema } from 'mongoose'
 
+
 import * as axios from 'axios'
 
-import * as storage from '../lib/storage.js'
+import * as database from '../store/database.js'
+
 
 import * as reply from '../lib/reply.js'
 import * as secret from '../lib/secret.js'
@@ -19,7 +21,7 @@ import * as detective from '../lib/detective.js'
 
 
 
-export type Tm = storage.Tm<
+export type Tm = database.Tm<
 	{
 		value : string
 		symbol: `/${string}#${Lowercase<axios.Method>}`
@@ -60,7 +62,7 @@ const salt = config.get<string>('salt')
 const aes = new secret.AES_256_CBC(salt)
 
 
-const drive = await storage.mongodb()
+const drive = await database.Mongodb.default()
 
 export const schema: Tm['TSchema'] = new Schema
 <

@@ -6,20 +6,23 @@ import crypto from 'node:crypto'
 import stream from 'node:stream'
 
 import mime_types from 'mime-types'
+
 import { Schema, Types, SchemaType } from 'mongoose'
 
+
 import * as reply from '../lib/reply.js'
-import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
 
 import * as oss from '../store/oss.js'
+import * as database from '../store/database.js'
+
 
 import * as weapp_model from './weapp.js'
 
 
 
 
-export type Tm = storage.Tm<
+export type Tm = database.Tm<
 	{
 		weapp: Types.ObjectId
 
@@ -103,7 +106,7 @@ export type TPopulatePaths = {
 
 
 
-const drive = await storage.mongodb()
+const drive = await database.Mongodb.default()
 
 
 

@@ -3,9 +3,11 @@
  */
 import { Schema } from 'mongoose'
 
+
 import * as reply from '../lib/reply.js'
-import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
+
+import * as database from '../store/database.js'
 
 
 
@@ -36,7 +38,7 @@ export enum Role
 
 
 
-export type Tm = storage.Tm<
+export type Tm = database.Tm<
 	{
 		lock: boolean
 

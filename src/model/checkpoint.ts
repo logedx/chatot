@@ -1,12 +1,15 @@
 /**
  * 检查点模型
  */
-import * as axios from 'axios'
 import { Schema, Types, Document } from 'mongoose'
 
-import * as storage from '../lib/storage.js'
+import * as axios from 'axios'
+
 
 import * as secret from '../lib/secret.js'
+
+import * as database from '../store/database.js'
+
 
 import * as user_model from './user.js'
 import * as scope_model from './scope.js'
@@ -16,7 +19,7 @@ import * as weapp_model from './weapp.js'
 
 
 
-export type Tm = storage.Tm<
+export type Tm = database.Tm<
 	{
 		scope   : number
 		weapp   : null | Types.ObjectId
@@ -49,7 +52,7 @@ export type TPopulatePaths = {
 
 
 
-const drive = await storage.mongodb()
+const drive = await database.Mongodb.default()
 
 export const schema: Tm['TSchema'] = new Schema
 <

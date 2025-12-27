@@ -7,15 +7,15 @@ import { Schema } from 'mongoose'
 import * as reply from '../lib/reply.js'
 import * as weapp from '../lib/weapp.js'
 import * as wepay from '../lib/wepay.js'
-import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
 
 import * as oss from '../store/oss.js'
+import * as database from '../store/database.js'
 
 
 
 
-export type Tm = storage.Tm<
+export type Tm = database.Tm<
 	{
 		appid : string
 		bucket: string
@@ -50,7 +50,7 @@ export type Tm = storage.Tm<
 
 		to_api_v3_option()
 		: Promise<
-			storage.TDocTypeOverwrite<
+			database.TDocTypeOverwrite<
 				Tm['HydratedDocument'],
 
 				'mchid' | 'v3key' | 'sign' | 'evidence' | 'verify'
@@ -77,7 +77,7 @@ export type Tm = storage.Tm<
 
 
 
-const drive = await storage.mongodb()
+const drive = await database.Mongodb.default()
 
 export const schema: Tm['TSchema'] = new Schema
 <

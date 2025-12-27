@@ -3,12 +3,14 @@
  */
 import { Schema, Types } from 'mongoose'
 
-import * as storage from '../lib/storage.js'
 
 import * as reply from '../lib/reply.js'
 import * as secret from '../lib/secret.js'
 import * as detective from '../lib/detective.js'
 import * as structure from '../lib/structure.js'
+
+import * as database from '../store/database.js'
+
 
 import * as user_model from './user.js'
 import * as scope_model from './scope.js'
@@ -18,7 +20,7 @@ import * as weapp_model from './weapp.js'
 
 
 
-export type Tm = storage.Tm<
+export type Tm = database.Tm<
 	{
 		color: string
 		scope: number
@@ -80,7 +82,7 @@ export type TSurviveHydratedDocumentType = structure.Overwrite<
 
 
 
-const drive = await storage.mongodb()
+const drive = await database.Mongodb.default()
 
 export const schema: Tm['TSchema'] = new Schema
 <

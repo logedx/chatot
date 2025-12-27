@@ -1,11 +1,12 @@
 import { Schema } from 'mongoose'
 
-import * as storage from '../lib/storage.js'
+
+import * as database from '../store/database.js'
 
 
 
 
-export type TmPoint = storage.Tm<
+export type TmPoint = database.Tm<
 	{
 		type       : string
 		coordinates: [number, number]

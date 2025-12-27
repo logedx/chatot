@@ -5,7 +5,9 @@ import pinyin from 'pinyin'
 
 import { Schema, Types } from 'mongoose'
 
-import * as storage from '../lib/storage.js'
+
+import * as database from '../store/database.js'
+
 
 import * as weapp_model from './weapp.js'
 
@@ -13,7 +15,7 @@ import * as weapp_model from './weapp.js'
 
 
 
-export type Tm = storage.Tm<
+export type Tm = database.Tm<
 	{
 		weapp : Types.ObjectId
 		name  : string
@@ -35,7 +37,7 @@ export type TPopulatePaths = {
 
 
 
-const drive = await storage.mongodb()
+const drive = await database.Mongodb.default()
 
 /**
  * 拼音首字母校验规则

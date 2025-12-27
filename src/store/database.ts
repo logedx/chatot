@@ -1,17 +1,12 @@
 import config from 'config'
+
 import mongoose, { Types, Schema, Model, HydratedDocument } from 'mongoose'
 
-import * as structure from './structure.js'
+
+import * as detective from '../lib/detective.js'
+import * as structure from '../lib/structure.js'
 
 
-
-
-type Connect = {
-	mongodb: null | typeof mongoose
-
-}
-
-const connect: Connect = { mongodb: null }
 
 
 const mongodb_uri = config.get<string>('mongodb')
@@ -264,152 +259,160 @@ export type Tm
 }
 
 
-export async function mongodb (): Promise<typeof mongoose>
-{
-	if (connect.mongodb)
+mongoose.plugin(
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-expect-error
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	function (schema: TSchema<any>): void
 	{
-		return connect.mongodb
+		schema.set(
+			'toJSON',
+
+			{
+				virtuals  : true,
+				minimize  : false,
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				versionKey: false,
+
+			},
+
+		)
+
+		schema.set(
+			'toObject',
+
+			{
+				virtuals  : true,
+				minimize  : false,
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				versionKey: false,
+
+			},
+
+		)
+
+		schema.set(
+			'timestamps',
+
+			{
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				updatedAt: 'updated',
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				createdAt: 'created',
+
+			},
+
+		)
+
+		schema.virtual('updated_hex').get(
+			function (): string
+			{
+				if (this.updated instanceof Date)
+				{
+					let value = this.updated.valueOf()
+
+					return value.toString(16)
+
+				}
+
+				return ''
+
+			},
+
+		)
+
+		schema.virtual('created_hex').get(
+			function (): string
+			{
+				if (this.created instanceof Date)
+				{
+					let value = this.created.valueOf()
+
+					return value.toString(16)
+
+				}
+
+				return ''
+
+			},
+
+		)
+
+		schema.method(
+			'select_sensitive_fields',
+
+			function (...fields: Array<`+${string}`>)
+			{
+				return this.model().findById(this._id)
+					.select(fields)
+
+			},
+
+		)
+
+		schema.method(
+			'select_every_fields',
+
+			function ()
+			{
+				let fields = Object.entries(this.schema.paths)
+					.map(
+						([k]) => `+${k}`,
+
+					)
+
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+				return this.select_sensitive_fields(...fields as any[])
+
+			},
+
+		)
+
+		schema.static(
+			'select_every_fields',
+
+			function ()
+			{
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+				return Object.entries(this.schema.paths)
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					.map<any>(
+						([k]) => `+${k}`,
+
+					)
+
+			},
+
+		)
+
+
+
+	},
+
+)
+
+
+export class Mongodb
+{
+	static #cache: Record<string, typeof mongoose> = {}
+
+	static async new (uri: string): Promise<typeof mongoose>
+	{
+		if (detective.is_empty(this.#cache[uri]) )
+		{
+			this.#cache[uri] = await mongoose.connect(mongodb_uri)
+
+		}
+
+		return this.#cache[uri]
+
+	}
+
+	static async default (): Promise<typeof mongoose>
+	{
+		return this.new(mongodb_uri)
 
 	}
 
 
-	mongoose.plugin(
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-expect-error
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		function (schema: TSchema<any>): void
-		{
-			schema.set(
-				'toJSON',
-
-				{
-					virtuals  : true,
-					minimize  : false,
-					// eslint-disable-next-line @typescript-eslint/naming-convention
-					versionKey: false,
-
-				},
-
-			)
-
-			schema.set(
-				'toObject',
-
-				{
-					virtuals  : true,
-					minimize  : false,
-					// eslint-disable-next-line @typescript-eslint/naming-convention
-					versionKey: false,
-
-				},
-
-			)
-
-			schema.set(
-				'timestamps',
-
-				{
-					// eslint-disable-next-line @typescript-eslint/naming-convention
-					updatedAt: 'updated',
-					// eslint-disable-next-line @typescript-eslint/naming-convention
-					createdAt: 'created',
-
-				},
-
-			)
-
-			schema.virtual('updated_hex').get(
-				function (): string
-				{
-					if (this.updated instanceof Date)
-					{
-						let value = this.updated.valueOf()
-
-						return value.toString(16)
-
-					}
-
-					return ''
-
-				},
-
-			)
-
-			schema.virtual('created_hex').get(
-				function (): string
-				{
-					if (this.created instanceof Date)
-					{
-						let value = this.created.valueOf()
-
-						return value.toString(16)
-
-					}
-
-					return ''
-
-				},
-
-			)
-
-			schema.method(
-				'select_sensitive_fields',
-
-				function (...fields: Array<`+${string}`>)
-				{
-					return this.model().findById(this._id)
-						.select(fields)
-
-				},
-
-			)
-
-			schema.method(
-				'select_every_fields',
-
-				function ()
-				{
-					let fields = Object.entries(this.schema.paths)
-						.map(
-							([k]) => `+${k}`,
-
-						)
-
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-					return this.select_sensitive_fields(...fields as any[])
-
-				},
-
-			)
-
-			schema.static(
-				'select_every_fields',
-
-				function ()
-				{
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-					return Object.entries(this.schema.paths)
-						// eslint-disable-next-line @typescript-eslint/no-explicit-any
-						.map<any>(
-							([k]) => `+${k}`,
-
-						)
-
-				},
-
-			)
-
-
-
-		},
-
-	)
-
-	connect.mongodb = await mongoose.connect(mongodb_uri)
-
-
-	return connect.mongodb
-
 }
-
-
