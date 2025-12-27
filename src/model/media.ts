@@ -12,6 +12,8 @@ import * as reply from '../lib/reply.js'
 import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
 
+import * as oss from '../store/oss.js'
+
 import * as weapp_model from './weapp.js'
 
 
@@ -24,7 +26,7 @@ export type Tm = storage.Tm<
 		mime: string
 		size: number
 
-		store : storage.Store
+		store : 'alioss'
 		bucket: string
 		folder: string
 
@@ -54,6 +56,8 @@ export type Tm = storage.Tm<
 	{
 		seize(): string
 
+		to_image(expires?: number): oss.Image
+
 		safe_push(body: stream.Readable): Promise<Tm['HydratedDocument']>
 
 		safe_delete(): Promise<void>
@@ -73,7 +77,7 @@ export type Tm = storage.Tm<
 
 		>
 
-		safe_access(weapp: Types.ObjectId, src: string, expires?: number,): Promise<URL>
+		safe_access(weapp: Types.ObjectId, src: string, expires?: number): Promise<URL>
 
 		safe_to_link
 		(
@@ -140,7 +144,7 @@ export class Secret extends String
 
 	}
 
-	async safe_access (expires = 1800): Promise<string>
+	async safe_access (expires = 60): Promise<string>
 	{
 		try
 		{
@@ -162,6 +166,29 @@ export class Secret extends String
 
 	}
 
+	async to_image (expires = 60): Promise<null | oss.Image>
+	{
+		try
+		{
+			let doc = await this.track()
+
+			return oss.Image
+				.new(
+					doc.bucket, doc.src, { expires },
+
+				)
+
+		}
+
+		catch
+		{
+			// 
+
+		}
+
+		return null
+
+	}
 
 	static cast (src: string | URL): string
 	{
@@ -392,6 +419,23 @@ schema.method(
 
 )
 
+schema.method(
+	'to_image',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<Tm['TInstanceMethods']['to_image']>
+	function (expires = 60)
+	{
+		return new oss.Image(
+			this.bucket, this.pathname, { expires },
+
+		)
+
+	},
+
+
+)
+
 
 schema.method(
 	'safe_push',
@@ -458,12 +502,11 @@ schema.method(
 
 		let doc = await this.populate<TPopulatePaths>('weapp')
 
-		let store = doc.weapp.to_store(doc.store)
+		let result = await doc.weapp.to_oss()
+			.append(
+				this.seize(), body.pipe(size), { mime: this.mime },
 
-		let result = await store.append(
-			this.seize(), body.pipe(size), { mime: this.mime },
-
-		)
+			)
 
 		this.size = size.value
 		this.hash = size.hash
@@ -499,7 +542,7 @@ schema.method(
 	{
 		let doc = await this.populate<TPopulatePaths>('weapp')
 
-		let store = doc.weapp.to_store(doc.store)
+		let store = doc.weapp.to_oss()
 
 		await store.delete(this.pathname)
 
@@ -515,28 +558,16 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<Tm['TInstanceMethods']['safe_access']>
-	async function (expires = 1800)
+	async function (expires = 60)
 	{
 		let doc = await this.populate<TPopulatePaths>('weapp')
 
-		let store = doc.weapp.to_store(doc.store)
-
-
-		return storage.ImageStore
-			.signature(
-				doc.store,
-
-				store.signatureUrl(
-					this.pathname,
-
-					{
-						expires,
-
-					},
-
-				),
+		return doc.weapp.to_oss()
+			.sign(
+				this.pathname, { expires },
 
 			)
+
 
 	},
 
@@ -582,7 +613,7 @@ schema.static<'safe_delete'>(
 schema.static<'safe_access'>(
 	'safe_access',
 
-	async function (weapp, src, expires = 1800)
+	async function (weapp, src, expires = 60)
 	{
 		let doc = await this.findOne(
 			{ weapp, src },

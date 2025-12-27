@@ -1,7 +1,6 @@
 /**
  * 小程序模型
  */
-import ali_oss from 'ali-oss'
 import { Schema } from 'mongoose'
 
 
@@ -10,6 +9,8 @@ import * as weapp from '../lib/weapp.js'
 import * as wepay from '../lib/wepay.js'
 import * as storage from '../lib/storage.js'
 import * as detective from '../lib/detective.js'
+
+import * as oss from '../store/oss.js'
 
 
 
@@ -45,7 +46,7 @@ export type Tm = storage.Tm<
 		to_unlimited
 		(path: string, scene: string): Promise<weapp.Unlimited>
 
-		to_store(name: storage.Store): ali_oss
+		to_oss(): oss.OSS
 
 		to_api_v3_option()
 		: Promise<
@@ -317,17 +318,13 @@ schema.method(
 )
 
 schema.method(
-	'to_store',
+	'to_oss',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_store']>
-	function (name)
+	<Tm['TInstanceMethods']['to_oss']>
+	function ()
 	{
-		const client = storage.store(name)
-
-		client.useBucket(this.bucket)
-
-		return client
+		return oss.OSS.new(this.bucket)
 
 	},
 

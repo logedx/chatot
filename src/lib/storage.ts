@@ -1,28 +1,20 @@
 import config from 'config'
-import alioss from 'ali-oss'
 import mongoose, { Types, Schema, Model, HydratedDocument } from 'mongoose'
 
-import * as reply from './reply.js'
 import * as structure from './structure.js'
 
 
 
 
 type Connect = {
-	ali_oss: null | alioss
 	mongodb: null | typeof mongoose
 
 }
 
-const connect: Connect = { ali_oss: null, mongodb: null }
+const connect: Connect = { mongodb: null }
 
 
 const mongodb_uri = config.get<string>('mongodb')
-
-const aliopen_endpoint = config.get<string>('aliopen.endpoint')
-const aliopen_access_key_id = config.get<string>('aliopen.access_key_id')
-const aliopen_access_key_secret = config.get<string>('aliopen.secret_access_key')
-
 
 
 
@@ -421,150 +413,3 @@ export async function mongodb (): Promise<typeof mongoose>
 }
 
 
-export type Store = 'alioss'
-
-export function store (name: 'alioss'): alioss
-
-export function store (name: Store): alioss
-{
-	if (name === 'alioss')
-	{
-		// eslint-disable-next-line new-cap
-		connect.ali_oss ??= new alioss(
-			{
-				secure: true,
-				region: `oss-${aliopen_endpoint}`,
-
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				accessKeyId: aliopen_access_key_id,
-
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				accessKeySecret: aliopen_access_key_secret,
-
-			},
-
-		)
-
-
-		return connect.ali_oss
-
-	}
-
-	throw new reply.BadRequest('unknown store')
-
-}
-
-
-export class ImageStore
-{
-	#name: Store
-	#src : string
-
-	static #marked = 'x-image-store'
-
-
-	get src (): string
-	{
-		return this.#src
-
-	}
-
-
-	constructor (name: Store, src: string)
-	{
-		this.#name = name
-		this.#src = src
-
-	}
-
-
-	process (option: Record<string, number | string>): string
-	{
-		let uri = new URL(this.#src)
-
-		if (this.#name === 'alioss')
-		{
-			let process = [
-				'image',
-
-				...Object.entries(option).map( ([k, v]) => `${k},${v}`),
-
-			]
-
-			if (connect.ali_oss)
-			{
-				uri.search = ''
-
-				uri.href = connect.ali_oss
-					.signatureUrl(
-						uri.pathname, { process: process.join('/') },
-
-					)
-
-			}
-
-		}
-
-		return uri.href
-
-	}
-
-	resize (width: number, height: number): string
-	{
-		return this.process(
-			{ resize: `w_${width},h_${height}` },
-
-		)
-
-	}
-
-	rotate (angle: number): string
-	{
-		angle = Math.round(angle) % 360
-
-		while (0 > angle)
-		{
-			angle = 360 + angle
-
-		}
-
-
-		return this.process(
-			{ rotate: angle },
-
-		)
-
-	}
-
-	static is_store (v: unknown): v is Store
-	{
-		return ['alioss'].includes(v as string)
-
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-shadow
-	static signature (store: Store, src: string): URL
-	{
-		let uri = new URL(src)
-
-		uri.searchParams.append(this.#marked, store)
-
-		return uri
-
-	}
-
-	static from (url: URL): ImageStore
-	{
-		let name = url.searchParams.get(this.#marked)
-
-		if (this.is_store(name) )
-		{
-			return new ImageStore(name, url.href)
-
-		}
-
-		throw new reply.BadRequest('invalid image store url')
-
-	}
-
-}
