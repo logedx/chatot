@@ -465,12 +465,14 @@ schema.method(
 
 			}
 
-			_transform (
+			_transform
+			(
 				chunk: unknown,
 				encoding: BufferEncoding,
 				callback: stream.TransformCallback,
 
-			): void
+			)
+			: void
 			{
 				if (chunk instanceof Buffer)
 				{

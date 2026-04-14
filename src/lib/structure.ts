@@ -4,54 +4,59 @@ import * as detective from './detective.js'
 
 
 
-export type GetProperty<T, V> = {
-	[K in keyof T as T[K] extends V ? K : never]: T[K]
+export type GetProperty<T, V>
+	= {
+		[K in keyof T as T[K] extends V ? K : never]: T[K]
 
-}
+	}
 
-export type GetPartial<T> = {
-	[K in keyof T as T extends Record<K, T[K]> ? never : K]: T[K]
+export type GetPartial<T>
+	= {
+		[K in keyof T as T extends Record<K, T[K]> ? never : K]: T[K]
 
-}
+	}
 
-export type GetRequired<T> = {
-	[K in keyof T as T extends Record<K, T[K]> ? K : never]: T[K]
+export type GetRequired<T>
+	= {
+		[K in keyof T as T extends Record<K, T[K]> ? K : never]: T[K]
 
-}
+	}
 
 export type GetInterLastElement<U> = U extends Array<infer R> ? R : never
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type GetTupleLastElement<U> = U extends [...infer _, infer L] ? L : never
 
 export type GetUnionLastElement<U> = GetInterLastElement<UnionToInter<U> >
 
-export type UnionToInter <U>
+export type UnionToInter<U>
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	= (U extends any ? (k: U[]) => void : never) extends (k: infer I) => void
 		? I
 		: never
 
-export type UnionToTuple<
+export type UnionToTuple
+<
 	T,
 
 	E = Exclude<T, undefined>,
 	L = GetUnionLastElement<E>,
 
-> = [E] extends [never]
-	? []
-	: [...UnionToTuple<Exclude<E, L> >, L]
+>
+	= [E] extends [never]
+		? []
+		: [...UnionToTuple<Exclude<E, L> >, L]
 
-export type Replace<T, U, V> = T extends U
-	? V
-	: T extends object
-		? { [K in keyof T]: Replace<T[K], U, V> }
-		: T
+export type Replace<T, U, V>
+	= T extends U
+		? V
+		: T extends object
+			? { [K in keyof T]: Replace<T[K], U, V> }
+			: T
 
 export type Overwrite<T, U> = Omit<T, keyof U> & U
 
 
-export function clone<T> (target: T): T
+export function clone <T> (target: T): T
 {
 	if (detective.is_array(target) )
 	{
@@ -61,7 +66,7 @@ export function clone<T> (target: T): T
 
 	if (detective.is_object_legitimism(target) )
 	{
-		return Object.entries(target)
+		let r = Object.entries(target)
 			.reduce(
 				(map, [k, v]) =>
 				{
@@ -73,7 +78,9 @@ export function clone<T> (target: T): T
 
 				{} as Record<PropertyKey, unknown>,
 
-			) as T
+			)
+
+		return r as T
 
 	}
 

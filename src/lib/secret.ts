@@ -29,24 +29,28 @@ export function delay (seconds: number): Date
 {
 	let v = new Date()
 
-	v.setSeconds(
-		v.getSeconds() + seconds,
-
-	)
+	v.setSeconds(v.getSeconds() + seconds)
 
 	return v
 
 }
 
 
-type CryptoPipelineCreateHandler = (
-	value: Buffer,
-	option: { algorithm: string, key: Buffer, iv: Buffer },
+type CryptoPipelineCreateHandler
+	= (
+		value: Buffer,
+		option: { algorithm: string, key: Buffer, iv: Buffer },
 
-)
-=> crypto.Cipheriv
+	)
+	=> crypto.Cipheriv
 
-type CryptoPipelineConcatHandler = (transfer: crypto.Cipheriv | crypto.Decipheriv, valuve: Buffer) => Buffer
+type CryptoPipelineConcatHandler
+	= (
+		transfer: crypto.Cipheriv | crypto.Decipheriv,
+		valuve: Buffer,
+
+	)
+	=> Buffer
 
 type CryptoPipelinePaddingHandler = (valuve: Buffer) => Buffer
 

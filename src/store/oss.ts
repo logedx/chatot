@@ -96,7 +96,6 @@ export class OSS
 	static #cache: Record<string, OSS> = {}
 
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	static new (bucket: string, ..._: any[]): OSS
 	{
 		if (detective.is_empty(this.#cache[bucket]) )

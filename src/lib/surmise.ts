@@ -32,7 +32,7 @@ export type InferOption
 		optional?: true
 
 
-		when?    : boolean | Promise<boolean> | ( (...args: any[]) => Promise<boolean>)
+		when?: boolean | Promise<boolean> | ( (...args: any[]) => Promise<boolean>)
 
 	}
 
@@ -87,7 +87,7 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 	#value: Record<PropertyKey, unknown> = {}
 
-	get target () : unknown
+	get target (): unknown
 	{
 		return structure.clone(this.#target)
 
@@ -281,7 +281,7 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 		}
 
 		if (detective.is_object_key(arg1) === false
-			|| detective.is_object_keyof(this.#value, arg1) === false
+		 || detective.is_object_keyof(this.#value, arg1) === false
 
 		)
 		{
@@ -354,7 +354,7 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 
 	async deplete
-	<K extends keyof T, V = Exclude<T[K], undefined> > (
+	< K extends keyof T, V = Exclude<T[K], undefined> > (
 		key: K,
 
 		fn?: (v: V) => unknown,
@@ -379,7 +379,12 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 	}
 
 	infer
-	<K extends keyof structure.GetRequired<T>, P extends PropertyKey = K> (
+	<
+		K extends keyof structure.GetRequired<T>,
+		P extends PropertyKey = K,
+
+	>
+	(
 		...[chain, option]: InferOptiond<Clue<Exclude<T[K], undefined>, P>, T, K, P>
 
 	)
@@ -394,7 +399,12 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 	}
 
 	infer_optional
-	<K extends keyof structure.GetPartial<T>, P extends PropertyKey = K> (
+	<
+		K extends keyof structure.GetPartial<T>,
+		P extends PropertyKey = K,
+
+	>
+	(
 		...[chain, option]: InferOptiond<Clue<Exclude<T[K], undefined>, P>, T, K, P>
 
 	)
@@ -419,15 +429,14 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 
 export class Clue
-// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-<T = unknown, K extends void | PropertyKey = void>
+<T = unknown, K extends null | PropertyKey = null>
 {
 	#message: string | i18n.Speech = ''
 
 	#reagent: InferReagent<unknown, unknown>
 
 
-	#signed?: PropertyKey
+	#signed?: null | PropertyKey
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	#linker?: Clue<any, any>
@@ -459,7 +468,7 @@ export class Clue
 
 		this.#reagent = handle
 
-		this.#signed = option?.signed as PropertyKey
+		this.#signed = option?.signed
 		this.#linker = option?.linker
 
 

@@ -263,7 +263,7 @@ async function manually_configure_application (node_env: NodeEnv): Promise<void>
 
 		null,
 
-		'	',
+		'\t',
 
 	)
 

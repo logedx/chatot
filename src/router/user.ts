@@ -17,16 +17,13 @@ import * as retrieve_router from './retrieve.js'
 
 
 
-// eslint-disable-next-line @stylistic/function-call-spacing
-export const in_keyword_clue = surmise.Text.search<user_model.TRawDocKeyword>
-(
+
+export const in_keyword_clue = surmise.Text.search<user_model.TRawDocKeyword>(
 	...user_model.keyword,
 
 )
 
-// eslint-disable-next-line @stylistic/function-call-spacing
-export const in_keyword_populate_clue = surmise.Model.search<user_model.TRawDocKeyword>
-(
+export const in_keyword_populate_clue = surmise.Model.search<user_model.TRawDocKeyword>(
 	user_model.default, ...user_model.keyword,
 
 )

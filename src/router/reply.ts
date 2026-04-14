@@ -242,7 +242,6 @@ export const not_found: express.RequestHandler = function not_found (req)
 /**
  * 错误响应
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const finish: express.ErrorRequestHandler = function finish (e: NodeJS.ErrnoException, req, res, _next)
 {
 	let stack = e.stack ?? ''

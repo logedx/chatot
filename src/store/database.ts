@@ -63,7 +63,6 @@ export type TInstanceMethods
 	Q extends object = {},
 
 >
-	// eslint-disable-next-line @stylistic/indent-binary-ops
 	= {
 		[k in keyof I]: (this: THydratedDocument<T, V, I, Q>, ...args: Parameters<I[k]>) => ReturnType<I[k]>
 
@@ -71,26 +70,43 @@ export type TInstanceMethods
 	& {
 		select_sensitive_fields
 		<F extends keyof structure.GetPartial<T> >
-		(this: THydratedDocument<T, V, I, Q>, ...fields: Array<`+${F}`>):
-			Promise<
-				structure.Overwrite<
-					THydratedDocument<T, V, I, Q>,
+		(
+			this: THydratedDocument<T, V, I, Q>,
 
-					Required<Pick<T, F> >
+			...fields: Array<`+${F}`>
 
-				>
+		)
+		: Promise<
+			structure.Overwrite<
+				THydratedDocument<T, V, I, Q>,
+
+				Required<Pick<T, F> >
 
 			>
+
+		>
 
 		select_sensitive_fields
-		<U extends TDocTypeSensitiveSelector<T> = TDocTypeSensitiveSelector<T> >
-		(this: THydratedDocument<T, V, I, Q>, ...fileds: Array<U[keyof U]>): Promise<THydratedDocument<T, V, I, Q>>
+		<
+			U extends TDocTypeSensitiveSelector<T> = TDocTypeSensitiveSelector<T>,
 
-		select_every_fields ():
-			Promise<
-				Required< THydratedDocument<T, V, I, Q> >
+		>
+		(
+			this: THydratedDocument<T, V, I, Q>,
 
-			>
+			...fileds: Array<U[keyof U]>
+
+		)
+		: Promise<
+			THydratedDocument<T, V, I, Q>
+
+		>
+
+		select_every_fields ()
+		: Promise<
+			Required< THydratedDocument<T, V, I, Q> >
+
+		>
 
 	}
 
@@ -109,7 +125,7 @@ export type TStaticMethods
 	Q extends object = {},
 
 >
-	// eslint-disable-next-line @stylistic/indent-binary-ops
+
 	= {
 		[k in keyof S]: (this: TTModel<T, V, I, S, Q>, ...args: Parameters<S[k]>) => ReturnType<S[k]>
 

@@ -130,7 +130,6 @@ export function stdio_ (req: express.Request, e: NodeJS.ErrnoException): void
 
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function asserts (e: unknown): asserts e is Exception<i18n.Language>
 {
 	//

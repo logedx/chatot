@@ -326,9 +326,7 @@ export async function get_phone_number
 
 	)
 
-	let { phone_info } = result.data
-
-	return phone_info.purePhoneNumber
+	return result.data.phone_info.purePhoneNumber
 
 }
 

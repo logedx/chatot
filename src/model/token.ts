@@ -238,13 +238,10 @@ schema.method(
 	<Tm['TInstanceMethods']['to_user']>
 	async function ()
 	{
-		let doc = await this.populate<
-				Pick<TPopulatePaths, 'user'>
-
-			>('user')
-
+		let doc = await this.populate< Pick<TPopulatePaths, 'user'> >('user')
 
 		reply.NotFound.asserts(doc.user, 'user is not found')
+
 
 		return doc.user
 
@@ -260,13 +257,10 @@ schema.method(
 	<Tm['TInstanceMethods']['to_weapp']>
 	async function ()
 	{
-		let doc = await this.populate<
-			Pick<TPopulatePaths, 'weapp'>
-
-		>('weapp')
-
+		let doc = await this.populate< Pick<TPopulatePaths, 'weapp'> >('weapp')
 
 		reply.NotFound.asserts(doc.weapp, 'weapp is not found')
+
 
 		return doc.weapp
 

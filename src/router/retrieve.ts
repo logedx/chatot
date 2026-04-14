@@ -120,8 +120,8 @@ export const user_scope: express.RequestHandler = async function user_scope (req
 		)
 		.select
 		<
-			Required<Pick<
-				user_model.Tm['HydratedDocument'], 'scope'>
+			Required<
+				Pick<user_model.Tm['HydratedDocument'], 'scope'>
 
 			>
 

@@ -93,15 +93,15 @@ export default eslint_config.defineConfig(
 						"arguments": "first"
 					},
 					"FunctionDeclaration": {
-						"parameters": "first"
+						"parameters": "first",
+						"returnType": 0
 					},
 					"FunctionExpression": {
-						"parameters": "first"
+						"parameters": "first",
+						"returnType": 0
 					},
 					"ignoredNodes": [
-						"TSTypeAnnotation",
-						"TSTypeParameterInstantiation",
-						"JSXOpeningElement"
+						"CallExpression > TSTypeParameterInstantiation"
 					],
 					"ImportDeclaration": "first",
 					"ObjectExpression": "first",
@@ -110,15 +110,13 @@ export default eslint_config.defineConfig(
 					"VariableDeclarator": "first"
 				}
 			],
-			"@stylistic/indent-binary-ops": [
-				"error",
-				"tab"
-			],
+			"@stylistic/indent-binary-ops": "off",
 			"@stylistic/key-spacing": [
 				"error",
 				{
 					"align": "colon",
 					"beforeColon": false,
+					"afterColon": true,
 					"mode": "minimum"
 				}
 			],
@@ -157,8 +155,6 @@ export default eslint_config.defineConfig(
 				"warn",
 				{
 					"exceptions": {
-						"ImportAttribute": true,
-						"ImportDeclaration": true,
 						"Property": true,
 						"TSPropertySignature": true
 					}
@@ -379,7 +375,15 @@ export default eslint_config.defineConfig(
 			"@typescript-eslint/no-unnecessary-boolean-literal-compare": "off",
 			"@typescript-eslint/no-unnecessary-condition": "off",
 			"@typescript-eslint/no-unnecessary-type-parameters": "off",
-			"@typescript-eslint/no-unused-vars": "warn",
+			"@typescript-eslint/no-unused-vars": [
+				"warn",
+				{
+					"args": "none",
+					"caughtErrors": "none",
+					"varsIgnorePattern": "^_",
+					"ignoreRestSiblings": true
+				}
+			],
 			"@typescript-eslint/no-useless-constructor": "off",
 			"@typescript-eslint/prefer-function-type": "error",
 			"@typescript-eslint/prefer-optional-chain": "error",
@@ -444,7 +448,12 @@ export default eslint_config.defineConfig(
 			"no-caller": "error",
 			"no-continue": "off",
 			"no-div-regex": "error",
-			"no-duplicate-imports": "error",
+			"no-duplicate-imports": [
+				"error",
+				{ 
+					"allowSeparateTypeImports": true
+				},
+			],
 			"no-eq-null": "error",
 			"no-eval": "error",
 			"no-ex-assign": "off",
