@@ -78,7 +78,7 @@ export const base_behavior_bundle: HandlerBundle = [
 
 	) as express.Handler,
 
-	reply.cors,
+	reply.cors('x-app', 'name', 'model', 'folder'),
 
 	reply.stdio,
 	reply.issue,

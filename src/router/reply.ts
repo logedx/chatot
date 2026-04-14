@@ -172,62 +172,6 @@ export const issue: express.RequestHandler = function issue (req, res, next)
 
 }
 
-/**
- * CORS
- */
-export const cors: express.RequestHandler = function cors (req, res, next)
-{
-	let expose = ['Date']
-
-	let access = req.get('Access-Control-Request-Headers')
-
-	res.set('Access-Control-Allow-Origin', '*')
-	res.set('Access-Control-Allow-Methods', '*')
-	res.set(
-		'Access-Control-Allow-Headers', 'Origin, Content-Type, Accept, Authorization, X-App',
-
-	)
-
-	res.set('Access-Control-Max-Age', '86400')
-	res.set('Access-Control-Expose-Headers', expose.join(', ') )
-
-	res.expose = function (name, value)
-	{
-		let n = name.toLocaleLowerCase()
-
-		if (expose.every(v => v.toLocaleLowerCase() !== n) )
-		{
-			expose.push(name)
-
-		}
-
-		if (detective.is_array(value) )
-		{
-			value = value.join(', ')
-
-		}
-
-
-		res.set(name, value)
-
-		res.set('Access-Control-Expose-Headers', expose.join(', ') )
-
-	}
-
-
-	if (detective.is_required_string(access) )
-	{
-		res.status(204)
-		res.end()
-
-		return
-
-	}
-
-
-	next()
-
-}
 
 /**
  * NotFound
@@ -296,5 +240,108 @@ export const finish: express.ErrorRequestHandler = function finish (e: NodeJS.Er
 
 		)
 
+
+}
+
+
+/**
+ * CORS
+ */
+export function cors (...allow: string[]): express.RequestHandler
+{
+	let map = new Set<string>(
+		allow.map(v => v.toLowerCase() ),
+
+	)
+
+	let filter = (v: string): string[] =>
+	{
+		return v.toLowerCase()
+			.split(',')
+			.map(
+				vv => vv.trim(),
+
+			)
+			.filter(
+				vv => map.has(vv),
+
+			)
+
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-shadow
+	return function cors (req, res, next)
+	{
+		let method = req.method
+
+		let access = req.get('Access-Control-Request-Headers') ?? ''
+
+
+		let allow_ = new Set<string>(
+			[
+				'Origin',
+
+				'Accept',
+				'Hash',
+				'Content-Length',
+				'Content-Type',
+
+				'Authorization',
+
+				...filter(access),
+
+			],
+
+		)
+
+		let expose_ = new Set<string>(['Date'])
+
+
+		res.set('Access-Control-Allow-Origin', '*')
+		res.set('Access-Control-Allow-Methods', '*')
+		res.set('Access-Control-Allow-Headers', Array.from(allow_).join(', ') )
+
+
+		res.set('Access-Control-Max-Age', '86400')
+		res.set('Access-Control-Expose-Headers', Array.from(expose_).join(', ') )
+
+		res.expose = function (name, value)
+		{
+			expose_.add(name.toLowerCase() )
+
+			if (detective.is_array(value) )
+			{
+				value = value.join(', ')
+
+			}
+
+
+			res.set(name, value)
+
+			res.set(
+				'Access-Control-Expose-Headers', Array.from(expose_).join(', '),
+
+			)
+
+		}
+
+
+		if (method.toLowerCase() === 'options'
+			&& detective.is_required_string(access)
+
+		)
+		{
+			res.status(204)
+			res.end()
+
+			return
+
+		}
+
+
+		next()
+
+	}
 
 }
