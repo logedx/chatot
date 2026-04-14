@@ -216,20 +216,14 @@ export class Auspice<T>
 {
 	#v: unknown
 
-	#x: null | Error = null
+	#e: unknown
 
-
-	set value (v: T extends Error ? never : T)
-	{
-		this.#v = v
-
-	}
 
 	get value (): T extends Error ? never : T
 	{
-		if (detective.is_exist(this.#x) )
+		if (detective.is_exist(this.#e) )
 		{
-			throw this.#x
+			throw this.#e
 
 		}
 
@@ -237,38 +231,105 @@ export class Auspice<T>
 
 	}
 
-	get x (): null | Error
+	is_ok (): T extends Promise<unknown> ? Promise<boolean> : boolean
 	{
-		return this.#x
+		type R = T extends Promise<unknown> ? Promise<boolean> : boolean
+
+		if (detective.is_exist(this.#e) )
+		{
+			return false as R
+
+		}
+
+		if (detective.is_promise(this.#v) )
+		{
+			let x = this.#v
+				.then(
+					v =>
+					{
+						if (v instanceof Error)
+						{
+							this.#e = v
+
+						}
+
+						else
+						{
+							this.#v = v
+
+						}
+
+						return true
+
+					},
+
+				)
+				.catch(
+					(e: unknown) =>
+					{
+						this.#e = e
+
+						return false
+
+					},
+
+				)
+
+			return x as R
+
+		}
+
+		return true as R
+
 
 	}
 
-
-	is_ok (): boolean
+	is_error (): T extends Promise<unknown> ? Promise<boolean> : boolean
 	{
-		return detective.is_empty(this.#x)
+		type R = T extends Promise<unknown> ? Promise<boolean> : boolean
+
+		let x = this.is_ok()
+
+		if (detective.is_promise(x) )
+		{
+			return x.then(v => v === false) as R
+
+		}
+
+		return (x === false) as R
 
 	}
 
-	is_error (): boolean
+	unwrap (): [T extends Error ? never : T, T extends Error ? T : never]
 	{
-		return detective.is_exist(this.#x)
+		return [this.#v, this.#e] as [T extends Error ? never : T, T extends Error ? T : never]
 
 	}
-
 
 	call
 	<F extends (...args: any[]) => T> (fn: F, ...params: Parameters<F>): this
 	{
 		try
 		{
-			this.#v = fn(...params)
+			let v = fn(...params)
+
+			if (v instanceof Error)
+			{
+				this.#e = v
+
+			}
+
+			else
+			{
+				this.#v = v
+
+			}
 
 		}
 
 		catch (e)
 		{
-			this.#x = e as Error
+			this.#e = e
 
 		}
 
@@ -276,37 +337,12 @@ export class Auspice<T>
 
 	}
 
-	async over
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-	(..._: T extends Promise<any> ? [] : never): Promise<boolean>
-	{
-		if (this.is_error() )
-		{
-			return true
-
-		}
-
-		try
-		{
-			await this.#v
-
-		}
-
-		catch (e)
-		{
-			this.#x = e as Error
-
-		}
-
-		return this.is_error()
-
-	}
-
 	static call
-	<T, F extends (...args: any[]) => T = (...args: any[]) => T> (fn: F, ...params: Parameters<F>): Auspice<T>
+	<F extends (...args: any[]) => unknown, T = ReturnType<F> > (fn: F, ...params: Parameters<F>): Auspice<T>
 	{
-		return new Auspice<T>().call(fn, ...params)
+		return new Auspice<T>().call(fn as (...args: any[]) => T, ...params)
 
 	}
 
 }
+
