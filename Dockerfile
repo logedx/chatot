@@ -6,7 +6,7 @@
 # ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═╝
 #
 
-FROM node:lts-slim as builder
+FROM node:lts-slim AS builder
 
 # Create app directory
 WORKDIR /app
@@ -15,8 +15,9 @@ WORKDIR /app
 COPY . /app
 
 # If you are building your code for production
-# RUN npm ci --omit=dev
 RUN npm ci --omit=dev
+
+RUN npm audit fix --omit=dev
 
 RUN npm run build
 
@@ -48,11 +49,7 @@ COPY --from=builder /app/node_modules /app/node_modules
 COPY --from=builder /app/README.md /app/README.md
 COPY --from=builder /app/package.json /app/package.json
 
-
-ENV PORT=443 NODE_ENV=production
-
 RUN ls -l /app
-RUN ls -l /app/src
 
 # Set time zone
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
@@ -60,5 +57,7 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 EXPOSE 80
 EXPOSE 443
+
+ENV PORT=443 NODE_ENV=production
 
 CMD [ "node", "--enable-source-maps", "--experimental-specifier-resolution=node", "./bin/www" ]
