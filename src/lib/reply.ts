@@ -137,7 +137,7 @@ export function asserts (e: unknown): asserts e is Exception<i18n.Language>
 
 }
 
-export class Exception<L extends i18n.Language = never> extends Error implements NodeJS.ErrnoException
+export class Exception<L extends i18n.Language = 'en'> extends Error implements NodeJS.ErrnoException
 {
 	#mute = false
 
@@ -165,7 +165,7 @@ export class Exception<L extends i18n.Language = never> extends Error implements
 		}
 		else
 		{
-			super(message.local('en') )
+			super(message.local('en' as L) )
 
 			this.#speech = message
 
@@ -183,7 +183,7 @@ export class Exception<L extends i18n.Language = never> extends Error implements
 
 	}
 
-	local (lang: 'en' | L): string
+	local (lang: L): string
 	{
 		return this.#speech?.local(lang) ?? this.message
 
@@ -241,7 +241,7 @@ export class Exception<L extends i18n.Language = never> extends Error implements
 /**
  * 请求参数有误。
  */
-export class BadRequest<L extends i18n.Language> extends Exception<L>
+export class BadRequest<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'BadRequest'
 
@@ -254,7 +254,7 @@ export class BadRequest<L extends i18n.Language> extends Exception<L>
 /**
  * 当前请求需要用户验证。
  */
-export class Unauthorized<L extends i18n.Language> extends Exception<L>
+export class Unauthorized<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'Unauthorized'
 
@@ -266,7 +266,7 @@ export class Unauthorized<L extends i18n.Language> extends Exception<L>
 /**
  * 服务器已经理解请求，但是拒绝执行它。
  */
-export class Forbidden<L extends i18n.Language> extends Exception<L>
+export class Forbidden<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'Forbidden'
 
@@ -278,7 +278,7 @@ export class Forbidden<L extends i18n.Language> extends Exception<L>
 /**
  * 请求失败，请求所希望得到的资源未被在服务器上发现。
  */
-export class NotFound<L extends i18n.Language> extends Exception<L>
+export class NotFound<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'NotFound'
 
@@ -302,7 +302,7 @@ export class NotFound<L extends i18n.Language> extends Exception<L>
 /**
  * 请求行中指定的请求方法不能被用于请求相应的资源。
  */
-export class MethodNotAllowed<L extends i18n.Language> extends Exception<L>
+export class MethodNotAllowed<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'MethodNotAllowed'
 
@@ -314,7 +314,7 @@ export class MethodNotAllowed<L extends i18n.Language> extends Exception<L>
 /**
  * 请求超时。
  */
-export class RequestTimeout<L extends i18n.Language> extends Exception<L>
+export class RequestTimeout<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'RequestTimeout'
 
@@ -326,7 +326,7 @@ export class RequestTimeout<L extends i18n.Language> extends Exception<L>
 /**
  * 由于和被请求的资源的当前状态之间存在冲突，请求无法完成。
  */
-export class Conflict<L extends i18n.Language> extends Exception<L>
+export class Conflict<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'Conflict'
 
@@ -338,7 +338,7 @@ export class Conflict<L extends i18n.Language> extends Exception<L>
 /**
  * 被请求的资源在服务器上已经不再可用，而且没有任何已知的转发地址。
  */
-export class Gone<L extends i18n.Language> extends Exception<L>
+export class Gone<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'Gone'
 
@@ -351,7 +351,7 @@ export class Gone<L extends i18n.Language> extends Exception<L>
  * 服务器拒绝在没有定义 Content-Length 头的情况下接受请求。
  * 在添加了表明请求消息体长度的有效 Content-Length 头之后，客户端可以再次提交该请求。
  */
-export class Lengthrequired<L extends i18n.Language> extends Exception<L>
+export class Lengthrequired<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'Lengthrequired'
 
@@ -363,7 +363,7 @@ export class Lengthrequired<L extends i18n.Language> extends Exception<L>
 /**
  * 服务器拒绝处理当前请求，因为该请求提交的实体数据大小超过了服务器愿意或者能够处理的范围。
  */
-export class PayloadTooLarge<L extends i18n.Language> extends Exception<L>
+export class PayloadTooLarge<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'PayloadTooLarge'
 
@@ -375,7 +375,7 @@ export class PayloadTooLarge<L extends i18n.Language> extends Exception<L>
 /**
  * 对于当前请求的方法和所请求的资源，请求中提交的实体并不是服务器中所支持的格式，因此请求被拒绝。
  */
-export class UnsupportedMediaType<L extends i18n.Language> extends Exception<L>
+export class UnsupportedMediaType<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'UnsupportedMediaType'
 
@@ -387,7 +387,7 @@ export class UnsupportedMediaType<L extends i18n.Language> extends Exception<L>
 /**
  * 服务器不愿意冒着风险去处理可能重播的请求。
  */
-export class TooEarly<L extends i18n.Language> extends Exception<L>
+export class TooEarly<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'TooEarly'
 
@@ -399,7 +399,7 @@ export class TooEarly<L extends i18n.Language> extends Exception<L>
 /**
  * 用户在给定的时间内发送了太多请求（“限制请求速率”）。
  */
-export class TooManyRequests<L extends i18n.Language> extends Exception<L>
+export class TooManyRequests<L extends i18n.Language = 'en'> extends Exception<L>
 {
 	readonly name = 'TooManyRequests'
 

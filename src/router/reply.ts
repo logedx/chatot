@@ -6,7 +6,7 @@ import * as reply from '../lib/reply.js'
 import * as secret from '../lib/secret.js'
 import * as detective from '../lib/detective.js'
 
-import * as storage_helper from '../i18n/helper/storage.js'
+import * as storage_helper from '../helper/storage.js'
 
 
 const { NODE_ENV } = process.env

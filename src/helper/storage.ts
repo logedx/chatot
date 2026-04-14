@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @stylistic/no-multi-spaces */
-import * as i18n from '../../lib/i18n.js'
+import * as i18n from '../lib/i18n.js'
 
+
+import * as en from '../i18n/en/storage.js'
+import * as zh_cn from '../i18n/zh-cn/storage.js'
 
 
 
@@ -348,4 +351,4 @@ export enum Mongodb
 }
 
 
-export const mongodb = new i18n.Helper(Mongodb)
+export const mongodb = new i18n.Helper(Mongodb, { 'en': en.Mongodb, 'zh-cn': zh_cn.Mongodb })

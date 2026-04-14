@@ -3,10 +3,10 @@ import * as detective from './detective.js'
 
 
 
-export type Language = 'zh-cn'
+export type Language = 'en' | 'zh-cn'
 
 
-export class Speech<L extends Language = never>
+export class Speech<L extends Language = 'en'>
 {
 	#default: string
 
@@ -57,17 +57,18 @@ export class Speech<L extends Language = never>
 
 
 export class Helper
-<T extends object, L extends Language = never>
+<T extends object, L extends Language = 'en'>
 {
 	#map: T
 
 	#lang: Record<string, Record<string, string> >
 
+
 	constructor
 	(
 		map: T,
 		// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-		lang?: { [k in L]?: { [m in keyof T & string]: string } },
+		lang?: { [k in L]: { [m in keyof T & string]: string } },
 
 	)
 	{
@@ -88,7 +89,7 @@ export class Helper
 		for (let [k, v] of Object.entries(this.#lang) )
 		{
 			message.map(
-				k as Exclude<L, void>,
+				k as L,
 
 				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				this.#replace(v[text] ?? '', ...ctx),
