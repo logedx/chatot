@@ -53,8 +53,7 @@ type CryptoPipelinePaddingHandler = (valuve: Buffer) => Buffer
 
 
 type CryptoPipeline = {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	replace(name: string, handler: (...arg: any[]) => any): CryptoPipeline
+	replace(name: string, handler: (...arg: any[]) => unknown): CryptoPipeline
 
 	execute(value: Buffer): Buffer
 

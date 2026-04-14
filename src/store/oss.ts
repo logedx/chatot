@@ -96,7 +96,7 @@ export class OSS
 	static #cache: Record<string, OSS> = {}
 
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	static new (bucket: string, ..._: any[]): OSS
 	{
 		if (detective.is_empty(this.#cache[bucket]) )
@@ -154,8 +154,7 @@ export class Image extends OSS
 {
 	#src: URL
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	#option: Record<string, any> = {}
+	#option: Record<string, unknown> = {}
 
 	get src (): string
 	{

@@ -31,7 +31,6 @@ router.options(
 
 		)
 
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		handler(req, res, next)
 
 	},

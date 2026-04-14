@@ -34,8 +34,7 @@ declare global
 		interface Response
 		{
 			stdio(e: unknown): void
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			issue(fn: () => any): void
+			issue(fn: () => unknown): void
 
 			expose<T extends string>(name: Expose<T>, value: string | string[]): void
 
@@ -149,7 +148,6 @@ export const issue: express.RequestHandler = function issue (req, res, next)
 	{
 		try
 		{
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			let v = fn()
 
 			if (detective.is_promise(v) )

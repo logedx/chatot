@@ -13,8 +13,7 @@ import * as std from '../std.js'
 
 
 function listen
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(port: number): (...arg: any[]) => void
+(port: number): (...arg: unknown[]) => void
 {
 	return function on_listening (this: unknown): void
 	{
@@ -41,8 +40,7 @@ function listen
 }
 
 function error_exit
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(port: number): (...arg: any[]) => never
+(port: number): (e: NodeJS.ErrnoException) => never
 {
 	return function on_error (e: NodeJS.ErrnoException): never
 	{
@@ -116,7 +114,7 @@ async function read_file (name: string): Promise<Buffer>
 
 		console.groupEnd()
 
-		throw new Error(`${name} is not found`)
+		throw new Error(`${name} is not found`, { cause: e })
 
 	}
 

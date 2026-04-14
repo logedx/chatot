@@ -258,7 +258,6 @@ export class Auspice<T>
 
 
 	call
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	<F extends (...args: any[]) => T> (fn: F, ...params: Parameters<F>): this
 	{
 		try
@@ -304,7 +303,6 @@ export class Auspice<T>
 	}
 
 	static call
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	<T, F extends (...args: any[]) => T = (...args: any[]) => T> (fn: F, ...params: Parameters<F>): Auspice<T>
 	{
 		return new Auspice<T>().call(fn, ...params)

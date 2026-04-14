@@ -16,8 +16,7 @@
 				"NODE_ENV": "development"
 			},
 			"runtimeArgs": [
-				"--enable-source-maps",
-				"--loader=ts-node/esm",
+				"--enable-source-maps"
 			],
 			"skipFiles": [
 				"<node_internals>/**"

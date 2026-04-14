@@ -131,16 +131,14 @@ export function is_boolean
 }
 
 export function is_function
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(v: unknown): v is (...args: any[]) => any
+(v: unknown): v is (...args: any[]) => unknown
 {
 	return is_prototype_of_object(v, 'Function')
 
 }
 
 export function is_async_function
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(v: unknown): v is (...args: any[]) => Promise<any>
+(v: unknown): v is (...args: any[]) => Promise<unknown>
 {
 	return is_prototype_of_object(v, 'AsyncFunction')
 
@@ -154,8 +152,7 @@ export function is_array_buffer
 }
 
 export function is_any_function
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(v: unknown): v is (...args: any[]) => any
+(v: unknown): v is (...args: any[]) => unknown
 {
 	return is_function(v) || is_async_function(v)
 

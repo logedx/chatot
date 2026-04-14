@@ -1,24 +1,30 @@
 import eslint from '@eslint/js'
 import stylistic from '@stylistic/eslint-plugin'
 
+import eslint_config from 'eslint/config'
 import typescript_eslint from 'typescript-eslint'
 
 
 
 
-export default typescript_eslint.config(
+export default eslint_config.defineConfig(
 	eslint.configs.recommended,
 	stylistic.configs.recommended,
 
-	...typescript_eslint.configs.strictTypeChecked,
-	...typescript_eslint.configs.stylisticTypeChecked,
+	typescript_eslint.configs.strictTypeChecked,
+	typescript_eslint.configs.stylisticTypeChecked,
+
+
+	{
+		ignores: ['eslint.config.js'],
+
+	},
 
 	{
 		files: ['**/*.ts'],
 
 		languageOptions: {
 			parserOptions: {
-				project: true,
 				projectService: true,
 
 				sourceType: 'module',
@@ -356,6 +362,13 @@ export default typescript_eslint.config(
 			"@typescript-eslint/no-confusing-non-null-assertion": "error",
 			"@typescript-eslint/no-duplicate-type-constituents": "warn",
 			"@typescript-eslint/no-dynamic-delete": "off",
+			"@typescript-eslint/no-explicit-any": [
+				"error",
+				{
+					"fixToUnknown": true,
+					"ignoreRestArgs": true
+				}
+			],
 			"@typescript-eslint/no-extraneous-class": "off",
 			"@typescript-eslint/no-import-type-side-effects": "error",
 			"@typescript-eslint/no-inferrable-types": "error",
@@ -513,7 +526,6 @@ export default typescript_eslint.config(
 				}
 			]
 		}
-
 
 	},
 

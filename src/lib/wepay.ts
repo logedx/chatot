@@ -157,7 +157,6 @@ export class APIv3
 	(
 		name: 'create',
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		listener: (...args: any[]) => void,
 
 	)
@@ -167,8 +166,7 @@ export class APIv3
 	(
 		name: string,
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		listener:(...args: any[]) => any,
+		listener:(...args: any[]) => unknown,
 
 	)
 	: void

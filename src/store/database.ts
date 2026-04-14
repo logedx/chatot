@@ -24,26 +24,29 @@ export type TDocType<T extends object = object> = T
 
 	}
 
-export type TDocTypeOverwrite<T, U extends keyof T> = structure.Overwrite<
-	T,
+export type TDocTypeOverwrite<T, U extends keyof T>
+	= structure.Overwrite<
+		T,
 
-	{ [k in U]-?: T[k] }
+		{ [k in U]-?: T[k] }
 
->
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type TDocTypeSensitiveSelector<T extends Record<string, any>, E extends string = 'id' | 'baseModelName' | 'errors'> = {
-	[k in keyof T]: T[k] extends Types.Array<infer U>
-		? U extends object
-			? `+${k & string}.${keyof structure.GetPartial<Omit<U, E> > & string}`
-			: never
-
-		: T[k] extends object
-			? `+${k & string}.${keyof structure.GetPartial<Omit<T[k], E> > & string}`
-			: never
+	>
 
 
-}
+export type TDocTypeSensitiveSelector
+<T extends Record<string, unknown>, E extends string = 'id' | 'baseModelName' | 'errors'>
+	= {
+		[k in keyof T]: T[k] extends Types.Array<infer U>
+			? U extends object
+				? `+${k & string}.${keyof structure.GetPartial<Omit<U, E> > & string}`
+				: never
+
+			: T[k] extends object
+				? `+${k & string}.${keyof structure.GetPartial<Omit<T[k], E> > & string}`
+				: never
+
+
+	}
 
 
 
@@ -60,37 +63,36 @@ export type TInstanceMethods
 	Q extends object = {},
 
 >
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-{
-	[k in keyof I]: (this: THydratedDocument<T, V, I, Q>, ...args: Parameters<I[k]>) => ReturnType<I[k]>
+	// eslint-disable-next-line @stylistic/indent-binary-ops
+	= {
+		[k in keyof I]: (this: THydratedDocument<T, V, I, Q>, ...args: Parameters<I[k]>) => ReturnType<I[k]>
 
-}
-& {
-	select_sensitive_fields
-	<F extends keyof structure.GetPartial<T> >
-	(this: THydratedDocument<T, V, I, Q>, ...fields: Array<`+${F}`>):
-	Promise<
-		structure.Overwrite<
-			THydratedDocument<T, V, I, Q>,
+	}
+	& {
+		select_sensitive_fields
+		<F extends keyof structure.GetPartial<T> >
+		(this: THydratedDocument<T, V, I, Q>, ...fields: Array<`+${F}`>):
+			Promise<
+				structure.Overwrite<
+					THydratedDocument<T, V, I, Q>,
 
-			Required<Pick<T, F> >
+					Required<Pick<T, F> >
 
-		>
+				>
 
-	>
+			>
 
-	select_sensitive_fields
-	<U extends TDocTypeSensitiveSelector<T> = TDocTypeSensitiveSelector<T> >
-	(this: THydratedDocument<T, V, I, Q>, ...fileds: Array<U[keyof U]>): Promise<THydratedDocument<T, V, I, Q>>
+		select_sensitive_fields
+		<U extends TDocTypeSensitiveSelector<T> = TDocTypeSensitiveSelector<T> >
+		(this: THydratedDocument<T, V, I, Q>, ...fileds: Array<U[keyof U]>): Promise<THydratedDocument<T, V, I, Q>>
 
-	select_every_fields ():
-	Promise<
-		Required< THydratedDocument<T, V, I, Q> >
+		select_every_fields ():
+			Promise<
+				Required< THydratedDocument<T, V, I, Q> >
 
-	>
+			>
 
-}
+	}
 
 
 export type TStaticMethods
@@ -107,16 +109,15 @@ export type TStaticMethods
 	Q extends object = {},
 
 >
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-{
-	[k in keyof S]: (this: TTModel<T, V, I, S, Q>, ...args: Parameters<S[k]>) => ReturnType<S[k]>
+	// eslint-disable-next-line @stylistic/indent-binary-ops
+	= {
+		[k in keyof S]: (this: TTModel<T, V, I, S, Q>, ...args: Parameters<S[k]>) => ReturnType<S[k]>
 
-}
-& {
-	select_every_fields(this: TTModel<T, V, I, S, Q>): Array<`+${keyof T & string}`>
+	}
+	& {
+		select_every_fields(this: TTModel<T, V, I, S, Q>): Array<`+${keyof T & string}`>
 
-}
+	}
 
 
 
@@ -132,15 +133,13 @@ export type THydratedDocument
 	Q extends object = {},
 
 >
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-HydratedDocument<
-	TDocType<T>,
-	V & TInstanceMethods<T, V, I, Q>,
-	Q,
-	V
+	= HydratedDocument<
+		TDocType<T>,
+		V & TInstanceMethods<T, V, I, Q>,
+		Q,
+		V
 
->
+	>
 
 
 export type TSchema
@@ -157,17 +156,15 @@ export type TSchema
 	Q extends object = {},
 
 >
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-Schema<
-	TDocType<T>,
-	TModel<T, V, I, S, Q>,
-	TInstanceMethods<T, V, I, Q>,
-	Q,
-	V,
-	TStaticMethods<T, V, I, S, Q>
+	= Schema<
+		TDocType<T>,
+		TModel<T, V, I, S, Q>,
+		TInstanceMethods<T, V, I, Q>,
+		Q,
+		V,
+		TStaticMethods<T, V, I, S, Q>
 
->
+	>
 
 
 export type TModel
@@ -185,17 +182,15 @@ export type TModel
 
 
 >
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-Model<
-	TDocType<T>,
-	Q,
-	TInstanceMethods<T, V, I, Q>,
-	V,
-	THydratedDocument<T, V, I, Q>,
-	TSchema<T, V, I, S, Q>
+	= Model<
+		TDocType<T>,
+		Q,
+		TInstanceMethods<T, V, I, Q>,
+		V,
+		THydratedDocument<T, V, I, Q>,
+		TSchema<T, V, I, S, Q>
 
->
+	>
 
 
 export type TTModel
@@ -213,9 +208,7 @@ export type TTModel
 
 
 >
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-TModel<T, V, I, S, Q> & TStaticMethods<T, V, I, S, Q>
+	= TModel<T, V, I, S, Q> & TStaticMethods<T, V, I, S, Q>
 
 
 export type Tm
@@ -232,31 +225,29 @@ export type Tm
 	Q extends object = {},
 
 >
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-{
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	DocType         : TDocType<T>
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	HydratedDocument: THydratedDocument<T, V, I, Q>
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	Model           : TTModel<T, V, I, S, Q>
+	= {
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		DocType         : TDocType<T>
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		HydratedDocument: THydratedDocument<T, V, I, Q>
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		Model           : TTModel<T, V, I, S, Q>
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	TVirtuals       : V
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	TQueryHelpers   : Q
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	TInstanceMethods: TInstanceMethods<T, V, I, Q>
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	TStaticMethods  : TStaticMethods<T, V, I, S, Q>
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	TSchema         : TSchema<T, V, I, S, Q>
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	TModel          : TModel<T, V, I, S, Q>
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		TVirtuals       : V
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		TQueryHelpers   : Q
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		TInstanceMethods: TInstanceMethods<T, V, I, Q>
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		TStaticMethods  : TStaticMethods<T, V, I, S, Q>
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		TSchema         : TSchema<T, V, I, S, Q>
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		TModel          : TModel<T, V, I, S, Q>
 
 
-}
+	}
 
 
 mongoose.plugin(

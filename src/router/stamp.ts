@@ -177,7 +177,7 @@ router.options(
 		let { value } = req.params
 		let { weapp } = req.survive_token!
 
-		let doc = await stamp_model.default.from(value)
+		let doc = await stamp_model.default.from(value as string)
 
 		let uri = await media_model.default.safe_access(weapp, doc.src)
 

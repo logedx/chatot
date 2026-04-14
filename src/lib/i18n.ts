@@ -76,7 +76,7 @@ export class Helper
 
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 	#translate (text: string, ...ctx: any[]): Speech<L>
 	{
 		let message = new Speech<L>(
@@ -101,7 +101,7 @@ export class Helper
 
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 	#replace (text: string, ...ctx: any[]): string
 	{
 		return text.replace(
@@ -114,7 +114,7 @@ export class Helper
 
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 	t (text: keyof T, ...ctx: any[]): Speech<L>
 	{
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -122,7 +122,7 @@ export class Helper
 
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 	n (text: number, ...ctx: any[]): Speech<L>
 	{
 		let m = `${text}`

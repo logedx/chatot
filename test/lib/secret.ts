@@ -1,15 +1,16 @@
 import * as chai from 'chai'
+import * as mocha from 'mocha'
 
 import * as secret from '../../src/lib/secret.js'
 
 
 
-describe(
+mocha.describe(
 	'lib: secret.hex',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should return a random hex string',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -31,12 +32,12 @@ describe(
 
 
 
-describe(
+mocha.describe(
 	'lib: secret.AES_256_CBC',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be able to encrypt and decrypt correctly',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -85,12 +86,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: secret.AES_256_CCM',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be able to encrypt and decrypt correctly',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -138,12 +139,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: secret.AES_256_GCM',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be able to encrypt and decrypt correctly',
 
 			// eslint-disable-next-line @typescript-eslint/require-await

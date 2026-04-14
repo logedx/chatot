@@ -12,33 +12,29 @@ export type InferReagent<V, T> = (v: V) => T | Promise<T>
 
 export type InferAlias
 <T extends object, V extends keyof T>
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-Exclude<
-	keyof {
-		[k in keyof T as T[k] extends T[V] ? k : never]: T[k]
+	= Exclude<
+		keyof {
+			[k in keyof T as T[k] extends T[V] ? k : never]: T[k]
 
-	},
+		},
 
-	V
+		V
 
->
+	>
 
 export type InferOption
 <T extends object = object, K extends keyof T = keyof T>
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-{
-	rename?: K
-	alias? : InferAlias<T, K>
+	= {
+		rename?: K
+		alias? : InferAlias<T, K>
 
-	cover?   : true
-	optional?: true
+		cover?   : true
+		optional?: true
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	when?    : boolean | Promise<boolean> | ( (...args: any[]) => Promise<boolean>)
 
-}
+		when?    : boolean | Promise<boolean> | ( (...args: any[]) => Promise<boolean>)
+
+	}
 
 export type InferOptiond
 <
@@ -50,12 +46,10 @@ export type InferOptiond
 	O = Pick<InferOption<T, K>, 'alias' | 'cover' | 'when'>,
 
 >
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-K extends P
-	? [chain: C, option?: O]
-	// eslint-disable-next-line @stylistic/type-named-tuple-spacing
-	: [chain: C, option : O & { rename: K } ]
+	= K extends P
+		? [chain: C, option?: O]
+			// eslint-disable-next-line @stylistic/type-named-tuple-spacing
+		: [chain: C, option : O & { rename: K } ]
 
 
 export type PagerSuspect = {
@@ -73,12 +67,10 @@ export type Keyword
 	L = structure.GetUnionLastElement<T>,
 
 >
-// eslint-disable-next-line @stylistic/operator-linebreak
-=
-[T] extends [never]
-	? []
-	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-	: [...Keyword<Exclude<T, L> >, { [k in L as string]: RegExp }]
+	= [T] extends [never]
+		? []
+		// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+		: [...Keyword<Exclude<T, L> >, { [k in L as string]: RegExp }]
 
 export type BetweenQuery<T extends number | Date> = null | { $gte?: T, $lte?: T }
 
@@ -137,6 +129,7 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 
 		let alias = option?.alias
+
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		let rename = option?.rename
 
@@ -223,8 +216,7 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async #call (fn: (...args: any[]) => Promise<any>): Promise<void>
+	async #call (fn: (...args: any[]) => Promise<unknown>): Promise<void>
 	{
 		try
 		{
@@ -365,8 +357,7 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 	<K extends keyof T, V = Exclude<T[K], undefined> > (
 		key: K,
 
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		fn?: (v: V) => any,
+		fn?: (v: V) => unknown,
 
 	)
 	: Promise<void>
@@ -433,8 +424,7 @@ export class Clue
 {
 	#message: string | i18n.Speech = ''
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	#reagent: InferReagent<any, any>
+	#reagent: InferReagent<unknown, unknown>
 
 
 	#signed?: PropertyKey

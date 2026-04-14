@@ -60,7 +60,7 @@ export async function create
 	let doc = await media_model.default
 		.create(
 			{
-				weapp,
+				weapp: weapp._id,
 
 				mime  : option.mime,
 				bucket: weapp.bucket, folder: option.folder,

@@ -287,7 +287,9 @@ export function encrypt
  */
 export function decrypt (cypher: string): Mailer
 {
+	// eslint-disable-next-line no-useless-assignment
 	let payload: unknown = null
+
 	let plain = aes.decrypt_with_pkcs7(cypher)
 
 	try

@@ -1,16 +1,17 @@
 import * as chai from 'chai'
+import * as mocha from 'mocha'
 import * as sinon from 'sinon'
 
 import * as reply from '../../src/lib/reply.js'
 
 
 
-describe(
+mocha.describe(
 	'lib: reply.stdio',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should write some messages to console',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -52,12 +53,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.Exception',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -81,12 +82,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.BadRequest',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -112,12 +113,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.Unauthorized',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -143,12 +144,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.Forbidden',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -174,12 +175,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.NotFound',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -205,12 +206,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.MethodNotAllowed',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -236,12 +237,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.RequestTimeout',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -267,12 +268,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.Conflict',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -298,12 +299,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.Gone',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -329,12 +330,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.Lengthrequired',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -360,12 +361,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.PayloadTooLarge',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -391,12 +392,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.UnsupportedMediaType',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -422,12 +423,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.TooEarly',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await
@@ -453,12 +454,12 @@ describe(
 )
 
 
-describe(
+mocha.describe(
 	'lib: reply.TooManyRequests',
 
 	function ()
 	{
-		it(
+		mocha.it(
 			'should be a Error from Exception',
 
 			// eslint-disable-next-line @typescript-eslint/require-await

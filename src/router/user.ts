@@ -104,7 +104,7 @@ router.post(
 			}
 
 			user = await user_model.default.create(
-				{ weapp, scope, wxopenid: wx_session.openid, wxsession: wx_session.value },
+				{ weapp: weapp._id, scope, wxopenid: wx_session.openid, wxsession: wx_session.value },
 
 			)
 
