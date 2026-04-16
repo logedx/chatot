@@ -9,7 +9,6 @@ import * as structure from '../lib/structure.js'
 import * as media_model from '../model/media.js'
 import * as stamp_model from '../model/stamp.js'
 
-import * as media_router from './media.js'
 import * as retrieve_router from './retrieve.js'
 
 
@@ -123,15 +122,23 @@ router.post(
 
 		)
 
-		let media = await media_router.create(
-			weapp, unlimited.body, { name: 'src', model: 'stamp', mime: 'image/png', folder: '/stamp' },
+		let media = await media_model.default
+			.safe_create(
+				weapp,
 
-		)
+				{ name: 'src', model: 'stamp', mime: 'image/png', folder: '/stamp' },
 
-		let doc = await stamp_model.default.create(
-			{ src: media.src, value: suspect.get('value'), ...suspect.get('mailer') },
+			)
+			.then(
+				v => v.safe_push(unlimited.body),
 
-		)
+			)
+
+		let doc = await stamp_model.default
+			.create(
+				{ src: media.src, value: suspect.get('value'), ...suspect.get('mailer') },
+
+			)
 
 
 		let uri = await media.safe_access()

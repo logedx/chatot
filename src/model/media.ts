@@ -26,15 +26,15 @@ export type Tm = database.Tm<
 	{
 		weapp: Types.ObjectId
 
-		mime: string
-		size: number
-
 		store : 'alioss'
 		bucket: string
 		folder: string
 
-		src : string
+		mime: string
+		size: number
 		hash: string
+
+		src : string
 
 		linker: Types.Array<
 			{
@@ -59,9 +59,20 @@ export type Tm = database.Tm<
 	{
 		seize(): string
 
+		goal(this: Tm['HydratedDocument'], expires?: number): Promise<URL>
+
 		to_image(expires?: number): oss.Image
 
-		safe_push(body: stream.Readable): Promise<Tm['HydratedDocument']>
+		safe_push(
+			body: stream.Readable,
+
+			options?: {
+				filename?: string
+
+			},
+
+		)
+		:	Promise<Tm['HydratedDocument']>
 
 		safe_delete(): Promise<void>
 
@@ -70,6 +81,24 @@ export type Tm = database.Tm<
 	},
 
 	{
+		safe_create
+		(
+			weapp: weapp_model.Tm['HydratedDocument'],
+
+			options: {
+				name : string
+				model: string
+
+				folder: string
+
+				mime : string
+				hash?: string
+
+			}
+
+		)
+		:	Promise<Tm['HydratedDocument']>
+
 		safe_delete
 		(weapp: Types.ObjectId, ...src: string[])
 		: Promise<
@@ -87,7 +116,7 @@ export type Tm = database.Tm<
 			name: string,
 			model: string,
 
-			query: { hash: string } | { src: string }
+			query: { folder: string, hash: string } | { src: string }
 
 		)
 		: Promise<null | Tm['HydratedDocument']>
@@ -108,6 +137,63 @@ export type TPopulatePaths = {
 
 const drive = await database.Mongodb.default()
 
+
+class SizeTracking extends stream.Transform implements stream.Transform
+{
+	#hash = crypto.createHash('md5')
+
+	#value = 0
+
+	get hash (): string
+	{
+		return this.#hash.digest('hex')
+
+	}
+
+	get value (): number
+	{
+		return this.#value
+
+	}
+
+	_transform
+	(
+		chunk: unknown,
+		encoding: BufferEncoding,
+		callback: stream.TransformCallback,
+
+	)
+	: void
+	{
+		if (chunk instanceof Buffer)
+		{
+			this.#hash.update(chunk)
+			this.#value = this.#value + chunk.byteLength
+
+		}
+
+		else if (detective.is_array_buffer(chunk) )
+		{
+			this.#hash.update(chunk as unknown as Buffer)
+			this.#value = this.#value + chunk.byteLength
+
+		}
+
+		else if (detective.is_blob(chunk) )
+		{
+			this.#hash.update(chunk as unknown as Buffer)
+			this.#value = this.#value + chunk.size
+
+		}
+
+		this.push(chunk)
+
+		callback()
+
+	}
+
+
+}
 
 
 export class Secret extends String
@@ -277,23 +363,6 @@ export const schema: Tm['TSchema'] = new Schema
 
 		},
 
-		mime: {
-			type     : String,
-			required : true,
-			lowercase: true,
-			trim     : true,
-
-		},
-
-		size: {
-			type    : Number,
-			required: true,
-			min     : 0,
-			default : 0,
-
-		},
-
-
 		store: {
 			type    : String,
 			required: true,
@@ -321,6 +390,29 @@ export const schema: Tm['TSchema'] = new Schema
 		},
 
 
+		mime: {
+			type     : String,
+			required : true,
+			lowercase: true,
+			trim     : true,
+
+		},
+
+		size: {
+			type    : Number,
+			required: true,
+			min     : 0,
+			default : 0,
+
+		},
+
+		hash: {
+			type : String,
+			index: true,
+			trim : true,
+
+		},
+
 		src: {
 			type  : String,
 			unique: true,
@@ -332,14 +424,6 @@ export const schema: Tm['TSchema'] = new Schema
 				return Secret.cast(v)
 
 			},
-
-		},
-
-		hash: {
-			type  : String,
-			unique: true,
-			sparse: true,
-			trim  : true,
 
 		},
 
@@ -380,6 +464,28 @@ export const schema: Tm['TSchema'] = new Schema
 )
 
 
+schema.index(
+	{ weapp: 1, folder: 1 },
+
+)
+
+schema.index(
+	{ weapp: 1, folder: 1, hash: 1 },
+
+	{
+		unique: true,
+
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		partialFilterExpression: {
+			hash: { $exists: true },
+
+		},
+
+	},
+
+)
+
+
 schema.virtual('filename').get(
 	function (): Tm['TVirtuals']['filename']
 	{
@@ -394,7 +500,7 @@ schema.virtual('pathname').get(
 	{
 		if (detective.is_empty(this.src) )
 		{
-			return ''
+			return this.seize()
 
 		}
 
@@ -414,9 +520,49 @@ schema.method(
 	function ()
 	{
 		let name = Date.now().toString(36)
+
 		let extension = mime_types.extension(this.mime)
 
 		return path.join(this.folder, `${name}.${extension}`).replace(/\\/g, '/')
+
+	},
+
+)
+
+schema.method(
+	'goal',
+
+	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+	<Tm['TInstanceMethods']['goal']>
+	async function (expires = 300)
+	{
+		if (detective.is_required_string(this.src) )
+		{
+			throw new reply.BadRequest('src is exist')
+
+		}
+
+		if (detective.is_hex_string(this.hash) === false)
+		{
+			throw new reply.BadRequest('invalid hash')
+
+		}
+
+
+		let doc = await this.populate<TPopulatePaths>('weapp')
+
+		let src = doc.weapp.to_oss()
+			.sign(
+				this.pathname, { expires },
+
+			)
+
+		await this.updateOne(
+			{ src: src.href },
+
+		)
+
+		return src
 
 	},
 
@@ -439,77 +585,44 @@ schema.method(
 
 )
 
-
 schema.method(
 	'safe_push',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<Tm['TInstanceMethods']['safe_push']>
-	async function (body)
+	async function (body, options)
 	{
-		class SizeTrackingStream extends stream.Transform implements stream.Transform
+		let size = new SizeTracking()
+
+		let headers: Record<string, string> = {}
+
+		if (detective.is_required_string(options?.filename) )
 		{
-			#hash = crypto.createHash('md5')
+			let disposition = [
+				'attachment',
 
-			#value = 0
+				`filename="${options.filename}"`,
+				`filename*=UTF-8''${encodeURIComponent(options.filename)}`,
 
-			get hash (): string
-			{
-				return this.#hash.digest('hex')
+			]
 
-			}
-
-			get value (): number
-			{
-				return this.#value
-
-			}
-
-			_transform
-			(
-				chunk: unknown,
-				encoding: BufferEncoding,
-				callback: stream.TransformCallback,
-
-			)
-			: void
-			{
-				if (chunk instanceof Buffer)
-				{
-					this.#hash.update(chunk)
-					this.#value = this.#value + chunk.byteLength
-
-				}
-
-				else if (detective.is_array_buffer(chunk) )
-				{
-					this.#hash.update(chunk as unknown as Buffer)
-					this.#value = this.#value + chunk.byteLength
-
-				}
-
-				else if (detective.is_blob(chunk) )
-				{
-					this.#hash.update(chunk as unknown as Buffer)
-					this.#value = this.#value + chunk.size
-
-				}
-
-				this.push(chunk)
-
-				callback()
-
-			}
+			headers['Content-Disposition'] = disposition.join('; ')
 
 		}
-
-		let size = new SizeTrackingStream()
 
 		let doc = await this.populate<TPopulatePaths>('weapp')
 
 		let result = await doc.weapp.to_oss()
 			.append(
-				this.seize(), body.pipe(size), { mime: this.mime },
+				this.pathname,
+
+				body.pipe(size),
+
+				{
+					headers,
+					mime: this.mime,
+
+				},
 
 			)
 
@@ -518,20 +631,9 @@ schema.method(
 
 		this.src = result.url
 
-		try
-		{
-			return await this.save()
+		await this.save()
 
-		}
-
-		catch (e)
-		{
-			await this.deleteOne()
-
-			throw e
-
-		}
-
+		return this
 
 	},
 
@@ -579,6 +681,53 @@ schema.method(
 
 )
 
+
+schema.static<'safe_create'>(
+	'safe_create',
+
+	async function (weapp, option)
+	{
+		if (detective.is_required_string(option.hash) )
+		{
+			let doc = await this.safe_to_link(
+				option.name,
+				option.model,
+
+				{ folder: option.folder, hash: option.hash },
+
+			)
+
+			if (detective.is_exist(doc) )
+			{
+				return doc
+
+			}
+
+		}
+
+
+		return this.create(
+			{
+				weapp: weapp._id,
+
+				bucket: weapp.bucket,
+				folder: option.folder,
+
+				mime: option.mime,
+				hash: option.hash,
+
+				linker: [
+					{ name: option.name, model: option.model },
+
+				],
+
+			},
+
+		)
+
+	},
+
+)
 
 schema.static<'safe_delete'>(
 	'safe_delete',
