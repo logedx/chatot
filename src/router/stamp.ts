@@ -9,7 +9,6 @@ import * as structure from '../lib/structure.js'
 import * as media_model from '../model/media.js'
 import * as stamp_model from '../model/stamp.js'
 
-import * as media_router from './media.js'
 import * as retrieve_router from './retrieve.js'
 
 
@@ -98,7 +97,8 @@ router.post(
 
 		}
 
-		let weapp = await req.deposit_token!.to_weapp()
+		let weapp = await req.deposit_token!
+			.to_weapp()
 
 		let suspect = surmise.capture<Suspect>(req.body)
 
@@ -118,23 +118,31 @@ router.post(
 		)
 
 
+		let oss = weapp.to_oss()
+
 		let unlimited = await weapp.to_unlimited(
 			suspect.get('path'), suspect.get('value'),
 
 		)
 
-		let media = await media_router.create(
-			weapp, unlimited.body, { name: 'src', model: 'stamp', mime: 'image/png', folder: '/stamp' },
+		let media = await media_model.default
+			.safe_create_(
+				oss,
 
-		)
+				unlimited.body,
 
-		let doc = await stamp_model.default.create(
-			{ src: media.src, value: suspect.get('value'), ...suspect.get('mailer') },
+				{ mime: 'image/png', folder: '/stamp' },
 
-		)
+			)
+
+		let doc = await stamp_model.default
+			.create(
+				{ src: media.src, value: suspect.get('value'), ...suspect.get('mailer') },
+
+			)
 
 
-		let uri = await media.safe_access()
+		let uri = media.safe_access(oss)
 
 		res.expose(
 			'X-Access-URI', uri.href,
@@ -175,12 +183,15 @@ router.options(
 	async function query (req, res)
 	{
 		let { value } = req.params
-		let { weapp } = req.survive_token!
 
-		let doc = await stamp_model.default.from(value as string)
+		let weapp = await req.survive_token!
+			.to_weapp()
 
-		let uri = await media_model.default.safe_access(weapp, doc.src)
+		let doc = await stamp_model.default
+			.from(value as string)
 
+
+		let uri = weapp.to_oss().sign(doc.src)
 
 		res.expose(
 			'X-Access-URI', uri.href,
@@ -222,9 +233,12 @@ router.get(
 	async function retrieve (req, res)
 	{
 		let doc = req.stamp!
-		let { weapp } = req.survive_token!
 
-		let uri = await media_model.default.safe_access(weapp, doc.src)
+		let weapp = await req.survive_token!
+			.to_weapp()
+
+
+		let uri = weapp.to_oss().sign(doc.src)
 
 		res.expose(
 			'X-Access-URI', uri.href,

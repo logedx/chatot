@@ -650,6 +650,15 @@ export class Text
 		)
 
 
+	static is_hex = Clue
+		.infer<string>(
+			'is not a hex string',
+
+			detective.is_hex_string,
+
+		)
+
+
 	static is_time = Clue.infer<string>(
 		'is not a time string',
 
@@ -711,6 +720,14 @@ export class Text
 			'is not a dirname string',
 
 			detective.is_dirname_string,
+
+		)
+
+	static is_filename = Clue
+		.infer<string>(
+			'is not a filename string',
+
+			detective.is_filename_string,
 
 		)
 

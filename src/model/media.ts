@@ -1,13 +1,9 @@
 /**
  * 媒体模型
  */
-import path from 'node:path'
-import crypto from 'node:crypto'
 import stream from 'node:stream'
 
-import mime_types from 'mime-types'
-
-import { Schema, Types, SchemaType } from 'mongoose'
+import { Schema, SchemaType } from 'mongoose'
 
 
 import * as reply from '../lib/reply.js'
@@ -24,27 +20,16 @@ import * as weapp_model from './weapp.js'
 
 export type Tm = database.Tm<
 	{
-		weapp: Types.ObjectId
+		store: 'alioss'
 
-		mime: string
-		size: number
-
-		store : 'alioss'
 		bucket: string
 		folder: string
 
-		src : string
+		mime: string
+		size: number
 		hash: string
 
-		linker: Types.Array<
-			{
-				name : string
-				model: string
-
-			}
-
-		>
-
+		src : string
 
 	},
 
@@ -57,40 +42,55 @@ export type Tm = database.Tm<
 
 
 	{
-		seize(): string
-
 		to_image(expires?: number): oss.Image
 
-		safe_push(body: stream.Readable): Promise<Tm['HydratedDocument']>
+		safe_delete(oss: oss.OSS): Promise<void>
 
-		safe_delete(): Promise<void>
-
-		safe_access(expires?: number): Promise<URL>
+		safe_access(oss: oss.OSS, expires?: number): URL
 
 	},
 
 	{
-		safe_delete
-		(weapp: Types.ObjectId, ...src: string[])
-		: Promise<
-			Array<
-				PromiseSettledResult<void>
-
-			>
-
-		>
-
-		safe_access(weapp: Types.ObjectId, src: string, expires?: number): Promise<URL>
-
-		safe_to_link
+		safe_create
 		(
-			name: string,
-			model: string,
+			oss: oss.OSS,
 
-			query: { hash: string } | { src: string }
+			option: {
+				src: string
+
+				folder: string
+
+				mime: string
+				size: number
+				hash: string
+
+				filename?: string
+
+
+			}
 
 		)
-		: Promise<null | Tm['HydratedDocument']>
+		:	Promise<Tm['HydratedDocument']>
+
+		safe_create_
+		(
+			oss: oss.OSS,
+			data: stream.Readable,
+
+			option: {
+				folder: string
+
+				mime     : string
+				filename?: string
+
+
+			}
+
+		)
+		:	Promise<Tm['HydratedDocument']>
+
+		safe_delete
+		(oss: oss.OSS, ...src: string[]): Promise< Array< PromiseSettledResult<void> > >
 
 	}
 
@@ -107,7 +107,6 @@ export type TPopulatePaths = {
 
 
 const drive = await database.Mongodb.default()
-
 
 
 export class Secret extends String
@@ -147,13 +146,13 @@ export class Secret extends String
 
 	}
 
-	async safe_access (expires = 60): Promise<string>
+	async safe_access (o: oss.OSS, expires = 60): Promise<string>
 	{
 		try
 		{
 			let doc = await this.track()
 
-			let uri = await doc.safe_access(expires)
+			let uri = await doc.safe_access(o, expires)
 
 			return uri.href
 
@@ -223,9 +222,9 @@ class SecretSchemaType extends SchemaType
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	static schemaName: 'Secret'
 
-	constructor (_path: string, options: object)
+	constructor (_path: string, option: object)
 	{
-		super(_path, options, 'SecretSchemaType')
+		super(_path, option, 'SecretSchemaType')
 
 		this.select(false)
 
@@ -269,31 +268,6 @@ export const schema: Tm['TSchema'] = new Schema
 >
 (
 	{
-		weapp: {
-			type    : Schema.Types.ObjectId,
-			ref     : () => weapp_model.default,
-			index   : true,
-			required: true,
-
-		},
-
-		mime: {
-			type     : String,
-			required : true,
-			lowercase: true,
-			trim     : true,
-
-		},
-
-		size: {
-			type    : Number,
-			required: true,
-			min     : 0,
-			default : 0,
-
-		},
-
-
 		store: {
 			type    : String,
 			required: true,
@@ -321,6 +295,29 @@ export const schema: Tm['TSchema'] = new Schema
 		},
 
 
+		mime: {
+			type     : String,
+			required : true,
+			lowercase: true,
+			trim     : true,
+
+		},
+
+		size: {
+			type    : Number,
+			required: true,
+			min     : 0,
+			default : 0,
+
+		},
+
+		hash: {
+			type : String,
+			index: true,
+			trim : true,
+
+		},
+
 		src: {
 			type  : String,
 			unique: true,
@@ -335,46 +332,30 @@ export const schema: Tm['TSchema'] = new Schema
 
 		},
 
-		hash: {
-			type  : String,
-			unique: true,
-			sparse: true,
-			trim  : true,
+
+	},
+
+
+)
+
+
+schema.index(
+	{ bucket: 1, folder: 1 },
+
+)
+
+schema.index(
+	{ bucket: 1, folder: 1, hash: 1 },
+
+	{
+		unique: true,
+
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		partialFilterExpression: {
+			hash: { $exists: true },
 
 		},
 
-		linker: [
-			{
-				name: {
-					type     : String,
-					required : true,
-					lowercase: true,
-					trim     : true,
-
-				},
-
-				model: {
-					type    : String,
-					required: true,
-					trim    : true,
-					validate (v: string): boolean
-					{
-						let k = v.toLowerCase()
-
-						let name = drive.modelNames()
-
-						return name.some(
-							vv => vv.toLowerCase() === k,
-
-						)
-
-					},
-
-				},
-
-			},
-
-		],
 	},
 
 )
@@ -398,29 +379,12 @@ schema.virtual('pathname').get(
 
 		}
 
-		return new URL(this.src)
-			.pathname.replace(/\\/g, '/')
+		return new URL(this.src).pathname.replace(/\\/g, '/')
 
 	},
 
 )
 
-
-schema.method(
-	'seize',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['seize']>
-	function ()
-	{
-		let name = Date.now().toString(36)
-		let extension = mime_types.extension(this.mime)
-
-		return path.join(this.folder, `${name}.${extension}`).replace(/\\/g, '/')
-
-	},
-
-)
 
 schema.method(
 	'to_image',
@@ -439,117 +403,14 @@ schema.method(
 
 )
 
-
-schema.method(
-	'safe_push',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['safe_push']>
-	async function (body)
-	{
-		class SizeTrackingStream extends stream.Transform implements stream.Transform
-		{
-			#hash = crypto.createHash('md5')
-
-			#value = 0
-
-			get hash (): string
-			{
-				return this.#hash.digest('hex')
-
-			}
-
-			get value (): number
-			{
-				return this.#value
-
-			}
-
-			_transform
-			(
-				chunk: unknown,
-				encoding: BufferEncoding,
-				callback: stream.TransformCallback,
-
-			)
-			: void
-			{
-				if (chunk instanceof Buffer)
-				{
-					this.#hash.update(chunk)
-					this.#value = this.#value + chunk.byteLength
-
-				}
-
-				else if (detective.is_array_buffer(chunk) )
-				{
-					this.#hash.update(chunk as unknown as Buffer)
-					this.#value = this.#value + chunk.byteLength
-
-				}
-
-				else if (detective.is_blob(chunk) )
-				{
-					this.#hash.update(chunk as unknown as Buffer)
-					this.#value = this.#value + chunk.size
-
-				}
-
-				this.push(chunk)
-
-				callback()
-
-			}
-
-		}
-
-		let size = new SizeTrackingStream()
-
-		let doc = await this.populate<TPopulatePaths>('weapp')
-
-		let result = await doc.weapp.to_oss()
-			.append(
-				this.seize(), body.pipe(size), { mime: this.mime },
-
-			)
-
-		this.size = size.value
-		this.hash = size.hash
-
-		this.src = result.url
-
-		try
-		{
-			return await this.save()
-
-		}
-
-		catch (e)
-		{
-			await this.deleteOne()
-
-			throw e
-
-		}
-
-
-	},
-
-
-)
-
 schema.method(
 	'safe_delete',
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<Tm['TInstanceMethods']['safe_delete']>
-	async function ()
+	async function (o)
 	{
-		let doc = await this.populate<TPopulatePaths>('weapp')
-
-		let store = doc.weapp.to_oss()
-
-		await store.delete(this.pathname)
+		await o.delete(this.pathname)
 
 		await this.deleteOne()
 
@@ -563,15 +424,9 @@ schema.method(
 
 	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 	<Tm['TInstanceMethods']['safe_access']>
-	async function (expires = 60)
+	function (o, expires = 60)
 	{
-		let doc = await this.populate<TPopulatePaths>('weapp')
-
-		return doc.weapp.to_oss()
-			.sign(
-				this.pathname, { expires },
-
-			)
+		return o.sign(this.pathname, { expires })
 
 
 	},
@@ -579,87 +434,108 @@ schema.method(
 
 )
 
+
+schema.static<'safe_create'>(
+	'safe_create',
+
+	async function (o, option)
+	{
+		let count = await this.countDocuments(
+			{ bucket: o.bucket, folder: option.folder, hash: option.hash },
+
+		)
+
+		if (count > 0)
+		{
+			// eslint-disable-next-line @typescript-eslint/no-floating-promises
+			o.delete(option.src)
+
+			throw new reply.BadRequest('file already exists')
+
+		}
+
+		return this.create(
+			{
+				bucket: o.bucket,
+				folder: option.folder,
+
+				mime: option.mime,
+				hash: option.hash,
+
+				src: await o.fasten(option.src, option.filename),
+
+			},
+
+		)
+
+	},
+
+)
+
+schema.static<'safe_create_'>(
+	'safe_create_',
+
+	async function (o, data, option)
+	{
+		let pathname = oss.OSS.goal(option.folder, option.mime)
+
+		let cache = await o.cache(
+			pathname,
+
+			data,
+
+			{
+				mime   : option.mime,
+				headers: oss.OSS.ensure(option.filename),
+
+			},
+
+		)
+
+
+		return this.safe_create(
+			o,
+
+			{
+				...option,
+
+				hash: cache.hash,
+				size: cache.size,
+
+				src: cache.pathname,
+
+			},
+
+		)
+
+	},
+
+)
 
 schema.static<'safe_delete'>(
 	'safe_delete',
 
-	async function (weapp, ...src)
+	function (o, ...src)
 	{
-		src = src.map(
-			v =>
+		let p = src.map(
+			async v =>
 			{
-				let uri = new URL(v)
+				let doc = await this.deleteOne(
+					{ bucket: o.bucket, src: Secret.cast(v) },
 
-				uri.search = ''
+				)
 
-				return uri.href
+				if (doc.deletedCount > 0)
+				{
+					await o.delete(v)
+
+				}
 
 			},
-
-		)
-
-		let doc = await this.find(
-			{ weapp, src },
-
-		)
-
-		let p = doc.map(
-			v => v.safe_delete(),
 
 		)
 
 		return Promise.allSettled(p)
-
-	},
-
-
-)
-
-schema.static<'safe_access'>(
-	'safe_access',
-
-	async function (weapp, src, expires = 60)
-	{
-		let doc = await this.findOne(
-			{ weapp, src },
-
-		)
-
-		reply.NotFound.asserts(doc, 'media is not found')
-
-		return doc.safe_access(expires)
-
-	},
-
-
-)
-
-schema.static<'safe_to_link'>(
-	'safe_to_link',
-
-	async function (name, model, query)
-	{
-		let doc = await this.findOne(query)
-
-		if (detective.is_empty(doc) )
-		{
-			return null
-
-		}
-
-		await doc.updateOne(
-			{
-				// eslint-disable-next-line @typescript-eslint/naming-convention
-				$addToSet: {
-					linker: { name: name.toLowerCase(), model: model.toLowerCase() },
-
-				},
-
-			},
-
-		)
-
-		return doc
 
 	},
 

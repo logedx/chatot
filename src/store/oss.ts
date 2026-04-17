@@ -1,5 +1,9 @@
+import crypto from 'node:crypto'
+import stream from 'node:stream'
+
 import config from 'config'
 import alioss from 'ali-oss'
+import mime_types from 'mime-types'
 
 import * as reply from '../lib/reply.js'
 import * as detective from '../lib/detective.js'
@@ -14,11 +18,88 @@ const aliopen_access_key_secret = config.get<string>('aliopen.secret_access_key'
 
 
 
+export class SizeTracking extends stream.Transform implements stream.Transform
+{
+	#hash = crypto.createHash('md5')
+
+	#value = 0
+
+	get hash (): string
+	{
+		return this.#hash.digest('hex')
+
+	}
+
+	get value (): number
+	{
+		return this.#value
+
+	}
+
+	constructor (content?: Buffer | NodeJS.ReadableStream)
+	{
+		super()
+
+		if (content instanceof Buffer)
+		{
+			this.end(content)
+
+		}
+
+		else if (content instanceof stream.Readable)
+		{
+			content.pipe(this)
+
+		}
+
+	}
+
+	_transform
+	(
+		chunk: unknown,
+		encoding: BufferEncoding,
+		callback: stream.TransformCallback,
+
+	)
+	: void
+	{
+		if (chunk instanceof Buffer)
+		{
+			this.#hash.update(chunk)
+			this.#value = this.#value + chunk.byteLength
+
+		}
+
+		else if (detective.is_array_buffer(chunk) )
+		{
+			this.#hash.update(chunk as unknown as Buffer)
+			this.#value = this.#value + chunk.byteLength
+
+		}
+
+		else if (detective.is_blob(chunk) )
+		{
+			this.#hash.update(chunk as unknown as Buffer)
+			this.#value = this.#value + chunk.size
+
+		}
+
+		this.push(chunk)
+
+		callback()
+
+	}
+
+
+}
+
 export class OSS
 {
 	#oss: alioss
 
 	#bucket: string
+
+	#temp_dir = 'temp'
 
 
 	get oss (): alioss
@@ -26,7 +107,6 @@ export class OSS
 		return this.#oss
 
 	}
-
 
 	get bucket (): string
 	{
@@ -60,8 +140,51 @@ export class OSS
 
 	}
 
+	#route (pathname: string): string
+	{
+		return new URL(pathname, 'http://example.com').pathname
 
-	sign (src: string, option: { expires?: number, process?: string }): URL
+	}
+
+	route (pathname: string): string
+	{
+		return this.#route(pathname)
+			.replace(
+				new RegExp(`^/${this.#temp_dir}`, 'g'),
+
+				'',
+
+			)
+
+
+	}
+
+	#join (pathname: string): string
+	{
+		let p = this.route(pathname)
+
+		if (p.startsWith(`/${this.#temp_dir}`) )
+		{
+			return p
+
+		}
+
+		return `/${this.#temp_dir}${p}`
+
+	}
+
+	sign
+	(
+		src: string,
+
+		option?: {
+			expires?: number
+			process?: string
+
+		},
+
+	)
+	:	URL
 	{
 		return OSS.sign(
 			this.#bucket,
@@ -73,18 +196,62 @@ export class OSS
 
 	}
 
-
-	append
-	(src: string, content: Buffer | NodeJS.ReadableStream, options?: alioss.AppendObjectOptions): Promise<alioss.AppendObjectResult>
+	seize (mime: string): URL
 	{
-		return this.oss.append(src, content, options)
+		let folder = this.#temp_dir
+
+		let u = this.oss
+			.signatureUrl(
+				this.#join(OSS.goal(folder, mime) ),
+
+			)
+
+		return new URL(u)
 
 	}
 
+	async cache
+	(
+		pathname: string,
+		data: Buffer | NodeJS.ReadableStream,
+		option?: alioss.AppendObjectOptions,
 
-	delete (src: string): Promise<alioss.DeleteResult>
+	)
+	:	Promise<{ size: number, hash: string, pathname: string }>
 	{
-		return this.oss.delete(src)
+		let temp = this.#join(pathname)
+
+		let size = new SizeTracking(data)
+
+		await this.oss.append(temp, size, option)
+
+		return {
+			size: size.value,
+			hash: size.hash,
+
+			pathname: temp,
+
+		}
+
+	}
+
+	async fasten (pathname: string, filename?: string): Promise<string>
+	{
+		let p = this.route(pathname)
+		let source = this.#join(pathname)
+
+		let headers = OSS.ensure(filename)
+
+		await this.oss.copy(p, source, { headers })
+		await this.oss.delete(source)
+
+		return this.oss.generateObjectUrl(p)
+
+	}
+
+	delete (pathname: string): Promise<alioss.DeleteResult>
+	{
+		return this.oss.delete(pathname)
 
 	}
 
@@ -108,7 +275,6 @@ export class OSS
 
 	}
 
-
 	static from (url: string | URL): OSS
 	{
 		if (detective.is_string(url) )
@@ -131,7 +297,6 @@ export class OSS
 
 	}
 
-
 	static sign (bucket: string, src: string): URL
 	{
 		let uri = new URL(src)
@@ -142,8 +307,34 @@ export class OSS
 
 	}
 
+	static goal (folder: string, mime: string): string
+	{
+		return [folder, `${Date.now().toString(36)}.${mime_types.extension(mime)}`].join('/')
+
+	}
+
+	static ensure (filename?: string): Record<string, string>
+	{
+		let headers: Record<string, string> = {}
+
+		if (detective.is_required_string(filename) )
+		{
+			let disposition = [
+				'attachment',
+
+				`filename="${filename}"`,
+				`filename*=UTF-8''${encodeURIComponent(filename)}`,
+
+			]
+
+			headers['Content-Disposition'] = disposition.join('; ')
+
+		}
 
 
+		return headers
+
+	}
 
 
 }

@@ -3,7 +3,10 @@ import express from 'express'
 
 import * as reply from '../lib/reply.js'
 
+import * as oss from '../store/oss.js'
+
 import * as user_model from '../model/user.js'
+import * as media_model from '../model/media.js'
 import * as scope_model from '../model/scope.js'
 import * as stamp_model from '../model/stamp.js'
 import * as token_model from '../model/token.js'
@@ -31,14 +34,17 @@ declare global
 
 			keyword?: keyword_model.Tm['HydratedDocument']
 
+			media?     : media_model.Tm['HydratedDocument']
 			stamp?     : stamp_model.Tm['HydratedDocument']
 			checkpoint?: checkpoint_model.Tm['HydratedDocument']
 
 
 			token?        : token_model.Tm['HydratedDocument']
-			usable_token? : token_model.Tm['HydratedDocument']
-			deposit_token?: token_model.Tm['HydratedDocument']
-			survive_token?: token_model.TSurviveHydratedDocumentType
+			usable_token? : token_model.TmUsable['HydratedDocument']
+			deposit_token?: token_model.TmDeposit['HydratedDocument']
+			survive_token?: token_model.TmSurvive['HydratedDocument']
+
+			oss?: oss.OSS
 
 		}
 
@@ -142,6 +148,27 @@ export const user_scope: express.RequestHandler = async function user_scope (req
 
 }
 
+
+export const media: express.RequestHandler = async function media (req, res, next)
+{
+	let src = req.get('src') ?? ''
+
+	let { weapp } = req.survive_token!
+
+	let doc = await media_model.default
+		.findOne(
+			{ weapp, src },
+
+		)
+
+
+	reply.NotFound.asserts(doc, 'media is not found')
+
+	req.media = doc
+
+	next()
+
+}
 
 export const keyword: express.RequestHandler = async function keyword (req, res, next)
 {
@@ -248,6 +275,12 @@ export const deposit_token: express.RequestHandler = async function deposit_toke
 
 	req.deposit_token = doc.to_deposit()
 
+	req.oss = await req.deposit_token.to_weapp()
+		.then(
+			weapp => weapp.to_oss(),
+
+		)
+
 	next()
 
 }
@@ -270,6 +303,12 @@ export const survive_token: express.RequestHandler = async function survive_toke
 	reply.NotFound.asserts(doc, 'token is not found')
 
 	req.survive_token = doc.to_survive()
+
+	req.oss = await req.survive_token.to_weapp()
+		.then(
+			weapp => weapp.to_oss(),
+
+		)
 
 	next()
 
