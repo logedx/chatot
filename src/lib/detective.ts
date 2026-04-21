@@ -358,6 +358,13 @@ export function is_dirname_string
 
 }
 
+export function is_filename_string
+(v: unknown): v is string
+{
+	return is_required_string(v) && (/^([0-9a-zA-Z]+\.)+[a-zA-Z]+$/).test(v)
+
+}
+
 export function is_data_url_string
 (v: unknown): v is string
 {

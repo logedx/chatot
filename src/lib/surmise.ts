@@ -650,6 +650,15 @@ export class Text
 		)
 
 
+	static is_hex = Clue
+		.infer<string>(
+			'is not a hex string',
+
+			detective.is_hex_string,
+
+		)
+
+
 	static is_time = Clue.infer<string>(
 		'is not a time string',
 
@@ -714,6 +723,14 @@ export class Text
 
 		)
 
+	static is_filename = Clue
+		.infer<string>(
+			'is not a filename string',
+
+			detective.is_filename_string,
+
+		)
+
 
 	static is_media_uri = Clue
 		.infer<string>(
@@ -734,9 +751,9 @@ export class Text
 		.to(Number)
 
 
-	static is_natura_number = Clue
+	static is_natural_number = Clue
 		.infer<string>(
-			'is not a natura number string',
+			'is not a natural number string',
 
 			detective.is_natural_number_string,
 
@@ -1235,12 +1252,12 @@ export class Pager
 		let e = new Dossier<PagerSuspect>(dossier.target)
 
 		await e.infer_optional<'skip'>(
-			Text.is_natura_number.signed('skip'),
+			Text.is_natural_number.signed('skip'),
 
 		)
 
 		await e.infer_optional<'limit'>(
-			Text.is_natura_number.signed('limit'),
+			Text.is_natural_number.signed('limit'),
 
 		)
 
