@@ -1,8 +1,13 @@
+import crypto from 'node:crypto'
+import stream from 'node:stream'
+
 import config from 'config'
 import alioss from 'ali-oss'
+import mime_types from 'mime-types'
 
 import * as reply from '../lib/reply.js'
 import * as detective from '../lib/detective.js'
+import * as structure from '../lib/structure.js'
 
 
 
@@ -14,11 +19,110 @@ const aliopen_access_key_secret = config.get<string>('aliopen.secret_access_key'
 
 
 
+export class SizeTracking extends stream.Transform implements stream.Transform
+{
+	#hash = crypto.createHash('md5')
+
+	#value = 0
+
+	get hash (): string
+	{
+		return this.#hash.digest('hex')
+
+	}
+
+	get value (): number
+	{
+		return this.#value
+
+	}
+
+	constructor (content?: Buffer | NodeJS.ReadableStream)
+	{
+		super()
+
+		if (content instanceof Buffer)
+		{
+			this.end(content)
+
+		}
+
+		else if (content instanceof stream.Readable)
+		{
+			content.pipe(this)
+
+		}
+
+	}
+
+	_transform
+	(
+		chunk: unknown,
+		encoding: BufferEncoding,
+		callback: stream.TransformCallback,
+
+	)
+	: void
+	{
+		if (chunk instanceof Buffer)
+		{
+			this.#hash.update(chunk)
+			this.#value = this.#value + chunk.byteLength
+
+		}
+
+		else if (detective.is_array_buffer(chunk) )
+		{
+			this.#hash.update(chunk as unknown as Buffer)
+			this.#value = this.#value + chunk.byteLength
+
+		}
+
+		else if (detective.is_blob(chunk) )
+		{
+			this.#hash.update(chunk as unknown as Buffer)
+			this.#value = this.#value + chunk.size
+
+		}
+
+		this.push(chunk)
+
+		callback()
+
+	}
+
+
+}
+
+
+export type TossFile = {
+	size: number
+	hash: string
+
+	pathname: `/${string}`
+
+}
+
+export type TossResource = {
+	mime: string
+	src : string
+
+}
+
+export type TossResourceOption = {
+	mime     : string
+	filename?: string
+
+}
+
+
 export class OSS
 {
 	#oss: alioss
 
 	#bucket: string
+
+	#temp_dir = 'temp'
 
 
 	get oss (): alioss
@@ -26,7 +130,6 @@ export class OSS
 		return this.#oss
 
 	}
-
 
 	get bucket (): string
 	{
@@ -61,30 +164,315 @@ export class OSS
 	}
 
 
-	sign (src: string, option: { expires?: number, process?: string }): URL
+	#deal (src: string): TossFile['pathname']
 	{
-		return OSS.sign(
-			this.#bucket,
+		return OSS.deal(src).pathname as TossFile['pathname']
 
-			this.oss.signatureUrl(src, option),
+	}
+
+
+	#join (pathname: TossFile['pathname']): string
+	{
+		let p = this.#deal(pathname)
+
+		if (p.startsWith(`/${this.#temp_dir}`) )
+		{
+			return p
+
+		}
+
+		return `/${this.#temp_dir}${p}`
+
+	}
+
+
+	#molt (src: string): TossFile['pathname']
+	{
+		let v = this.#deal(src)
+			.replace(
+				new RegExp(`^/${this.#temp_dir}`, 'g'),
+
+				'',
+
+			)
+
+		return v as TossFile['pathname']
+
+	}
+
+
+
+
+	mark (src: string): URL
+	{
+		return OSS.mark(this.#bucket, src)
+
+	}
+
+
+	sign
+	(
+		src: string | URL,
+
+		option?: {
+			expires?: number
+			process?: string
+
+		},
+
+	)
+	:	URL
+	{
+		if (detective.is_string(src) )
+		{
+			src = OSS.deal(src)
+
+		}
+
+		if (src.pathname === '/')
+		{
+			throw new reply.BadRequest('invalid src')
+
+		}
+
+		return this.mark(
+			this.oss.signatureUrl(src.pathname, { expires: 60, ...option }),
 
 		)
 
+	}
+
+
+	preview
+	(
+		src: string | URL,
+
+		option?: {
+			expires?: number
+			process?: string
+
+		},
+
+	)
+	:	string
+	{
+		try
+		{
+			return this.sign(src, option).href
+
+		}
+
+		catch
+		{
+			// 
+
+		}
+
+		return ''
 
 	}
 
 
-	append
-	(src: string, content: Buffer | NodeJS.ReadableStream, options?: alioss.AppendObjectOptions): Promise<alioss.AppendObjectResult>
+	seize
+	(folder: string, mime: string): { src: URL, upload: URL }
 	{
-		return this.oss.append(src, content, options)
+		let pathname = OSS.goal(folder, mime)
+
+		return {
+			src   : OSS.deal(pathname),
+			upload: this.sign(this.#join(pathname) ),
+
+		}
 
 	}
 
 
-	delete (src: string): Promise<alioss.DeleteResult>
+	async claim
+	(src: string): Promise<TossFile>
 	{
-		return this.oss.delete(src)
+		let pathname = this.#molt(src)
+
+		let { res } = await this.head(pathname)
+
+		let size = structure.get(res, 'content-length', '0')
+		let hash = structure.get(res, 'etag', '').replace(/"/g, '')
+
+		if (detective.is_hex_string(hash) === false)
+		{
+			throw new reply.BadRequest('invaild hash')
+
+		}
+
+		return {
+			size: Number(size),
+
+			hash,
+
+			pathname,
+
+		}
+
+	}
+
+
+	async cache
+	(
+		data: Buffer | NodeJS.ReadableStream,
+
+		option: {
+			folder   : string
+
+			mime     : string
+			filename?: string
+
+		},
+
+	)
+	:	Promise<TossFile>
+	{
+		let size = new SizeTracking(data)
+
+		let pathname = OSS.goal(option.folder, option.mime)
+
+		await this.oss.append(
+			this.#join(pathname),
+
+			size,
+
+			{
+				mime   : option.mime,
+				headers: OSS.ensure(option.mime, option.filename),
+
+			},
+
+		)
+
+		return {
+			size: size.value,
+			hash: size.hash,
+
+			pathname,
+
+		}
+
+	}
+
+
+	async fasten
+	(
+		pathname: TossFile['pathname'],
+
+		option?: {
+			filename?: string
+
+		},
+
+	)
+	:	Promise<TossResource>
+	{
+		let mime = OSS.lookup(pathname)
+
+		let temp = this.#join(pathname)
+		let final = this.#molt(pathname)
+
+		await this.move(temp, final)
+
+		await this.meta(final, { mime, filename: option?.filename })
+
+		return {
+			mime,
+
+			src: this.oss.generateObjectUrl(final),
+
+		}
+
+	}
+
+
+	async scrap
+	(pathname: TossFile['pathname']): Promise<void>
+	{
+		let temp = this.#join(pathname)
+
+		try
+		{
+			await this.delete(temp)
+
+		}
+
+		catch
+		{
+			//
+
+		}
+
+	}
+
+
+	async move
+	(source: string | URL, target: string | URL): Promise<void>
+	{
+		await this.copy(source, target)
+
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
+		this.delete(source)
+
+
+	}
+
+
+	copy
+	(source: string | URL, target: string | URL): Promise<alioss.CopyAndPutMetaResult>
+	{
+		source = OSS.deal(source)
+		target = OSS.deal(target)
+
+		return this.oss
+			.copy(
+				target.pathname,
+				source.pathname,
+
+				this.#bucket,
+
+			)
+
+	}
+
+
+	delete (src: string | URL): Promise<alioss.DeleteResult>
+	{
+		src = OSS.deal(src)
+
+		return this.oss.delete(src.pathname)
+
+	}
+
+
+	head (src: string | URL): Promise<alioss.HeadObjectResult>
+	{
+		src = OSS.deal(src)
+
+		return this.oss.head(src.pathname)
+
+	}
+
+
+	meta
+	(src: string | URL, option: TossResourceOption): Promise<alioss.CopyAndPutMetaResult>
+	{
+		src = OSS.deal(src)
+
+		return this.oss
+			.copy(
+				src.pathname,
+				src.pathname,
+
+				this.#bucket,
+
+				{ headers: OSS.ensure(option.mime, option.filename) },
+
+
+			)
 
 	}
 
@@ -111,12 +499,7 @@ export class OSS
 
 	static from (url: string | URL): OSS
 	{
-		if (detective.is_string(url) )
-		{
-			url = new URL(url)
-
-		}
-
+		url = OSS.deal(url)
 
 		let bucket = url.searchParams.get(this.#marked)
 
@@ -132,9 +515,9 @@ export class OSS
 	}
 
 
-	static sign (bucket: string, src: string): URL
+	static mark (bucket: string, src: string): URL
 	{
-		let uri = new URL(src)
+		let uri = OSS.deal(src)
 
 		uri.searchParams.set(this.#marked, bucket)
 
@@ -143,7 +526,112 @@ export class OSS
 	}
 
 
+	static deal (src: string | URL): URL
+	{
+		if (detective.is_string(src) )
+		{
+			return new URL(src, 'http://example.com')
 
+		}
+
+		src.search = ''
+		src.pathname = src.pathname.replace(/\/{2,}/g, '/')
+
+		return src
+
+	}
+
+
+	static goal (folder: string, mime: string): TossFile['pathname']
+	{
+		let u = this.deal(
+			`${folder}/${Date.now().toString(36)}.${mime_types.extension(mime)}`,
+
+		)
+
+		return u.pathname as TossFile['pathname']
+
+	}
+
+
+	static lookup (src: string): string
+	{
+		let uri = this.deal(src)
+
+		let mime = mime_types.lookup(uri.pathname)
+
+		if (mime === false)
+		{
+			throw new reply.BadRequest('invalid mime')
+
+		}
+
+		return mime
+
+	}
+
+
+	static ensure (mime: string, filename?: string): Record<string, string>
+	{
+		let headers: Record<string, string> = {
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			'Content-Type': mime,
+
+		}
+
+		if (detective.is_required_string(filename) )
+		{
+			let name = decodeURIComponent(filename).split('.')
+				.map(
+					v => v.replace(/[^a-zA-Z0-9.\u4e00-\u9fa5]/g, ''),
+
+				)
+				.filter(
+					v => v.length > 0,
+
+				)
+
+			let ext = name.at(-1)
+
+			let ext_ = mime_types.extension(mime)
+
+			if (ext_ === false)
+			{
+				throw new reply.BadRequest('invalid mime')
+
+			}
+
+			if (ext?.toLowerCase() !== ext_.toLowerCase() )
+			{
+				name.push(ext_)
+
+			}
+
+			if (name.length === 1)
+			{
+				throw new reply.BadRequest('invalid filename')
+
+			}
+
+
+			let filename_ = encodeURIComponent(name.join('.') )
+
+			let disposition = [
+				'attachment',
+
+				`filename="${filename_}"`,
+				`filename*=UTF-8''${filename_}`,
+
+			]
+
+			headers['Content-Disposition'] = disposition.join('; ')
+
+		}
+
+
+		return headers
+
+	}
 
 
 }
@@ -166,7 +654,7 @@ export class Image extends OSS
 	{
 		if (detective.is_string(src) )
 		{
-			src = new URL(src)
+			src = OSS.deal(src)
 
 		}
 
@@ -179,10 +667,8 @@ export class Image extends OSS
 	}
 
 
-	process (option: Record<string, Array<number | string> >): URL
+	process (option: Record<string, Array<number | string> >): string
 	{
-		let uri = new URL(this.#src)
-
 		let process = [
 			'image',
 
@@ -192,10 +678,15 @@ export class Image extends OSS
 
 		]
 
-		uri.search = ''
+		return this.preview(
+			this.#src,
 
-		return this.sign(
-			uri.pathname, { ...this.#option, process: process.join('/') },
+			{
+				...this.#option,
+
+				process: process.join('/'),
+
+			},
 
 		)
 
@@ -203,7 +694,7 @@ export class Image extends OSS
 	}
 
 
-	resize (width: number, height?: number): URL
+	resize (width: number, height?: number): string
 	{
 		let v = ['m_lfit', `w_${Math.floor(width)}`]
 
@@ -222,7 +713,7 @@ export class Image extends OSS
 	}
 
 
-	rotate (angle: number): URL
+	rotate (angle: number): string
 	{
 		angle = Math.round(angle) % 360
 
@@ -242,14 +733,16 @@ export class Image extends OSS
 	}
 
 
-	static new (bucket: string, src: string | URL, option?: { expires: number }): Image
+	static new
+	(bucket: string, src: string | URL, option?: { expires: number }): Image
 	{
 		return new Image(bucket, src, option)
 
 	}
 
 
-	static from (src: string | URL, option?: { expires: number }): Image
+	static from
+	(src: string | URL, option?: { expires: number }): Image
 	{
 		let o = OSS.from(src)
 

@@ -1,15 +1,16 @@
+import * as consumers from 'node:stream/consumers'
+
 import express from 'express'
 
 import * as axios from 'axios'
 
 import * as secret from '../lib/secret.js'
 import * as surmise from '../lib/surmise.js'
-import * as structure from '../lib/structure.js'
 
-import * as media_model from '../model/media.js'
 import * as stamp_model from '../model/stamp.js'
 
-import * as media_router from './media.js'
+import * as oss from '../store/oss.js'
+
 import * as retrieve_router from './retrieve.js'
 
 
@@ -19,7 +20,7 @@ export const cypher_decrypt_clue = surmise.Text.required.to(stamp_model.decrypt)
 
 export function symbol_clue
 (
-	pathname: `/${string}`,
+	pathname: oss.TossFile['pathname'],
 	method: Lowercase<axios.Method>,
 
 )
@@ -42,7 +43,7 @@ export function symbol_clue
 
 export function symbol_encrypt
 (
-	pathname: `/${string}`,
+	pathname: oss.TossFile['pathname'],
 	method: Lowercase<axios.Method>,
 
 	option?: {
@@ -98,7 +99,8 @@ router.post(
 
 		}
 
-		let weapp = await req.deposit_token!.to_weapp()
+		let weapp = await req.deposit_token!
+			.to_weapp()
 
 		let suspect = surmise.capture<Suspect>(req.body)
 
@@ -118,31 +120,28 @@ router.post(
 		)
 
 
+
 		let unlimited = await weapp.to_unlimited(
 			suspect.get('path'), suspect.get('value'),
 
 		)
 
-		let media = await media_router.create(
-			weapp, unlimited.body, { name: 'src', model: 'stamp', mime: 'image/png', folder: '/stamp' },
+		let doc = await stamp_model.default
+			.create(
+				{
+					context: await consumers.buffer(unlimited.body),
 
-		)
+					value: suspect.get('value'),
 
-		let doc = await stamp_model.default.create(
-			{ src: media.src, value: suspect.get('value'), ...suspect.get('mailer') },
+					...suspect.get('mailer'),
 
-		)
+				},
 
+			)
 
-		let uri = await media.safe_access()
-
-		res.expose(
-			'X-Access-URI', uri.href,
-
-		)
 
 		res.expose(
-			'X-Oss-Process', uri.searchParams.toString(),
+			'X-Access-Content', doc.value,
 
 		)
 
@@ -156,10 +155,7 @@ router.post(
 
 		)
 
-		res.json(
-			structure.omit(doc.toObject(), 'symbol'),
-
-		)
+		res.json(doc.href)
 
 
 	},
@@ -175,20 +171,12 @@ router.options(
 	async function query (req, res)
 	{
 		let { value } = req.params
-		let { weapp } = req.survive_token!
 
 		let doc = await stamp_model.default.from(value as string)
 
-		let uri = await media_model.default.safe_access(weapp, doc.src)
-
 
 		res.expose(
-			'X-Access-URI', uri.href,
-
-		)
-
-		res.expose(
-			'X-Oss-Process', uri.searchParams.toString(),
+			'X-Access-Content', doc.value,
 
 		)
 
@@ -202,10 +190,7 @@ router.options(
 
 		)
 
-		res.json(
-			structure.omit(doc.toObject(), 'symbol'),
-
-		)
+		res.json(doc.href)
 
 	},
 
@@ -219,20 +204,13 @@ router.get(
 
 	retrieve_router.stamp,
 
-	async function retrieve (req, res)
+	function retrieve (req, res)
 	{
 		let doc = req.stamp!
-		let { weapp } = req.survive_token!
 
-		let uri = await media_model.default.safe_access(weapp, doc.src)
 
 		res.expose(
-			'X-Access-URI', uri.href,
-
-		)
-
-		res.expose(
-			'X-Oss-Process', uri.searchParams.toString(),
+			'X-Access-Content', doc.value,
 
 		)
 
@@ -246,10 +224,7 @@ router.get(
 
 		)
 
-		res.json(
-			structure.omit(doc.toObject(), 'symbol'),
-
-		)
+		res.json(doc.href)
 
 	},
 

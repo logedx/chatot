@@ -53,13 +53,50 @@ export type Tm = database.Tm<
 
 		to_weapp(): Promise<weapp_model.Tm['HydratedDocument']>
 
-		to_usable(): TSurviveHydratedDocumentType
+		to_usable(): TmUsable['HydratedDocument']
 
-		to_deposit(): TSurviveHydratedDocumentType
+		to_deposit(): TmDeposit['HydratedDocument']
 
-		to_survive(): TSurviveHydratedDocumentType
+		to_survive(): TmSurvive['HydratedDocument']
 
 	}
+
+>
+
+export type TmUsable = database.Tm<
+	Tm['DocType'],
+
+	Tm['TVirtuals'],
+
+	Pick<Tm['TInstanceMethods'], 'replenish'>
+
+>
+
+export type TmDeposit = database.Tm<
+	structure.Overwrite<
+		Tm['DocType'],
+
+		{ weapp: Types.ObjectId }
+
+	>,
+
+	Tm['TVirtuals'],
+
+	Pick<Tm['TInstanceMethods'], 'replenish' | 'to_weapp'>
+
+>
+
+export type TmSurvive = database.Tm<
+	structure.Overwrite<
+		Tm['DocType'],
+
+		{ weapp: Types.ObjectId, user: Types.ObjectId }
+
+	>,
+
+	Tm['TVirtuals'],
+
+	Pick<Tm['TInstanceMethods'], 'replenish' | 'to_weapp' | 'to_user'>
 
 >
 
@@ -68,16 +105,6 @@ export type TPopulatePaths = {
 	user : null | user_model.Tm['HydratedDocument']
 
 }
-
-
-export type TSurviveHydratedDocumentType = structure.Overwrite<
-	Tm['HydratedDocument'],
-
-	{ user: Types.ObjectId, weapp: Types.ObjectId }
-
->
-
-
 
 
 
@@ -179,7 +206,7 @@ schema.virtual('is_usable').get(
 schema.virtual('is_deposit').get(
 	function (): Tm['TVirtuals']['is_deposit']
 	{
-		return this.is_usable && detective.is_null(this.weapp) === false
+		return this.is_usable && detective.is_exist(this.weapp)
 
 	},
 
@@ -188,7 +215,7 @@ schema.virtual('is_deposit').get(
 schema.virtual('is_survive').get(
 	function (): Tm['TVirtuals']['is_survive']
 	{
-		return this.is_deposit && detective.is_null(this.user) === false
+		return this.is_deposit && detective.is_exist(this.user)
 
 	},
 
@@ -238,12 +265,12 @@ schema.method(
 	<Tm['TInstanceMethods']['to_user']>
 	async function ()
 	{
-		let doc = await this.populate< Pick<TPopulatePaths, 'user'> >('user')
+		let doc = await user_model.default.findById(this.user)
 
-		reply.NotFound.asserts(doc.user, 'user is not found')
+		reply.NotFound.asserts(doc, 'user is not found')
 
 
-		return doc.user
+		return doc
 
 	},
 
@@ -257,12 +284,12 @@ schema.method(
 	<Tm['TInstanceMethods']['to_weapp']>
 	async function ()
 	{
-		let doc = await this.populate< Pick<TPopulatePaths, 'weapp'> >('weapp')
+		let doc = await weapp_model.default.findById(this.weapp)
 
-		reply.NotFound.asserts(doc.weapp, 'weapp is not found')
+		reply.NotFound.asserts(doc, 'weapp is not found')
 
 
-		return doc.weapp
+		return doc
 
 	},
 
@@ -278,7 +305,7 @@ schema.method(
 	{
 		if (this.is_usable)
 		{
-			return this
+			return this as unknown as TmUsable['HydratedDocument']
 
 		}
 
@@ -298,7 +325,7 @@ schema.method(
 	{
 		if (this.is_deposit)
 		{
-			return this
+			return this as unknown as TmDeposit['HydratedDocument']
 
 		}
 
@@ -318,7 +345,7 @@ schema.method(
 	{
 		if (this.is_survive)
 		{
-			return this
+			return this as unknown as TmSurvive['HydratedDocument']
 
 		}
 

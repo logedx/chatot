@@ -1,14 +1,10 @@
-import stream from 'node:stream'
-
 import express from 'express'
 import mime_types from 'mime-types'
 
 import * as surmise from '../lib/surmise.js'
-import * as detective from '../lib/detective.js'
 
 import * as media_model from '../model/media.js'
 import * as scope_model from '../model/scope.js'
-import * as weapp_model from '../model/weapp.js'
 
 import * as token_router from './token.js'
 import * as retrieve_router from './retrieve.js'
@@ -16,102 +12,93 @@ import * as retrieve_router from './retrieve.js'
 
 
 
+export const router = express.Router()
+
+router.options(
+	'/media',
+
+	retrieve_router.survive_token,
+
+	async function query (req, res)
+	{
+		type Suspect = {
+			folder: string
+
+			mime: string
+
+		}
+
+		let oss = req.oss!
+
+		let suspect = surmise.capture<Suspect>(req.headers)
+
+		await suspect.infer<'folder'>(
+			surmise.Text.is_path.signed('folder'),
+
+		)
+
+		await suspect.infer<'mime', 'accept'>(
+			surmise.Text.required
+				.to(
+					v =>
+					{
+						let vv = mime_types.contentType(v)
+
+						if (vv === false)
+						{
+							throw new Error('accept error, it not in type list')
+
+						}
+
+						return vv
+
+					},
+
+				)
+				.signed('accept'),
+
+			{ rename: 'mime' },
+
+		)
 
 
+		let seize = oss.seize(suspect.get('folder'), suspect.get('mime') )
 
+		res.expose(
+			'X-Access-URI', seize.upload.href,
 
-export async function create
-(
-	weapp: weapp_model.Tm['HydratedDocument'],
+		)
 
-	body: stream.Readable,
+		res.expose(
+			'X-Oss-Process', seize.upload.searchParams.toString(),
 
-	option: {
-		name : string
-		model: string
+		)
 
-		mime  : string
-		folder: string
-
-		hash?: string
+		res.json(seize.src.href)
 
 	},
 
 )
-: Promise<media_model.Tm['HydratedDocument']>
-{
-	if (detective.is_hex_string(option.hash) )
-	{
-		let doc = await media_model.default
-			.safe_to_link(
-				option.name, option.model, { hash: option.hash },
 
-			)
-
-		if (detective.is_exist(doc) )
-		{
-			return doc
-
-		}
-
-	}
-
-
-	let doc = await media_model.default
-		.create(
-			{
-				weapp: weapp._id,
-
-				mime  : option.mime,
-				bucket: weapp.bucket, folder: option.folder,
-
-				linker: [
-					{ name: option.name, model: option.model },
-
-				],
-
-			},
-
-		)
-
-	return doc.safe_push(body)
-
-}
-
-export const router = express.Router()
 
 router.post(
 	'/media',
 
 	retrieve_router.survive_token,
 
-	async function create_ (req, res)
+	async function create (req, res)
 	{
 		type Suspect = {
-			name : string
-			model: string
-
-			mime  : string
 			folder: string
 
-			hash?: string
+			mime     : string
+			filename?: string
 
 		}
 
-
-		let weapp = await req.survive_token!.to_weapp()
+		let oss = req.oss!
 
 		let suspect = surmise.capture<Suspect>(req.headers)
-
-		await suspect.infer<'name'>(
-			surmise.Text.required.signed('name'),
-
-		)
-
-		await suspect.infer<'model'>(
-			surmise.Text.required.signed('model'),
-
-		)
 
 		await suspect.infer<'mime', 'accept'>(
 			surmise.Text.required
@@ -142,17 +129,19 @@ router.post(
 
 		)
 
-		await suspect.infer_optional<'hash'>(
-			surmise.Text.required.signed('hash'),
+		await suspect.infer_optional<'filename'>(
+			surmise.Text.required.signed('filename'),
 
 		)
 
-		let doc = await create(
-			weapp, req, suspect.get(),
 
-		)
+		let doc = await media_model.default
+			.insure(
+				oss, req, suspect.get(),
 
-		let uri = await doc.safe_access()
+			)
+
+		let uri = oss.sign(doc.src)
 
 		res.expose(
 			'X-Access-URI', uri.href,
@@ -164,9 +153,63 @@ router.post(
 
 		)
 
-		uri.search = ''
+		res.json(doc.src)
 
-		res.json(uri.href)
+	},
+
+)
+
+
+router.put(
+	'/media',
+
+	retrieve_router.survive_token,
+
+	retrieve_router.media,
+
+	async function update (req, res)
+	{
+		type Suspect = {
+			src: string
+
+			filename?: string
+
+		}
+
+		let oss = req.oss!
+
+		let suspect = surmise.capture<Suspect>(req.body)
+
+
+		await suspect.infer<'src'>(
+			surmise.Text.is_media_uri.signed('src'),
+
+		)
+
+		await suspect.infer_optional<'filename'>(
+			surmise.Text.is_filename.signed('filename'),
+
+		)
+
+		let doc = await media_model.default
+			.claim(
+				oss, suspect.get(),
+
+			)
+
+		let uri = oss.sign(doc.src)
+
+		res.expose(
+			'X-Access-URI', uri.href,
+
+		)
+
+		res.expose(
+			'X-Oss-Process', uri.searchParams.toString(),
+
+		)
+
+		res.json(doc.src)
 
 	},
 
@@ -197,9 +240,6 @@ router.delete(
 	{
 		type Suspect = string[]
 
-
-		let { weapp } = req.survive_token!
-
 		let suspect = await surmise.infer<Suspect>(
 			req.body,
 
@@ -207,10 +247,7 @@ router.delete(
 
 		)
 
-		await media_model.default.safe_delete(
-			weapp, ...suspect,
-
-		)
+		await media_model.default.safe_delete(...suspect)
 
 		res.json()
 

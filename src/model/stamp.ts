@@ -9,6 +9,7 @@ import { Schema } from 'mongoose'
 
 import * as axios from 'axios'
 
+import * as oss from '../store/oss.js'
 import * as database from '../store/database.js'
 
 
@@ -28,7 +29,7 @@ export type Tm = database.Tm<
 
 		expire: Date
 
-		src: string
+		context: Buffer
 
 		amber: unknown
 
@@ -36,19 +37,20 @@ export type Tm = database.Tm<
 
 	{
 		lave  : number
+		href  : string
 		method: '*' | Uppercase<axios.Method>
 
 	},
 
 	{
-		touch(pathname: `/${string}`, method: Lowercase<axios.Method>,): boolean
+		touch(pathname: oss.TossFile['pathname'], method: Lowercase<axios.Method>,): boolean
 
 		eternal(): Promise<Tm['HydratedDocument']>
 
 	},
 
 	{
-		from (value: string): Promise<Tm['HydratedDocument']>
+		from(value: string): Promise<Tm['HydratedDocument']>
 
 	}
 
@@ -102,12 +104,9 @@ export const schema: Tm['TSchema'] = new Schema
 
 		},
 
-		// media uri
-		src: {
-			type    : String,
+		context: {
+			type    : Buffer,
 			required: true,
-			unique  : true,
-			trim    : true,
 
 		},
 
@@ -132,6 +131,14 @@ schema.virtual('lave').get(
 
 )
 
+schema.virtual('href').get(
+	function (): Tm['TVirtuals']['href']
+	{
+		return `data:image/png;base64,${this.context.toString('base64')}`
+
+	},
+
+)
 
 schema.virtual('method').get(
 	function (): Tm['TVirtuals']['method']
@@ -236,7 +243,7 @@ export function is_mailer (v: unknown): v is Mailer
 
 
 export function sign
-(pathname: `/${string}`, method: Lowercase<axios.Method>): Tm['DocType']['symbol']
+(pathname: oss.TossFile['pathname'], method: Lowercase<axios.Method>): Tm['DocType']['symbol']
 {
 	return `${pathname}#${method}`
 
@@ -244,9 +251,9 @@ export function sign
 
 
 export function split
-(symbol: string): [`/${string}`, Lowercase<axios.Method>]
+(symbol: string): [oss.TossFile['pathname'], Lowercase<axios.Method>]
 {
-	return symbol.split('#') as [`/${string}`, Lowercase<axios.Method>]
+	return symbol.split('#') as [oss.TossFile['pathname'], Lowercase<axios.Method>]
 
 }
 
