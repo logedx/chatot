@@ -70,11 +70,9 @@ router.post(
 
 	async function create (req, res)
 	{
-		let weapp = req.xapp!
-
 		let doc = await token_model.default
 			.create(
-				{ weapp: weapp._id },
+				{ weapp: req.xapp },
 
 			)
 

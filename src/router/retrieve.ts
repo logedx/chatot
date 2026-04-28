@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import express from 'express'
 
+import { Types } from 'mongoose'
+
+
 import * as reply from '../lib/reply.js'
 
 import * as oss from '../store/oss.js'
@@ -26,7 +29,7 @@ declare global
 		// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 		interface Request
 		{
-			xapp? : null | weapp_model.Tm['HydratedDocument']
+			xapp? : null | Types.ObjectId
 			weapp?: weapp_model.Tm['HydratedDocument']
 
 			user?      : user_model.Tm['HydratedDocument']
@@ -65,7 +68,7 @@ export const xapp: express.RequestHandler = async function xapp (req, res, next)
 
 		)
 
-	req.xapp = doc
+	req.xapp = doc?._id ?? null
 
 	next()
 
