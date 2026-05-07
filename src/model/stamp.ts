@@ -213,12 +213,12 @@ schema.static<'from'>(
 
 export default drive.model('Stamp', schema) as Tm['Model']
 
-export type Mailer = {
+export type Mailer<T = null> = {
 	symbol: Tm['DocType']['symbol']
 
 	expire: Date
 
-	amber: unknown
+	amber: T
 
 	[index: number]: number
 
@@ -271,7 +271,7 @@ export function encrypt
 
 ): string
 {
-	let payload: Mailer = {
+	let payload: Mailer<unknown> = {
 		symbol,
 
 		expire,
@@ -292,7 +292,7 @@ export function encrypt
 /**
  * 解密
  */
-export function decrypt (cypher: string): Mailer
+export function decrypt<T = null> (cypher: string): Mailer<T>
 {
 	// eslint-disable-next-line no-useless-assignment
 	let payload: unknown = null
@@ -321,7 +321,7 @@ export function decrypt (cypher: string): Mailer
 
 		if (expire > d)
 		{
-			return { ...payload, expire }
+			return { ...payload, expire } as Mailer<T>
 
 		}
 
