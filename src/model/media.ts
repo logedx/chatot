@@ -13,9 +13,6 @@ import * as oss from '../store/oss.js'
 import * as database from '../store/database.js'
 
 
-import * as weapp_model from './weapp.js'
-
-
 
 
 export type Tm = database.Tm<
@@ -104,13 +101,6 @@ export type Tm = database.Tm<
 	}
 
 >
-
-export type TPopulatePaths = {
-	weapp: weapp_model.Tm['HydratedDocument']
-
-}
-
-
 
 
 
