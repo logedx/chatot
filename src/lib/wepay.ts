@@ -13,7 +13,6 @@ const host = config.get<string>('host')
 
 
 export type APIv3Option = {
-	appid   : string
 	mchid   : string
 	v3key   : string
 	sign    : string | Buffer
@@ -79,7 +78,7 @@ export class APIv3
 
 	#axios: axios.AxiosInstance
 
-	constructor (option: APIv3Option)
+	constructor (appid: string, option: APIv3Option)
 	{
 		if (typeof option.sign === 'string')
 		{
@@ -99,7 +98,7 @@ export class APIv3
 
 		}
 
-		this.#appid = option.appid
+		this.#appid = appid
 		this.#mchid = option.mchid
 		this.#v3key = option.v3key
 

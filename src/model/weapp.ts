@@ -354,7 +354,7 @@ schema.method(
 	{
 		let option = await this.to_api_v3_option()
 
-		let trans = new wepay.Transactions(option)
+		let trans = new wepay.Transactions(this.appid, option)
 
 		trans.on(
 			'update',
@@ -391,7 +391,7 @@ schema.method(
 	{
 		let option = await this.to_api_v3_option()
 
-		return new wepay.Refund(option)
+		return new wepay.Refund(this.appid, option)
 
 	},
 
