@@ -165,8 +165,6 @@ router.put(
 
 	retrieve_router.survive_token,
 
-	retrieve_router.media,
-
 	async function update (req, res)
 	{
 		type Suspect = {

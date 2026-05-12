@@ -9,7 +9,6 @@ import * as reply from '../lib/reply.js'
 import * as oss from '../store/oss.js'
 
 import * as user_model from '../model/user.js'
-import * as media_model from '../model/media.js'
 import * as scope_model from '../model/scope.js'
 import * as stamp_model from '../model/stamp.js'
 import * as token_model from '../model/token.js'
@@ -37,7 +36,6 @@ declare global
 
 			keyword?: keyword_model.Tm['HydratedDocument']
 
-			media?     : media_model.Tm['HydratedDocument']
 			stamp?     : stamp_model.Tm['HydratedDocument']
 			checkpoint?: checkpoint_model.Tm['HydratedDocument']
 
@@ -151,27 +149,6 @@ export const user_scope: express.RequestHandler = async function user_scope (req
 
 }
 
-
-export const media: express.RequestHandler = async function media (req, res, next)
-{
-	let src = req.get('src') ?? ''
-
-	let { weapp } = req.survive_token!
-
-	let doc = await media_model.default
-		.findOne(
-			{ weapp, src },
-
-		)
-
-
-	reply.NotFound.asserts(doc, 'media is not found')
-
-	req.media = doc
-
-	next()
-
-}
 
 export const keyword: express.RequestHandler = async function keyword (req, res, next)
 {
