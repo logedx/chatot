@@ -58,7 +58,7 @@ router.post(
 			stamp_router.symbol_clue('/authorize', 'post')
 				.and
 				<
-					structure.Overwrite<
+					structure.Override<
 						stamp_model.Tm['HydratedDocument'], { amber: string }
 
 					>

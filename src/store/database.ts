@@ -25,7 +25,7 @@ export type TDocType<T extends object = object> = T
 	}
 
 export type TDocTypeOverwrite<T, U extends keyof T>
-	= structure.Overwrite<
+	= structure.Override<
 		T,
 
 		{ [k in U]-?: T[k] }
@@ -77,7 +77,7 @@ export type TInstanceMethods
 
 		)
 		: Promise<
-			structure.Overwrite<
+			structure.Override<
 				THydratedDocument<T, V, I, Q>,
 
 				Required<Pick<T, F> >

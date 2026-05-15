@@ -73,7 +73,7 @@ export type TmUsable = database.Tm<
 >
 
 export type TmDeposit = database.Tm<
-	structure.Overwrite<
+	structure.Override<
 		Tm['DocType'],
 
 		{ weapp: Types.ObjectId }
@@ -87,7 +87,7 @@ export type TmDeposit = database.Tm<
 >
 
 export type TmSurvive = database.Tm<
-	structure.Overwrite<
+	structure.Override<
 		Tm['DocType'],
 
 		{ weapp: Types.ObjectId, user: Types.ObjectId }

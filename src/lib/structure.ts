@@ -49,11 +49,40 @@ export type UnionToTuple
 export type Replace<T, U, V>
 	= T extends U
 		? V
-		: T extends object
-			? { [K in keyof T]: Replace<T[K], U, V> }
-			: T
+		: T extends detective.Range<infer R>
+			? detective.Range<Replace<R, U, V> >
+			: T extends detective.Between<infer R>
+				? detective.Between<Replace<R, U, V> >
+				: T extends unknown[]
+					? Array< Replace<T[number], U, V> >
+					: T extends Record<string, unknown>
+						? { [K in keyof T]: Replace<T[K], U, V> }
+						: T
 
-export type Overwrite<T, U> = Omit<T, keyof U> & U
+
+
+export type Override<T, U> = keyof U extends never ? T : Omit<T, keyof U> & U
+
+export type Required
+<
+	T,
+	U extends keyof T,
+
+>
+	= Override<
+		T,
+
+		{ [k in U]-?: T[k] }
+
+	>
+
+
+export type Beautify<T>
+	= {
+		[K in keyof T as T[K] extends never ? never : T[K] extends never[] ? never : K]: T[K]
+
+	}
+
 
 
 export function clone <T> (target: T): T
@@ -89,7 +118,17 @@ export function clone <T> (target: T): T
 }
 
 export function get
-<T extends object, K extends keyof T = keyof T> (source: T, key: K extends string ? Lowercase<K> : K): T[K]
+<
+	T extends object,
+	K extends keyof T = keyof T,
+
+>
+(
+	source: T,
+	key: K extends string ? Lowercase<K> : K,
+
+)
+:	T[K]
 
 export function get
 <T> (source: object, key: PropertyKey, _default: T): T
@@ -238,6 +277,7 @@ export class Auspice<T>
 
 	}
 
+
 	is_ok (): T extends Promise<unknown> ? Promise<boolean> : boolean
 	{
 		type R = T extends Promise<unknown> ? Promise<boolean> : boolean
@@ -291,6 +331,7 @@ export class Auspice<T>
 
 	}
 
+
 	is_error (): T extends Promise<unknown> ? Promise<boolean> : boolean
 	{
 		type R = T extends Promise<unknown> ? Promise<boolean> : boolean
@@ -307,14 +348,26 @@ export class Auspice<T>
 
 	}
 
+
 	unwrap (): [T extends Error ? never : T, T extends Error ? T : never]
 	{
 		return [this.#v, this.#e] as [T extends Error ? never : T, T extends Error ? T : never]
 
 	}
 
+
 	call
-	<F extends (...args: any[]) => T> (fn: F, ...params: Parameters<F>): this
+	<
+		F extends (...args: any[]) => T,
+
+	>
+	(
+		fn: F,
+
+		...params: Parameters<F>
+
+	)
+	:	this
 	{
 		try
 		{
@@ -345,7 +398,18 @@ export class Auspice<T>
 	}
 
 	static call
-	<F extends (...args: any[]) => unknown, T = ReturnType<F> > (fn: F, ...params: Parameters<F>): Auspice<T>
+	<
+		F extends (...args: any[]) => unknown,
+		T = ReturnType<F>,
+
+	>
+	(
+		fn: F,
+
+		...params: Parameters<F>
+
+	)
+	:	Auspice<T>
 	{
 		return new Auspice<T>().call(fn as (...args: any[]) => T, ...params)
 
