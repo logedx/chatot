@@ -3,8 +3,10 @@
  */
 import pinyin from 'pinyin'
 
-import { Schema, Types } from 'mongoose'
+import { Schema } from 'mongoose'
 
+
+import * as model from '../lib/model.js'
 
 import * as database from '../store/database.js'
 
@@ -14,30 +16,40 @@ import * as weapp_model from './weapp.js'
 
 
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Default
+{
+	export type Model = model.Define<
+		{
+			weapp : model.Types.Ref<weapp_model.Default.HydratedDocument>
 
-export type Tm = database.Tm<
-	{
-		weapp : Types.ObjectId
-		name  : string
-		color : string
-		value : string
-		letter: string
+			name  : string
+			color : string
+			value : model.Types.Keyword<string>
+			letter: string
 
-	}
+		},
 
->
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		{}
 
-export type TPopulatePaths = {
-	weapp: weapp_model.Tm['HydratedDocument']
+	>
+
+	export type Schema = database.Schema<
+		Model,
+
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		{},
+
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		{}
+
+	>
+
+	export type HydratedDocument = database.HydratedDocument<Schema>
 
 }
 
-
-
-
-
-
-const drive = await database.Mongodb.default()
 
 /**
  * 拼音首字母校验规则
@@ -76,17 +88,9 @@ export const letter_schema = {
 
 }
 
-export const schema: Tm['TSchema'] = new Schema
-<
-	Tm['DocType'],
-	Tm['TModel'],
-	Tm['TInstanceMethods'],
-	Tm['TQueryHelpers'],
-	Tm['TVirtuals'],
-	Tm['TStaticMethods']
 
 // eslint-disable-next-line @stylistic/function-call-spacing
->
+export const schema: Default.Schema = new Schema
 (
 	{
 		weapp: {
@@ -139,4 +143,6 @@ schema.index(
 )
 
 
-export default drive.model('Keyword', schema) as Tm['Model']
+const drive = await database.Mongodb.default()
+
+export default drive.model('Keyword', schema)

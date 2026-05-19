@@ -2,6 +2,7 @@ import moment from 'moment'
 import express from 'express'
 import { Types } from 'mongoose'
 
+import * as model from '../lib/model.js'
 import * as reply from '../lib/reply.js'
 import * as surmise from '../lib/surmise.js'
 import * as detective from '../lib/detective.js'
@@ -18,13 +19,12 @@ import * as retrieve_router from './retrieve.js'
 
 
 
-export const in_keyword_clue = surmise.Text.search<user_model.TRawDocKeyword>(
-	...user_model.keyword,
+export const in_keyword_clue = surmise.Text.search<user_model.Default.Model['Keywords']>('nickname', 'phone')
 
-)
-
-export const in_keyword_populate_clue = surmise.Model.search<user_model.TRawDocKeyword>(
-	user_model.default, ...user_model.keyword,
+// eslint-disable-next-line @stylistic/function-call-spacing
+export const in_keyword_populate_clue = surmise.Model.search<user_model.Default.Model['Keywords']>
+(
+	user_model.default, 'nickname', 'phone',
 
 )
 
@@ -64,7 +64,6 @@ router.post(
 				{ appid: suspect.get('appid') },
 
 			)
-			.select('+secret')
 
 
 		reply.NotFound.asserts(weapp, 'weapp is not found')
@@ -74,16 +73,18 @@ router.post(
 
 		)
 
+		let wxopenid = new model.Sensitive(wx_session.openid)
+		let wxsession = new model.Sensitive(wx_session.value)
+
 		let user = await user_model.default
 			.findOne(
-				{ wxopenid: wx_session.openid },
+				{ wxopenid },
 
 			)
-			.select('+scope')
 
 		if (detective.is_null(user) )
 		{
-			let scope: user_model.Tm['DocType']['scope'] = null
+			let scope: user_model.Default.HydratedDocument['scope'] = null
 
 			if (await user_model.default.countDocuments({}) < 1)
 			{
@@ -91,17 +92,17 @@ router.post(
 					lock: true,
 
 					value : scope_model.Role.无限,
-					expire: moment().add(99, 'year')
-						.toDate(),
+					// eslint-disable-next-line @stylistic/newline-per-chained-call
+					expire: moment().add(99, 'year').toDate(),
 
 				}
 
-				scope = v as scope_model.Tm['HydratedDocument']
+				scope = new model.Sensitive(v as scope_model.Default.HydratedDocument)
 
 			}
 
 			user = await user_model.default.create(
-				{ weapp: weapp._id, scope, wxopenid: wx_session.openid, wxsession: wx_session.value },
+				{ weapp: weapp._id, scope, wxopenid, wxsession },
 
 			)
 
@@ -110,7 +111,7 @@ router.post(
 
 		else
 		{
-			user.wxsession = wx_session.value
+			user.wxsession = wxsession
 
 			await user.save()
 
@@ -165,14 +166,17 @@ router.get(
 
 	retrieve_router.user,
 
-	async function retrieve (req, res)
+	function retrieve (req, res)
 	{
 		let doc = req.user!
 
-		let fields = await doc.select_sensitive_fields('+phone')
-
 		res.json(
-			{ ...doc.toJSON(), ...fields.toJSON() },
+			{
+				...doc.toJSON(),
+
+				phone: doc.phone.value,
+
+			},
 
 		)
 
@@ -188,7 +192,7 @@ router.get(
 	async function retrieves (req, res)
 	{
 		type Suspect = {
-			'$or'?: surmise.Keyword<user_model.TRawDocKeyword>
+			'$or'?: surmise.Keyword<user_model.Default.Model['Keywords']>
 
 			'color'?: string
 
@@ -257,13 +261,16 @@ router.get(
 
 		let doc = await user_model.default
 			.find(fritter.find)
-			.select('+phone')
 			.sort(fritter.sort)
 			.skip(fritter.skip)
 			.limit(fritter.limit)
 
+		let doc_ = doc.map(
+			v => ({ ...v.toJSON(), phone: v.phone.value }),
 
-		res.json(doc)
+		)
+
+		res.json(doc_)
 
 	},
 

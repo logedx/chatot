@@ -3,9 +3,10 @@
  */
 import moment from 'moment'
 
-import { Schema, Types } from 'mongoose'
+import { Schema } from 'mongoose'
 
 
+import * as model from '../lib/model.js'
 import * as detective from '../lib/detective.js'
 
 import * as database from '../store/database.js'
@@ -18,65 +19,57 @@ import * as weapp_model from './weapp.js'
 
 
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Default
+{
+	export type Model = model.Define<
+		{
+			weapp: model.Types.Ref<weapp_model.Default.HydratedDocument>
 
-export type Tm = database.Tm<
-	{
-		weapp: Types.ObjectId
+			active: boolean
 
-		active: boolean
+			avatar  : string
+			nickname: model.Types.Keyword<string>
+			color   : string
 
-		avatar  : string
-		nickname: string
-		color   : string
+			phone: model.Types.Keyword< model.Types.Sensitive<string> >
 
-		phone?: string
+			wxopenid : model.Types.Sensitive<string>
+			wxsession: model.Types.Sensitive<string>
 
-		wxopenid? : string
-		wxsession?: string
+			scope: null | model.Types.Sensitive<scope_model.Default.HydratedDocument>
 
-		scope?: null | scope_model.Tm['HydratedDocument']
+		},
 
-	},
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		{}
 
-	object,
+	>
 
-	{
-		shine(): Promise<void>
+	export type Schema = database.Schema<
+		Model,
 
-		overcast(): Promise<void>
+		{
+			shine(): Promise<void>
 
-		authorize(expire?: Date): Promise<void>
+			overcast(): Promise<void>
 
-	}
+			authorize(expire?: Date): Promise<void>
 
->
+		},
 
-export type TRawDocKeyword = 'nickname' | 'phone'
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		{}
 
-export type TPopulatePaths = {
-	weapp: weapp_model.Tm['HydratedDocument']
+	>
+
+	export type HydratedDocument = database.HydratedDocument<Schema>
 
 }
 
 
-
-
-
-const drive = await database.Mongodb.default()
-
-export const keyword = ['nickname', 'phone'] as const
-
-export const schema: Tm['TSchema'] = new Schema
-<
-	Tm['DocType'],
-	Tm['TModel'],
-	Tm['TInstanceMethods'],
-	Tm['TQueryHelpers'],
-	Tm['TVirtuals'],
-	Tm['TStaticMethods']
-
 // eslint-disable-next-line @stylistic/function-call-spacing
->
+export const schema: Default.Schema = new Schema
 (
 	{
 		weapp: {
@@ -116,10 +109,10 @@ export const schema: Tm['TSchema'] = new Schema
 		},
 
 		phone: {
-			type     : String,
+			// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+			type     : model.Sensitive<String>,
 			index    : true,
 			sparse   : true,
-			select   : false,
 			lowercase: true,
 			trim     : true,
 
@@ -127,9 +120,9 @@ export const schema: Tm['TSchema'] = new Schema
 
 		// 微信标识符
 		wxopenid: {
-			type    : String,
+			// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+			type     : model.Sensitive<String>,
 			unique  : true,
-			select  : false,
 			required: true,
 			trim    : true,
 
@@ -137,9 +130,9 @@ export const schema: Tm['TSchema'] = new Schema
 
 		// 微信会话
 		wxsession: {
-			type    : String,
+			// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+			type     : model.Sensitive<String>,
 			unique  : true,
-			select  : false,
 			required: true,
 			trim    : true,
 
@@ -148,16 +141,79 @@ export const schema: Tm['TSchema'] = new Schema
 		// 权限范围
 		scope: {
 			type   : scope_model.default,
-			select : false,
 			default: null,
 
 		},
 
 	},
 
+	{
+		methods: {
+			async shine ()
+			{
+				this.active = detective.is_phone_number_string(this.phone)
+
+				await this.save()
+
+			},
+
+			async overcast ()
+			{
+				this.active = false
+
+				await this.save()
+
+			},
+
+			async authorize (
+				// eslint-disable-next-line @stylistic/newline-per-chained-call
+				expire = moment().add(1, 'w').toDate(),
+
+			)
+			{
+				if (this.scope)
+				{
+					this.scope.value.value = scope_model.mixed(
+						this.scope.value.value,
+
+						scope_model.Role.运营,
+
+					)
+
+				}
+
+				else
+				{
+					this.scope = new model.Sensitive(
+						{ value: scope_model.Role.运营 } as scope_model.Default.HydratedDocument,
+
+					)
+
+				}
+
+				this.scope.value.expire = expire
+
+
+				await this.save()
+
+				await token_model.default.findOneAndUpdate(
+					{ user: this._id },
+
+					{ scope: this.scope.value.value },
+
+				)
+
+
+			},
+
+
+		},
+
+
+	},
+
 
 )
-
 
 
 schema.index(
@@ -181,7 +237,6 @@ schema.index(
 
 )
 
-
 schema.index(
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	{ 'scope.lock': 1, 'scope.expired': -1 },
@@ -189,84 +244,6 @@ schema.index(
 )
 
 
-schema.method(
-	'shine',
+const drive = await database.Mongodb.default()
 
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['shine']>
-	async function ()
-	{
-		let doc = await this.select_sensitive_fields('+phone')
-
-		doc.active = detective.is_phone_number_string(doc.phone)
-
-		await doc.save()
-
-	},
-
-
-)
-
-schema.method(
-	'overcast',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['overcast']>
-	async function ()
-	{
-		this.active = false
-
-		await this.save()
-
-	},
-
-
-)
-
-schema.method(
-	'authorize',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['authorize']>
-	// eslint-disable-next-line @stylistic/newline-per-chained-call
-	async function (expire = moment().add(1, 'w').toDate() )
-	{
-		let doc = await this.select_sensitive_fields('+scope')
-
-		if (doc.scope)
-		{
-			doc.scope.value = scope_model.mixed(
-				doc.scope.value,
-
-				scope_model.Role.运营,
-
-			)
-
-		}
-
-		else
-		{
-			doc.scope = { value: scope_model.Role.运营 } as scope_model.Tm['HydratedDocument']
-
-		}
-
-		doc.scope.expire = expire
-
-
-		await doc.save()
-
-		await token_model.default.findOneAndUpdate(
-			{ user: doc._id },
-
-			{ scope: doc.scope.value },
-
-		)
-
-
-	},
-
-
-)
-
-
-export default drive.model('User', schema) as Tm['Model']
+export default drive.model('User', schema)

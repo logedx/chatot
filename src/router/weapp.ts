@@ -185,7 +185,7 @@ router.get(
 	async function retrieve_users (req, res)
 	{
 		type Suspect = {
-			$or?: surmise.Keyword<user_model.TRawDocKeyword>
+			$or?: surmise.Keyword<user_model.Default.Model['Keywords']>
 
 			weapp: Types.ObjectId
 

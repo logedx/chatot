@@ -1,13 +1,13 @@
 /**
  * 令牌模型
  */
-import { Schema, Types } from 'mongoose'
+import { Schema } from 'mongoose'
 
 
+import * as model from '../lib/model.js'
 import * as reply from '../lib/reply.js'
 import * as secret from '../lib/secret.js'
 import * as detective from '../lib/detective.js'
-import * as structure from '../lib/structure.js'
 
 import * as database from '../store/database.js'
 
@@ -20,108 +20,124 @@ import * as weapp_model from './weapp.js'
 
 
 
-export type Tm = database.Tm<
-	{
-		color: string
-		scope: number
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Default
+{
+	export type Model = model.Define<
+		{
+			color: string
+			scope: number
 
-		weapp: null | Types.ObjectId
-		user : null | Types.ObjectId
+			weapp: null | model.Types.Ref<weapp_model.Default.HydratedDocument>
+			user : null | model.Types.Ref<user_model.Default.HydratedDocument>
 
-		value  : string
-		refresh: string
+			value  : model.Types.Sensitive<string>
+			refresh: model.Types.Sensitive<string>
 
-		expire: Date
+			expire: model.Types.Sensitive<Date>
 
-	},
+		},
 
-	{
-		is_super: boolean
+		{
+			is_super: boolean
 
-		is_usable : boolean
-		is_deposit: boolean
-		is_survive: boolean
+			is_usable : boolean
+			is_deposit: boolean
+			is_survive: boolean
 
-		mode: scope_model.Mode
+			mode: scope_model.Mode
 
-	},
+		}
 
-	{
-		replenish(value: string): Promise<Tm['HydratedDocument']>
+	>
 
-		to_user(): Promise<user_model.Tm['HydratedDocument']>
+	export type Schema = database.Schema<
+		Model,
 
-		to_weapp(): Promise<weapp_model.Tm['HydratedDocument']>
 
-		to_usable(): TmUsable['HydratedDocument']
+		{
+			replenish(value: string): Promise<Default.HydratedDocument>
 
-		to_deposit(): TmDeposit['HydratedDocument']
+		},
 
-		to_survive(): TmSurvive['HydratedDocument']
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		{}
 
-	}
+	>
 
->
-
-export type TmUsable = database.Tm<
-	Tm['DocType'],
-
-	Tm['TVirtuals'],
-
-	Pick<Tm['TInstanceMethods'], 'replenish'>
-
->
-
-export type TmDeposit = database.Tm<
-	structure.Override<
-		Tm['DocType'],
-
-		{ weapp: Types.ObjectId }
-
-	>,
-
-	Tm['TVirtuals'],
-
-	Pick<Tm['TInstanceMethods'], 'replenish' | 'to_weapp'>
-
->
-
-export type TmSurvive = database.Tm<
-	structure.Override<
-		Tm['DocType'],
-
-		{ weapp: Types.ObjectId, user: Types.ObjectId }
-
-	>,
-
-	Tm['TVirtuals'],
-
-	Pick<Tm['TInstanceMethods'], 'replenish' | 'to_weapp' | 'to_user'>
-
->
-
-export type TPopulatePaths = {
-	weapp: null | weapp_model.Tm['HydratedDocument']
-	user : null | user_model.Tm['HydratedDocument']
+	export type HydratedDocument = database.HydratedDocument<Schema>
 
 }
 
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Deposit
+{
+	export type Model = model.Override<
+		Default.Model,
+
+		{
+			weapp: model.Types.Ref<weapp_model.Default.HydratedDocument>
+
+		}
 
 
-const drive = await database.Mongodb.default()
+	>
 
-export const schema: Tm['TSchema'] = new Schema
-<
-	Tm['DocType'],
-	Tm['TModel'],
-	Tm['TInstanceMethods'],
-	Tm['TQueryHelpers'],
-	Tm['TVirtuals'],
-	Tm['TStaticMethods']
+	export type Schema = database.Schema<
+		Model,
+
+		Default.Schema['methods']
+		& {
+			to_weapp(): Promise<weapp_model.Default.HydratedDocument>
+
+		},
+
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		{}
+
+	>
+
+	export type HydratedDocument = database.HydratedDocument<Schema>
+
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Survive
+{
+	export type Model = model.Override<
+		Deposit.Model,
+
+		{
+			user : model.Types.Ref< user_model.Default.HydratedDocument >
+
+		}
+
+
+	>
+
+	export type Schema = database.Schema<
+		Model,
+
+		Deposit.Schema['methods']
+		& {
+			to_user(): Promise< user_model.Default.HydratedDocument >
+
+		},
+
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		{}
+
+	>
+
+	export type HydratedDocument = database.HydratedDocument<Schema>
+
+}
+
 
 // eslint-disable-next-line @stylistic/function-call-spacing
->
+export const schema: Default.Schema = new Schema
 (
 	{
 		color: {
@@ -154,21 +170,21 @@ export const schema: Tm['TSchema'] = new Schema
 		},
 
 		value: {
-			type    : String,
+			// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+			type    : model.Sensitive<String>,
 			unique  : true,
 			required: true,
-			trim    : true,
-			default : () => secret.hex(),
+			default : () => new model.Sensitive(secret.hex() ),
 
 		},
 
 		// 刷新令牌
 		refresh: {
-			type    : String,
+			// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+			type    : model.Sensitive<String>,
 			unique  : true,
 			required: true,
-			trim    : true,
-			default : () => secret.hex(),
+			default : () => new model.Sensitive(secret.hex() ),
 
 		},
 
@@ -177,179 +193,86 @@ export const schema: Tm['TSchema'] = new Schema
 			type    : Date,
 			expires : 300,
 			required: true,
-			default : () => secret.delay(7200),
+			default : () => new model.Sensitive(secret.delay(7200) ),
 
 		},
 
 	},
 
-)
-
-schema.virtual('is_super').get(
-	function (): Tm['TVirtuals']['is_super']
 	{
-		return this.scope > 0
+		virtuals: {
+			is_super: {
+				get ()
+				{
+					return this.scope > 0
 
-	},
+				},
 
-)
+			},
 
-schema.virtual('is_usable').get(
-	function (): Tm['TVirtuals']['is_usable']
-	{
-		return this.expire > new Date()
+			is_usable: {
+				get ()
+				{
+					return this.expire.value > new Date()
 
-	},
+				},
 
-)
+			},
 
-schema.virtual('is_deposit').get(
-	function (): Tm['TVirtuals']['is_deposit']
-	{
-		return this.is_usable && detective.is_exist(this.weapp)
+			is_deposit: {
+				get ()
+				{
+					return this.is_usable && detective.is_exist(this.weapp)
 
-	},
+				},
 
-)
+			},
 
-schema.virtual('is_survive').get(
-	function (): Tm['TVirtuals']['is_survive']
-	{
-		return this.is_deposit && detective.is_exist(this.user)
+			is_survive: {
+				get ()
+				{
+					return this.is_deposit && detective.is_exist(this.user)
 
-	},
+				},
 
-)
+			},
 
-schema.virtual('mode').get(
-	function (): Tm['TVirtuals']['mode']
-	{
-		return scope_model.vtmod(this.scope)
+			mode: {
+				get ()
+				{
+					return scope_model.vtmod(this.scope)
 
-	},
+				},
 
-)
-
-schema.method(
-	'replenish',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['replenish']>
-	async function (value)
-	{
-		if (this.refresh !== value)
-		{
-			throw new reply.Unauthorized('refresh is invalid')
-
-		}
+			},
 
 
-		this.value = secret.hex()
-		this.refresh = secret.hex()
+		},
 
-		this.expire = secret.delay(7200)
+		methods: {
+			async replenish (value)
+			{
+				if (this.refresh.value !== value)
+				{
+					throw new reply.Unauthorized('refresh is invalid')
 
-		await this.save()
-
-		return this
-
-	},
-
-
-)
-
-schema.method(
-	'to_user',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_user']>
-	async function ()
-	{
-		let doc = await user_model.default.findById(this.user)
-
-		reply.NotFound.asserts(doc, 'user is not found')
+				}
 
 
-		return doc
+				this.value = new model.Sensitive(secret.hex() )
+				this.refresh = new model.Sensitive(secret.hex() )
 
-	},
+				this.expire = new model.Sensitive(secret.delay(7200) )
 
+				await this.save()
 
-)
+				return this
 
-schema.method(
-	'to_weapp',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_weapp']>
-	async function ()
-	{
-		let doc = await weapp_model.default.findById(this.weapp)
-
-		reply.NotFound.asserts(doc, 'weapp is not found')
+			},
 
 
-		return doc
+		},
 
-	},
-
-
-)
-
-schema.method(
-	'to_usable',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_usable']>
-	function ()
-	{
-		if (this.is_usable)
-		{
-			return this as unknown as TmUsable['HydratedDocument']
-
-		}
-
-		throw new reply.Unauthorized('authentication failed')
-
-	},
-
-
-)
-
-schema.method(
-	'to_deposit',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_deposit']>
-	function ()
-	{
-		if (this.is_deposit)
-		{
-			return this as unknown as TmDeposit['HydratedDocument']
-
-		}
-
-		throw new reply.Unauthorized('authentication failed')
-
-	},
-
-
-)
-
-schema.method(
-	'to_survive',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_survive']>
-	function ()
-	{
-		if (this.is_survive)
-		{
-			return this as unknown as TmSurvive['HydratedDocument']
-
-		}
-
-		throw new reply.Unauthorized('authentication failed')
 
 	},
 
@@ -357,4 +280,6 @@ schema.method(
 )
 
 
-export default drive.model('Token', schema) as Tm['Model']
+const drive = await database.Mongodb.default()
+
+export default drive.model('Token', schema)

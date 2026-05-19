@@ -59,7 +59,7 @@ router.post(
 				.and
 				<
 					structure.Override<
-						stamp_model.Tm['HydratedDocument'], { amber: string }
+						stamp_model.Default.HydratedDocument, { amber: string }
 
 					>
 

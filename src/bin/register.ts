@@ -5,6 +5,7 @@ import * as inquirer from '@inquirer/prompts'
 import * as app from '../app.js'
 import * as std from '../std.js'
 
+import * as model from '../lib/model.js'
 import * as detective from '../lib/detective.js'
 
 import * as weapp_model from '../model/weapp.js'
@@ -70,7 +71,11 @@ async function careate (): Promise<void>
 	}
 
 
-	await weapp_model.default.create(doc)
+	await weapp_model.default
+		.create(
+			{ ...doc, secret: new model.Sensitive(doc.secret) },
+
+		)
 
 
 }

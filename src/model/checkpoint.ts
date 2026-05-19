@@ -1,11 +1,12 @@
 /**
  * 检查点模型
  */
-import { Schema, Types, Document } from 'mongoose'
+import { Schema, Document } from 'mongoose'
 
 import * as axios from 'axios'
 
 
+import * as model from '../lib/model.js'
 import * as secret from '../lib/secret.js'
 
 import * as database from '../store/database.js'
@@ -18,62 +19,53 @@ import * as weapp_model from './weapp.js'
 
 
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Default
+{
+	export type Model = model.Define<
+		{
+			weapp: null | model.Types.Ref<weapp_model.Default.HydratedDocument>
+			user : null | model.Types.Ref<user_model.Default.HydratedDocument>
 
-export type Tm = database.Tm<
-	{
-		scope   : number
-		weapp   : null | Types.ObjectId
-		user    : null | Types.ObjectId
-		method  : Uppercase<axios.Method>
-		original: string
-		expire  : Date
-		context : null | Schema.Types.Mixed
+			method  : Uppercase<axios.Method>
+			original: string
 
-	},
+			scope : number
+			expire: Date
 
-	{
-		mode: scope_model.Mode
+			context : unknown
 
-	},
+		},
 
-	{
-		hold(context: unknown): Promise<void>
+		{
+			mode: scope_model.Mode
 
-	}
+		}
 
->
+	>
 
-export type TPopulatePaths = {
-	weapp: null | weapp_model.Tm['HydratedDocument']
-	user : null | user_model.Tm['HydratedDocument']
+	export type Schema = database.Schema<
+		Model,
+
+		{
+			hold(context: unknown): Promise<void>
+
+		},
+
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		{}
+
+	>
+
+	export type HydratedDocument = database.HydratedDocument<Schema>
 
 }
 
 
-
-
-const drive = await database.Mongodb.default()
-
-export const schema: Tm['TSchema'] = new Schema
-<
-	Tm['DocType'],
-	Tm['TModel'],
-	Tm['TInstanceMethods'],
-	Tm['TQueryHelpers'],
-	Tm['TVirtuals'],
-	Tm['TStaticMethods']
-
 // eslint-disable-next-line @stylistic/function-call-spacing
->
+export const schema: Default.Schema = new Schema
 (
 	{
-		scope: {
-			type    : Number,
-			required: true,
-			default : 0,
-
-		},
-
 		weapp: {
 			type   : Schema.Types.ObjectId,
 			ref    : () => weapp_model.default,
@@ -105,6 +97,13 @@ export const schema: Tm['TSchema'] = new Schema
 
 		},
 
+		scope: {
+			type    : Number,
+			required: true,
+			default : 0,
+
+		},
+
 		expire: {
 			type    : Date,
 			expires : 0,
@@ -121,41 +120,46 @@ export const schema: Tm['TSchema'] = new Schema
 
 	},
 
-)
-
-
-schema.virtual('mode').get(
-	function (): Tm['TVirtuals']['mode']
 	{
-		return scope_model.vtmod(this.scope)
+		virtuals: {
+			mode: {
+				get ()
+				{
+					return scope_model.vtmod(this.scope)
+
+				},
+
+			},
+
+
+		},
+
+		methods: {
+			async hold (context)
+			{
+				if (context instanceof Document)
+				{
+					context = context.toObject()
+
+				}
+
+				await this.updateOne(
+					{ context },
+
+				)
+
+			},
+
+
+		},
+
 
 	},
 
-)
-
-
-schema.method(
-	'hold',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['hold']>
-	async function (context)
-	{
-		if (context instanceof Document)
-		{
-			context = context.toObject()
-
-		}
-
-		await this.updateOne(
-			{ context: context as Schema.Types.Mixed },
-
-		)
-
-	},
-
 
 )
 
 
-export default drive.model('Checkpoint', schema) as Tm['Model']
+const drive = await database.Mongodb.default()
+
+export default drive.model('Checkpoint', schema)

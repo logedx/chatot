@@ -1,5 +1,8 @@
 import express from 'express'
 
+import * as axios from 'axios'
+
+
 import * as reply from '../lib/reply.js'
 import * as surmise from '../lib/surmise.js'
 import * as structure from '../lib/structure.js'
@@ -21,7 +24,7 @@ export function checkpoint (...point: number[]): express.RequestHandler[]
 
 		async function (req, res, next)
 		{
-			let method = req.method
+			let method = req.method.toUpperCase() as Uppercase<axios.Method>
 			let original = req.originalUrl
 
 			let data = req.survive_token!.toObject()
@@ -77,7 +80,12 @@ router.post(
 			)
 
 		res.json(
-			structure.pick(doc, 'value', 'refresh', 'expire'),
+			{
+				value  : doc.value.value,
+				refresh: doc.refresh.value,
+				expire : doc.expire.value,
+
+			},
 
 		)
 
@@ -95,7 +103,7 @@ router.get(
 		let doc = req.survive_token!
 
 		res.json(
-			structure.pick(doc, 'expire', 'scope', 'is_super', 'mode'),
+			structure.pick(doc, 'scope', 'is_super', 'mode'),
 
 		)
 
@@ -127,7 +135,13 @@ router.put(
 		await doc.replenish(suspect.get('refresh') )
 
 		res.json(
-			structure.pick(doc, 'value', 'refresh', 'expire'),
+			{
+				value  : doc.value.value,
+				refresh: doc.refresh.value,
+				expire : doc.expire.value,
+
+			},
+
 
 		)
 

@@ -4,9 +4,10 @@ import express from 'express'
 import { Types } from 'mongoose'
 
 
+import * as model from '../lib/model.js'
 import * as reply from '../lib/reply.js'
 
-import * as oss from '../store/oss.js'
+import * as oss_store from '../store/oss.js'
 
 import * as user_model from '../model/user.js'
 import * as scope_model from '../model/scope.js'
@@ -29,23 +30,23 @@ declare global
 		interface Request
 		{
 			xapp? : null | Types.ObjectId
-			weapp?: weapp_model.Tm['HydratedDocument']
+			weapp?: weapp_model.Default.HydratedDocument
 
-			user?      : user_model.Tm['HydratedDocument']
-			user_scope?: scope_model.Tm['HydratedDocument']
+			user?      : user_model.Default.HydratedDocument
+			user_scope?: scope_model.Default.HydratedDocument
 
-			keyword?: keyword_model.Tm['HydratedDocument']
+			keyword?: keyword_model.Default.HydratedDocument
 
-			stamp?     : stamp_model.Tm['HydratedDocument']
-			checkpoint?: checkpoint_model.Tm['HydratedDocument']
+			stamp?     : stamp_model.Default.HydratedDocument
+			checkpoint?: checkpoint_model.Default.HydratedDocument
 
 
-			token?        : token_model.Tm['HydratedDocument']
-			usable_token? : token_model.TmUsable['HydratedDocument']
-			deposit_token?: token_model.TmDeposit['HydratedDocument']
-			survive_token?: token_model.TmSurvive['HydratedDocument']
+			token?        : token_model.Default.HydratedDocument
+			usable_token? : token_model.Default.HydratedDocument
+			deposit_token?: token_model.Deposit.HydratedDocument
+			survive_token?: token_model.Survive.HydratedDocument
 
-			oss?: oss.OSS
+			oss?: oss_store.OSS
 
 		}
 
@@ -125,25 +126,11 @@ export const user_scope: express.RequestHandler = async function user_scope (req
 			{ _id, weapp, 'scope.lock': false },
 
 		)
-		.select
-		<
-			Required<
-				Pick<user_model.Tm['HydratedDocument'], 'scope'>
-
-			>
-
-		// eslint-disable-next-line @stylistic/function-call-spacing
-		>
-		(
-			['+scope'],
-
-		)
-
 
 	reply.NotFound.asserts(doc, 'user is not found')
 	reply.NotFound.asserts(doc.scope, 'scope is not found')
 
-	req.user_scope = doc.scope
+	req.user_scope = doc.scope.value
 
 	next()
 
@@ -200,7 +187,7 @@ export const token: express.RequestHandler = async function token (req, res, nex
 
 	let doc = await token_model.default
 		.findOne(
-			{ value },
+			{ value: new model.Sensitive(value) },
 
 		)
 
@@ -223,14 +210,18 @@ export const usable_token: express.RequestHandler = async function usable_token 
 
 	let doc = await token_model.default
 		.findOne(
-			{ value },
+			{ value: new model.Sensitive(value) },
 
 		)
 
+	if (doc?.is_usable !== true)
+	{
+		throw new reply.NotFound('authentication failed')
 
-	reply.NotFound.asserts(doc, 'token is not found')
+	}
 
-	req.usable_token = doc.to_usable()
+
+	req.usable_token = doc
 
 	next()
 
@@ -246,20 +237,19 @@ export const deposit_token: express.RequestHandler = async function deposit_toke
 
 	let doc = await token_model.default
 		.findOne(
-			{ value },
+			{ value: new model.Sensitive(value) },
 
 		)
 
+	if (doc?.is_deposit !== true)
+	{
+		throw new reply.NotFound('authentication failed')
 
-	reply.NotFound.asserts(doc, 'token is not found')
+	}
 
-	req.deposit_token = doc.to_deposit()
 
-	req.oss = await req.deposit_token.to_weapp()
-		.then(
-			weapp => weapp.to_oss(),
+	req.deposit_token = doc as unknown as token_model.Deposit.HydratedDocument
 
-		)
 
 	next()
 
@@ -275,20 +265,31 @@ export const survive_token: express.RequestHandler = async function survive_toke
 
 	let doc = await token_model.default
 		.findOne(
-			{ value },
+			{ value: new model.Sensitive(value) },
 
 		)
 
+	if (doc?.is_survive !== true)
+	{
+		throw new reply.NotFound('authentication failed')
 
-	reply.NotFound.asserts(doc, 'token is not found')
+	}
 
-	req.survive_token = doc.to_survive()
 
-	req.oss = await req.survive_token.to_weapp()
-		.then(
-			weapp => weapp.to_oss(),
+	req.deposit_token = doc as unknown as token_model.Deposit.HydratedDocument
+	req.survive_token = doc as unknown as token_model.Survive.HydratedDocument
 
-		)
+
+	next()
+
+}
+
+
+export const oss: express.RequestHandler = async function oss (req, res, next)
+{
+	let doc = await req.deposit_token!.to_weapp()
+
+	req.oss = doc.to_oss()
 
 	next()
 
