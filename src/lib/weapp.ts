@@ -212,7 +212,7 @@ export async function get_unlimited
 	)
 
 	let body = request.data
-	let mime = `${request.headers['content-type']}`
+	let mime = request.headers['content-type'] as string
 
 	if (mime.includes('application/json') )
 	{
