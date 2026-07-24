@@ -1,5 +1,5 @@
 import express from 'express'
-import { Types } from 'mongoose'
+import mongoose from 'mongoose'
 
 
 import * as surmise from '../lib/surmise.js'
@@ -46,7 +46,7 @@ router.post(
 	async function create (req, res)
 	{
 		type Suspect = {
-			value: Types.ObjectId
+			value: mongoose.Types.ObjectId
 
 		}
 
@@ -59,7 +59,7 @@ router.post(
 				.and
 				<
 					structure.Override<
-						stamp_model.Tm['HydratedDocument'], { amber: string }
+						stamp_model.Default.Document, { amber: string }
 
 					>
 
@@ -72,7 +72,7 @@ router.post(
 
 				)
 				.to(
-					v => new Types.ObjectId(v.amber),
+					v => new mongoose.Types.ObjectId(v.amber),
 
 				)
 				.signed(

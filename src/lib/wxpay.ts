@@ -2,6 +2,7 @@ import { URL, URLSearchParams } from 'node:url'
 
 import config from 'config'
 import moment from 'moment'
+
 import * as axios from 'axios'
 
 import * as reply from './reply.js'
@@ -9,15 +10,16 @@ import * as secret from './secret.js'
 import * as detective from './detective.js'
 import * as structure from './structure.js'
 
+
 const host = config.get<string>('host')
 
 
 export type APIv3Option = {
 	mchid   : string
 	v3key   : string
-	sign    : string | Buffer
-	evidence: string | Buffer
-	verify  : string | Buffer
+	sign    : string | Buffer | ArrayBuffer
+	evidence: string | Buffer | ArrayBuffer
+	verify  : string | Buffer | ArrayBuffer
 
 }
 
@@ -86,15 +88,33 @@ export class APIv3
 
 		}
 
+		if (detective.is_array_buffer(option.sign) )
+		{
+			option.sign = Buffer.from(option.sign)
+
+		}
+
 		if (typeof option.evidence === 'string')
 		{
 			option.evidence = Buffer.from(option.evidence, 'base64')
 
 		}
 
+		if (detective.is_array_buffer(option.evidence) )
+		{
+			option.evidence = Buffer.from(option.evidence)
+
+		}
+
 		if (typeof option.verify === 'string')
 		{
 			option.verify = Buffer.from(option.verify, 'base64')
+
+		}
+
+		if (detective.is_array_buffer(option.verify) )
+		{
+			option.verify = Buffer.from(option.verify)
 
 		}
 

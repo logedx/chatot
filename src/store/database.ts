@@ -1,10 +1,10 @@
 import config from 'config'
 
-import mongoose, { Types, Schema, Model, HydratedDocument } from 'mongoose'
+import mongoose, { Types, SchemaType, HydratedDocumentFromSchema } from 'mongoose'
 
 
+import * as schema from '../lib/schema.js'
 import * as detective from '../lib/detective.js'
-import * as structure from '../lib/structure.js'
 
 
 
@@ -12,267 +12,10 @@ import * as structure from '../lib/structure.js'
 const mongodb_uri = config.get<string>('mongodb')
 
 
-
-
-export type TDocType<T extends object = object> = T
-	& {
-		updated: Date
-		created: Date
-
-		updated_hex: string
-		created_hex: string
-
-	}
-
-export type TDocTypeOverwrite<T, U extends keyof T>
-	= structure.Override<
-		T,
-
-		{ [k in U]-?: T[k] }
-
-	>
-
-
-export type TDocTypeSensitiveSelector
-<T extends Record<string, unknown>, E extends string = 'id' | 'baseModelName' | 'errors'>
-	= {
-		[k in keyof T]: T[k] extends Types.Array<infer U>
-			? U extends object
-				? `+${k & string}.${keyof structure.GetPartial<Omit<U, E> > & string}`
-				: never
-
-			: T[k] extends object
-				? `+${k & string}.${keyof structure.GetPartial<Omit<T[k], E> > & string}`
-				: never
-
-
-	}
-
-
-
-
-export type TInstanceMethods
-<
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	T extends {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	V extends Record<string, any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	I extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	Q extends object = {},
-
->
-	= {
-		[k in keyof I]: (this: THydratedDocument<T, V, I, Q>, ...args: Parameters<I[k]>) => ReturnType<I[k]>
-
-	}
-	& {
-		select_sensitive_fields
-		<F extends keyof structure.GetPartial<T> >
-		(
-			this: THydratedDocument<T, V, I, Q>,
-
-			...fields: Array<`+${F}`>
-
-		)
-		: Promise<
-			structure.Override<
-				THydratedDocument<T, V, I, Q>,
-
-				Required<Pick<T, F> >
-
-			>
-
-		>
-
-		select_sensitive_fields
-		<
-			U extends TDocTypeSensitiveSelector<T> = TDocTypeSensitiveSelector<T>,
-
-		>
-		(
-			this: THydratedDocument<T, V, I, Q>,
-
-			...fileds: Array<U[keyof U]>
-
-		)
-		: Promise<
-			THydratedDocument<T, V, I, Q>
-
-		>
-
-		select_every_fields ()
-		: Promise<
-			Required< THydratedDocument<T, V, I, Q> >
-
-		>
-
-	}
-
-
-export type TStaticMethods
-<
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	T extends {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	V extends Record<string, any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	I extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	S extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	Q extends object = {},
-
->
-
-	= {
-		[k in keyof S]: (this: TTModel<T, V, I, S, Q>, ...args: Parameters<S[k]>) => ReturnType<S[k]>
-
-	}
-	& {
-		select_every_fields(this: TTModel<T, V, I, S, Q>): Array<`+${keyof T & string}`>
-
-	}
-
-
-
-export type THydratedDocument
-<
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	T extends {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	V extends Record<string, any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	I extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	Q extends object = {},
-
->
-	= HydratedDocument<
-		TDocType<T>,
-		V & TInstanceMethods<T, V, I, Q>,
-		Q,
-		V
-
-	>
-
-
-export type TSchema
-<
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	T extends {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	V extends Record<string, any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	I extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	S extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	Q extends object = {},
-
->
-	= Schema<
-		TDocType<T>,
-		TModel<T, V, I, S, Q>,
-		TInstanceMethods<T, V, I, Q>,
-		Q,
-		V,
-		TStaticMethods<T, V, I, S, Q>
-
-	>
-
-
-export type TModel
-<
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	T extends {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	V extends Record<string, any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	I extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	S extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	Q extends object = {},
-
-
->
-	= Model<
-		TDocType<T>,
-		Q,
-		TInstanceMethods<T, V, I, Q>,
-		V,
-		THydratedDocument<T, V, I, Q>,
-		TSchema<T, V, I, S, Q>
-
-	>
-
-
-export type TTModel
-<
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	T extends {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	V extends Record<string, any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	I extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	S extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	Q extends object = {},
-
-
->
-	= TModel<T, V, I, S, Q> & TStaticMethods<T, V, I, S, Q>
-
-
-export type Tm
-<
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	T extends {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	V extends Record<string, any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	I extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
-	S extends Record<string, (...args: any[]) => any> = {},
-	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-	Q extends object = {},
-
->
-	= {
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		DocType         : TDocType<T>
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		HydratedDocument: THydratedDocument<T, V, I, Q>
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		Model           : TTModel<T, V, I, S, Q>
-
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		TVirtuals       : V
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		TQueryHelpers   : Q
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		TInstanceMethods: TInstanceMethods<T, V, I, Q>
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		TStaticMethods  : TStaticMethods<T, V, I, S, Q>
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		TSchema         : TSchema<T, V, I, S, Q>
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		TModel          : TModel<T, V, I, S, Q>
-
-
-	}
-
-
 mongoose.plugin(
-	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-	// @ts-expect-error
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	function (schema: TSchema<any>): void
+	function (schema_)
 	{
-		schema.set(
+		schema_.set(
 			'toJSON',
 
 			{
@@ -285,7 +28,7 @@ mongoose.plugin(
 
 		)
 
-		schema.set(
+		schema_.set(
 			'toObject',
 
 			{
@@ -298,7 +41,7 @@ mongoose.plugin(
 
 		)
 
-		schema.set(
+		schema_.set(
 			'timestamps',
 
 			{
@@ -311,7 +54,7 @@ mongoose.plugin(
 
 		)
 
-		schema.virtual('updated_hex').get(
+		schema_.virtual('updated_hex').get(
 			function (): string
 			{
 				if (this.updated instanceof Date)
@@ -328,7 +71,7 @@ mongoose.plugin(
 
 		)
 
-		schema.virtual('created_hex').get(
+		schema_.virtual('created_hex').get(
 			function (): string
 			{
 				if (this.created instanceof Date)
@@ -344,54 +87,6 @@ mongoose.plugin(
 			},
 
 		)
-
-		schema.method(
-			'select_sensitive_fields',
-
-			function (...fields: Array<`+${string}`>)
-			{
-				return this.model().findById(this._id)
-					.select(fields)
-
-			},
-
-		)
-
-		schema.method(
-			'select_every_fields',
-
-			function ()
-			{
-				let fields = Object.entries(this.schema.paths)
-					.map(
-						([k]) => `+${k}`,
-
-					)
-
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-				return this.select_sensitive_fields(...fields as any[])
-
-			},
-
-		)
-
-		schema.static(
-			'select_every_fields',
-
-			function ()
-			{
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-				return Object.entries(this.schema.paths)
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					.map<any>(
-						([k]) => `+${k}`,
-
-					)
-
-			},
-
-		)
-
 
 
 	},
@@ -423,3 +118,268 @@ export class Mongodb
 
 
 }
+
+
+
+
+export class Sensitive<T>
+{
+	#value: T
+
+	get value (): T
+	{
+		return this.#value
+
+	}
+
+	constructor (value: T)
+	{
+		if (detective.is_string(value) )
+		{
+			value = value.trim() as T
+
+		}
+
+		this.#value = value
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	valueOf (): this
+	{
+		return this
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	toBSON (): T
+	{
+		return this.#value
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	toJSON (): undefined
+	{
+		return undefined
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	toString (): ''
+	{
+		return ''
+
+	}
+
+	[Symbol.toPrimitive] (): undefined
+	{
+		return undefined
+
+	}
+
+	[Symbol.toStringTag] ():string
+	{
+		return '[object Sensitive]'
+
+	}
+
+	update (value: T): void
+	{
+		this.#value = value
+
+	}
+
+	unwrap (): T
+	{
+		return this.#value
+
+	}
+
+	confuse (visible_length = 4): string
+	{
+		if (detective.is_empty(this.#value) )
+		{
+			return ''
+
+		}
+
+		let text = String(this.#value)
+
+		let length = Math.max(0, text.length - visible_length)
+
+		if (length > 0)
+		{
+			return `${''.padStart(length, '*')}${text.slice(0 - visible_length)}`
+
+		}
+
+		return ''.padStart(visible_length, '*')
+
+	}
+
+
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+class SensitiveSchemaType<T = any, DocType = any> extends SchemaType<T, DocType>
+{
+	/** This schema type's name, to defend against minifiers that mangle function names. */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
+	static schemaName: 'Sensitive'
+
+	constructor (_path: string, option?: object)
+	{
+		super(_path, option, 'Sensitive')
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	cast (value: unknown, _doc?: unknown, init?: boolean): any
+	{
+		if (init === true)
+		{
+			return new Sensitive(value)
+
+		}
+
+		if (value instanceof Sensitive)
+		{
+			return value.unwrap()
+
+		}
+
+		if (detective.is_string(value) )
+		{
+			return value.trim()
+
+		}
+
+		return value
+
+	}
+
+	// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-explicit-any
+	castForQuery (_: unknown, value: unknown): any
+	{
+		if (value instanceof Sensitive)
+		{
+			return value.unwrap()
+
+		}
+
+		if (detective.is_string(value) )
+		{
+			return value.trim()
+
+		}
+
+		return value
+
+	}
+
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+mongoose.Schema.Types.Sensitive = SensitiveSchemaType
+
+
+
+
+export type ObjectId = Types.ObjectId
+
+export type { Types, Define, Probe, Stealthily } from '../lib/schema.js'
+
+
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Unpack<T> = T extends schema.Types.Ref<any>
+	? ObjectId
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	: schema.Types.Sensitive<any> extends T
+		? Sensitive<schema.Unpack<T> >
+		: T extends schema.Types.Mixed
+			? unknown
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			: T extends schema.Types.Quote<any>
+				? { [k in keyof T['__type__']]: Unpack<T['__type__'][k]> }
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				: T extends schema.Symbol<any, any>
+					? Unpack<T['__type__']>
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					: T extends any[]
+						? Array<Unpack<T[number]> >
+						: T
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Hollow<T> = T extends schema.Types.Ref<any>
+	? ObjectId
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	: T extends schema.Symbol<any, any>
+		? Hollow<T['__type__']>
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		: T extends any[]
+			? Array<Hollow<T[number]> >
+			: T
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Dryness<T extends schema.Define<any, any> > = {
+	[k in keyof T as schema.Property<k, T[k]>]: Unpack<T[k]>
+
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Explore<T extends schema.Define<any, any> > = {
+	[k in keyof T as schema.Virtual<k, T[k]>]: undefined extends T[k]
+		? unknown
+		: Unpack<T[k]>
+
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Deliquesce<T extends schema.Define<any, any> > = {
+	[k in keyof T]: k extends '_id' ? ObjectId : Hollow<T[k]>
+
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Leakage<T extends schema.Define<any, any>, K extends schema.Stealthily<T> > = {
+	[k in K]: Unpack<T[k]>
+
+}
+
+
+
+export type Schema
+<
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	T extends schema.Define<any, any>,
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	I extends Record<string, (...args: any[]) => any>,
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	S extends Record<string, (...args: any[]) => any>,
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-empty-object-type
+	Q extends Record<string, (...args: any[]) => any> = {},
+
+>
+	= mongoose.Schema<
+		Dryness<T>,
+		mongoose.Model<Dryness<T>, Q, I, Explore<T> >,
+		I,
+		Q,
+		Explore<T>,
+		S
+
+	>
+
+
+export type Document<S extends mongoose.Schema>	= HydratedDocumentFromSchema<S>

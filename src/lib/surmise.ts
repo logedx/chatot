@@ -1,4 +1,4 @@
-import mongoose, { Types } from 'mongoose'
+import mongoose from 'mongoose'
 
 import * as i18n from './i18n.js'
 import * as reply from './reply.js'
@@ -276,7 +276,7 @@ export class Dossier<T extends Record<PropertyKey, unknown> >
 	{
 		if (detective.is_undefined(arg1) )
 		{
-			return structure.clone(this.#value) as T
+			return structure.clone(this.#value)
 
 		}
 
@@ -1177,7 +1177,7 @@ export class Every
 			detective.is_object_id_string,
 
 		)
-		.to<Types.ObjectId[]>(
+		.to<mongoose.Types.ObjectId[]>(
 			v => v.map(
 				vv => new mongoose.Types.ObjectId(vv),
 
@@ -1199,7 +1199,7 @@ export class Model
 		...keyword: structure.UnionToTuple<T>
 
 	)
-	: Clue<Types.ObjectId[]>
+	: Clue<mongoose.Types.ObjectId[]>
 	{
 		return Text.search<T>(...keyword).to(
 			$or => Pager.search(model, $or),
@@ -1356,7 +1356,7 @@ export class Pager
 
 	static async search
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	<T extends string>(model: mongoose.Model<any>, keyword: Keyword<T>): Promise<Types.ObjectId[]>
+	<T extends string>(model: mongoose.Model<any>, keyword: Keyword<T>): Promise<mongoose.Types.ObjectId[]>
 	{
 		let doc = await model.find(
 			{ $or: keyword as Array<Record<string, RegExp> > },
@@ -1364,7 +1364,7 @@ export class Pager
 		)
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		return doc.map(v => v._id as Types.ObjectId)
+		return doc.map(v => v._id as mongoose.Types.ObjectId)
 
 
 	}

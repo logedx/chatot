@@ -7,6 +7,8 @@ import * as std from '../std.js'
 
 import * as detective from '../lib/detective.js'
 
+import * as database from '../store/database.js'
+
 import * as weapp_model from '../model/weapp.js'
 
 
@@ -70,7 +72,11 @@ async function careate (): Promise<void>
 	}
 
 
-	await weapp_model.default.create(doc)
+	await weapp_model.default
+		.create(
+			{ ...doc, secret: new database.Sensitive(doc.secret) },
+
+		)
 
 
 }

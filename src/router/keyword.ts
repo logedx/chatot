@@ -1,5 +1,5 @@
 import express from 'express'
-import { Types } from 'mongoose'
+import mongoose from 'mongoose'
 
 import * as surmise from '../lib/surmise.js'
 
@@ -9,6 +9,15 @@ import * as token_router from './token.js'
 import * as retrieve_router from './retrieve.js'
 
 
+
+
+export const in_letter_clue = surmise.Text.required
+	.and<keyword_model.Letter>(
+		'letter must be a single uppercase letter',
+
+		v => (/^[A-Z]{1}$/).test(v),
+
+	)
 
 
 export const router = express.Router()
@@ -21,13 +30,13 @@ router.post(
 	async function create (req, res)
 	{
 		type Suspect = {
-			weapp: Types.ObjectId
+			weapp: mongoose.Types.ObjectId
 
 			name : string
 			color: string
 			value: string
 
-			letter: string
+			letter: keyword_model.Letter
 
 		}
 
@@ -75,13 +84,13 @@ router.get(
 	async function retrieves (req, res)
 	{
 		type Suspect = {
-			weapp: Types.ObjectId
+			weapp: mongoose.Types.ObjectId
 
 			name? : string
 			color?: string
 			value?: RegExp
 
-			letter?: string
+			letter?: keyword_model.Letter
 
 		}
 
@@ -110,7 +119,7 @@ router.get(
 		)
 
 		await suspect.infer_optional<'letter'>(
-			surmise.Text.required.signed('letter'),
+			in_letter_clue.signed('letter'),
 
 		)
 

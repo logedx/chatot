@@ -10,67 +10,35 @@ import * as detective from '../lib/detective.js'
 import * as database from '../store/database.js'
 
 
+import * as scope from '../schema/scope.js'
 
 
-export enum Mode
+
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Default
 {
-	// eslint-disable-next-line id-match
-	普通, 管理, 接口, 系统,
+	export type Define = scope.Default
 
-}
-
-export enum Role
-{
-	// eslint-disable-next-line id-match
-	普通 = 0b0_0000_0000_0000,
-	// eslint-disable-next-line id-match
-	管理 = 0b0_0000_0000_0001,
-	// eslint-disable-next-line id-match
-	财务 = 0b0_0000_0001_0000,
-	// eslint-disable-next-line id-match
-	运营 = 0b0_0001_0000_0000,
-
-	// eslint-disable-next-line @typescript-eslint/prefer-literal-enum-member, id-match
-	无限 = Infinity,
-
-}
-
-
-
-
-export type Tm = database.Tm<
-	{
-		lock: boolean
-
-		value : number
-		expire: Date
-
-	},
-
-	{
-		is_expire: boolean
-
-	},
-
-	{
+	export type Methods = {
 		delay(to: Date): Promise<void>
 
 	}
 
->
+	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+	export type Statics = {}
+
+	export type Schema = database.Schema<Default.Define, Default.Methods, Default.Statics>
+
+	export type Keywords = database.Probe<Default.Define>
+
+	export type Document = database.Document<Default.Schema>
 
 
-export const schema: Tm['TSchema'] = new Schema
-<
-	Tm['DocType'],
-	Tm['TModel'],
-	Tm['TInstanceMethods'],
-	Tm['TQueryHelpers'],
-	Tm['TVirtuals'],
-	Tm['TStaticMethods']
+}
 
 // eslint-disable-next-line @stylistic/function-call-spacing
->
+export const default_schema: Default.Schema = new Schema
 (
 	{
 		// 锁定
@@ -97,56 +65,60 @@ export const schema: Tm['TSchema'] = new Schema
 
 	},
 
+	{
+		virtuals: {
+			is_expire: {
+				get ()
+				{
+					return new Date() > this.expire
+
+				},
+
+			},
+
+
+		},
+
+		methods: {
+			async delay (to)
+			{
+				if (new Date() > to)
+				{
+					throw new reply.Forbidden('invalid date')
+
+				}
+
+				this.expire = to
+
+				await this.save()
+
+
+			},
+
+		},
+
+
+	},
+
 
 )
 
 
-schema.index(
+default_schema.index(
 	{ lock: 1, expire: 1 },
 
 )
 
 
-schema.virtual('is_expire').get(
-	function (): Tm['TVirtuals']['is_expire']
-	{
-		return new Date() > this.expire
-
-	},
-
-)
+export default default_schema
 
 
-schema.method(
-	'delay',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['delay']>
-	async function (to)
-	{
-		if (new Date() > to)
-		{
-			throw new reply.Forbidden('invalid date')
-
-		}
-
-		this.expire = to
-
-		await this.save()
+export { Mode, Role } from '../schema/scope.js'
 
 
-	},
-
-
-)
-
-export default schema
-
-
-
-export function align (...mode: Mode[]): number
+export function align (...mode: scope.Mode[]): number
 {
-	let value = Object.values(Role)
+	let value = Object.values(scope.Role)
 		.filter(detective.is_finite_number)
 		.reduce(
 			(a, b) => a | b,
@@ -164,11 +136,12 @@ export function align (...mode: Mode[]): number
 
 }
 
-export function some (value: Role, ...role: Role[]): boolean
+
+export function some (value: scope.Role, ...role: scope.Role[]): boolean
 {
 	value = Math.abs(value)
 
-	if (value === Role.无限)
+	if (value === scope.Role.无限)
 	{
 		return true
 
@@ -181,19 +154,21 @@ export function some (value: Role, ...role: Role[]): boolean
 
 }
 
-export function never (value: Role, ...role: Role[]): boolean
+
+export function never (value: scope.Role, ...role: scope.Role[]): boolean
 {
 	return some(value, ...role) === false
 
 }
 
-export function mixed (value: Role, ...role: Role[]): Role
+
+export function mixed (value: scope.Role, ...role: scope.Role[]): scope.Role
 {
 	value = Math.abs(value)
 
-	if (value === Role.无限)
+	if (value === scope.Role.无限)
 	{
-		return Role.无限
+		return scope.Role.无限
 
 	}
 
@@ -207,14 +182,16 @@ export function mixed (value: Role, ...role: Role[]): Role
 
 }
 
-export function pick (value: Role, ...mode: Mode[]): number
+
+export function pick (value: scope.Role, ...mode: scope.Mode[]): number
 {
 	return value & align(...mode)
 
 
 }
 
-export function exclude (value: Role, ...mode: Mode[]): number
+
+export function exclude (value: scope.Role, ...mode: scope.Mode[]): number
 {
 	value = Math.abs(value)
 
@@ -225,7 +202,8 @@ export function exclude (value: Role, ...mode: Mode[]): number
 
 }
 
-export function derive (value: Role, ...mode: Mode[]): number
+
+export function derive (value: scope.Role, ...mode: scope.Mode[]): number
 {
 	value = Math.abs(value)
 
@@ -238,13 +216,14 @@ export function derive (value: Role, ...mode: Mode[]): number
 
 }
 
-export function chmod (value: Role, mode: Mode): Role
+
+export function chmod (value: scope.Role, mode: scope.Mode): scope.Role
 {
 	value = Math.abs(value)
 
-	if (value === Role.无限)
+	if (value === scope.Role.无限)
 	{
-		return Role.无限
+		return scope.Role.无限
 
 	}
 
@@ -252,23 +231,24 @@ export function chmod (value: Role, mode: Mode): Role
 
 }
 
-export function vtmod (value: Role): Mode
+
+export function vtmod (value: scope.Role): scope.Mode
 {
 	value = Math.abs(value)
 
-	if (value <= Role.普通)
+	if (value <= scope.Role.普通)
 	{
-		return Mode.普通
+		return scope.Mode.普通
 
 	}
 
-	if (value === Role.无限)
+	if (value === scope.Role.无限)
 	{
-		return Mode.系统
+		return scope.Mode.系统
 
 	}
 
-	let vxmode = Object.values(Mode)
+	let vxmode = Object.values(scope.Mode)
 		.filter(detective.is_finite_number)
 		.toSorted(
 			(a, b) => a - b,
@@ -290,7 +270,7 @@ export function vtmod (value: Role): Mode
 
 		},
 
-		Mode.普通,
+		scope.Mode.普通,
 
 	)
 

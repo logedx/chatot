@@ -1,5 +1,6 @@
 import express from 'express'
-import { Types } from 'mongoose'
+import mongoose from 'mongoose'
+
 
 import * as surmise from '../lib/surmise.js'
 
@@ -185,9 +186,9 @@ router.get(
 	async function retrieve_users (req, res)
 	{
 		type Suspect = {
-			$or?: surmise.Keyword<user_model.TRawDocKeyword>
+			$or?: surmise.Keyword<user_model.Default.Keywords>
 
-			weapp: Types.ObjectId
+			weapp: mongoose.Types.ObjectId
 
 		}
 

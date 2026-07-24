@@ -19,6 +19,8 @@ router.options(
 
 	retrieve_router.survive_token,
 
+	retrieve_router.oss,
+
 	async function query (req, res)
 	{
 		type Suspect = {
@@ -85,6 +87,8 @@ router.post(
 	'/media',
 
 	retrieve_router.survive_token,
+
+	retrieve_router.oss,
 
 	async function create (req, res)
 	{
@@ -164,6 +168,8 @@ router.put(
 	'/media',
 
 	retrieve_router.survive_token,
+
+	retrieve_router.oss,
 
 	async function update (req, res)
 	{

@@ -4,7 +4,7 @@
 import path from 'node:path'
 import stream from 'node:stream'
 
-import { Schema, SchemaType } from 'mongoose'
+import { Schema } from 'mongoose'
 
 
 import * as detective from '../lib/detective.js'
@@ -13,39 +13,24 @@ import * as oss from '../store/oss.js'
 import * as database from '../store/database.js'
 
 
+import * as media from '../schema/media.js'
 
 
-export type Tm = database.Tm<
-	{
-		store: 'alioss'
-
-		bucket: string
-		folder: string
-
-		mime: string
-		size: number
-		hash: string
-
-		src : string
-
-	},
 
 
-	{
-		filename: string
-		pathname: oss.TossFile['pathname']
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Default
+{
+	export type Define = media.Default
 
-	},
-
-
-	{
+	export type Methods = {
 		to_image(expires?: number): oss.Image
 
 		safe_delete(): Promise<void>
 
-	},
+	}
 
-	{
+	export type Statics = {
 		claim
 		(
 			oss: oss.OSS,
@@ -58,7 +43,7 @@ export type Tm = database.Tm<
 			}
 
 		)
-		:	Promise<Tm['HydratedDocument']>
+		:	Promise<Default.Document>
 
 		insure
 		(
@@ -75,7 +60,7 @@ export type Tm = database.Tm<
 			}
 
 		)
-		:	Promise<Tm['HydratedDocument']>
+		:	Promise<Default.Document>
 
 		fasten
 		(
@@ -93,118 +78,25 @@ export type Tm = database.Tm<
 			}
 
 		)
-		:	Promise<Tm['HydratedDocument']>
+		:	Promise<Default.Document>
 
 		safe_delete
-		(...src: string[]): Promise< Array< PromiseSettledResult<void> > >
+		(...src: string[]): Promise< Array<PromiseSettledResult<void> > >
 
 	}
 
->
+	export type Schema = database.Schema<Default.Define, Default.Methods, Default.Statics>
 
+	export type Keywords = database.Probe<Default.Define>
 
-
-
-const drive = await database.Mongodb.default()
-
-
-export class Secret extends String
-{
-	get href (): string
-	{
-		return this.valueOf()
-
-	}
-
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	valueOf (): string
-	{
-		return super.valueOf()
-
-	}
-
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	toBSON (): string
-	{
-		return super.valueOf()
-
-	}
-
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	toString (): string
-	{
-		return super.toString()
-
-	}
-
-	static cast (src: string | URL): string
-	{
-		let v = oss.OSS.deal(src)
-
-		if (detective.is_empty(v.pathname) )
-		{
-			return ''
-
-		}
-
-		return v.href
-
-	}
+	export type Document = database.Document<Default.Schema>
 
 
 }
 
-
-class SecretSchemaType extends SchemaType
-{
-	/** This schema type's name, to defend against minifiers that mangle function names. */
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	static schemaName: 'Secret'
-
-	constructor (_path: string, option: object)
-	{
-		super(_path, option, 'SecretSchemaType')
-
-		this.select(false)
-
-		this.default('')
-
-		this.set(
-			function (src: string | URL): string
-			{
-				return Secret.cast(src)
-
-			},
-
-		)
-
-	}
-
-	cast (value: string): Secret
-	{
-		return new Secret(value)
-
-	}
-
-
-}
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-drive.Schema.Types.Secret = SecretSchemaType
-
-
-export const schema: Tm['TSchema'] = new Schema
-<
-	Tm['DocType'],
-	Tm['TModel'],
-	Tm['TInstanceMethods'],
-	Tm['TQueryHelpers'],
-	Tm['TVirtuals'],
-	Tm['TStaticMethods']
 
 // eslint-disable-next-line @stylistic/function-call-spacing
->
+export const default_schema: Default.Schema = new Schema
 (
 	{
 		store: {
@@ -232,7 +124,6 @@ export const schema: Tm['TSchema'] = new Schema
 				.replace(/^([^/])/g, '/$1'),
 
 		},
-
 
 		mime: {
 			type     : String,
@@ -265,9 +156,162 @@ export const schema: Tm['TSchema'] = new Schema
 
 			set (v: string | URL): string
 			{
-				return Secret.cast(v)
+				return oss.OSS.deal(v).href
 
 			},
+
+		},
+
+
+	},
+
+	{
+		virtuals: {
+			filename: {
+				get ()
+				{
+					return this.pathname.split('/').pop() ?? ''
+
+				},
+
+			},
+
+			pathname: {
+				get ()
+				{
+					if (detective.is_empty(this.src) )
+					{
+						return '' as oss.TossFile['pathname']
+
+					}
+
+					return new URL(this.src).pathname.replace(/\\/g, '/') as oss.TossFile['pathname']
+
+				},
+
+
+			},
+
+
+		},
+
+		methods: {
+			to_image (expires = 60)
+			{
+				return new oss.Image(
+					this.bucket, this.pathname, { expires },
+
+				)
+
+			},
+
+			async safe_delete ()
+			{
+				await new oss.OSS(this.bucket).delete(this.src)
+
+				await this.deleteOne()
+
+			},
+
+
+		},
+
+		statics: {
+			async claim (o, option)
+			{
+				let claim = await o.claim(option.src)
+
+				return (this as unknown as Default.Schema['statics'])
+					.fasten(
+						o,
+
+						claim.pathname,
+
+						{
+							size: claim.size,
+							hash: claim.hash,
+
+							filename: option.filename,
+
+						},
+
+					)
+
+			},
+
+			async insure (o, data, option)
+			{
+				let cache = await o.cache(data, option)
+
+				return (this as unknown as Default.Schema['statics'])
+					.fasten(
+						o,
+
+						cache.pathname,
+
+						{
+							size: cache.size,
+							hash: cache.hash,
+
+							filename: option.filename,
+
+						},
+
+					)
+
+			},
+
+			async fasten (o, pathname, option)
+			{
+				let folder = path.dirname(pathname)
+
+				let doc = await this.findOne(
+					{ bucket: o.bucket, folder, hash: option.hash },
+
+				)
+
+				if (detective.is_exist(doc) )
+				{
+					// eslint-disable-next-line @typescript-eslint/no-floating-promises
+					o.scrap(pathname)
+
+					return doc
+
+				}
+
+				return this.create(
+					{
+						bucket: o.bucket,
+						folder,
+
+						size: option.size,
+						hash: option.hash,
+
+						...await o.fasten(pathname, option),
+
+					},
+
+				)
+
+			},
+
+			async safe_delete (...src)
+			{
+				let doc = await this.find(
+					{ src: { $in: src.map(v => oss.OSS.deal(v).href) } },
+
+				)
+
+				return Promise.allSettled(
+					doc.map(
+						v => v.safe_delete(),
+
+					),
+
+				)
+
+			},
+
 
 		},
 
@@ -278,12 +322,12 @@ export const schema: Tm['TSchema'] = new Schema
 )
 
 
-schema.index(
+default_schema.index(
 	{ bucket: 1, folder: 1 },
 
 )
 
-schema.index(
+default_schema.index(
 	{ bucket: 1, folder: 1, hash: 1 },
 
 	{
@@ -300,178 +344,6 @@ schema.index(
 )
 
 
-schema.virtual('filename').get(
-	function (): Tm['TVirtuals']['filename']
-	{
-		return this.pathname.split('/').pop() ?? ''
+const drive = await database.Mongodb.default()
 
-	},
-
-)
-
-schema.virtual('pathname').get(
-	function (): Tm['TVirtuals']['pathname']
-	{
-		if (detective.is_empty(this.src) )
-		{
-			return '' as oss.TossFile['pathname']
-
-		}
-
-		return new URL(this.src).pathname.replace(/\\/g, '/') as oss.TossFile['pathname']
-
-	},
-
-)
-
-
-schema.method(
-	'to_image',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_image']>
-	function (expires = 60)
-	{
-		return new oss.Image(
-			this.bucket, this.pathname, { expires },
-
-		)
-
-	},
-
-
-)
-
-schema.method(
-	'safe_delete',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['safe_delete']>
-	async function ()
-	{
-		await new oss.OSS(this.bucket).delete(this.src)
-
-		await this.deleteOne()
-
-	},
-
-
-)
-
-
-schema.static<'claim'>(
-	'claim',
-
-	async function (o, option)
-	{
-		let claim = await o.claim(option.src)
-
-		return this.fasten(
-			o,
-
-			claim.pathname,
-
-			{
-				size: claim.size,
-				hash: claim.hash,
-
-				filename: option.filename,
-
-			},
-
-		)
-
-	},
-
-)
-
-schema.static<'insure'>(
-	'insure',
-
-	async function (o, data, option)
-	{
-		let cache = await o.cache(data, option)
-
-		return this.fasten(
-			o,
-
-			cache.pathname,
-
-			{
-				size: cache.size,
-				hash: cache.hash,
-
-				filename: option.filename,
-
-			},
-
-		)
-
-	},
-
-)
-
-schema.static<'fasten'>(
-	'fasten',
-
-	async function (o, pathname, option)
-	{
-		let folder = path.dirname(pathname)
-
-		let doc = await this.findOne(
-			{ bucket: o.bucket, folder, hash: option.hash },
-
-		)
-
-		if (detective.is_exist(doc) )
-		{
-			// eslint-disable-next-line @typescript-eslint/no-floating-promises
-			o.scrap(pathname)
-
-			return doc
-
-		}
-
-		return this.create(
-			{
-				bucket: o.bucket,
-				folder,
-
-				size: option.size,
-				hash: option.hash,
-
-				...await o.fasten(pathname, option),
-
-			},
-
-		)
-
-	},
-
-)
-
-schema.static<'safe_delete'>(
-	'safe_delete',
-
-	async function (...src)
-	{
-		let doc = await this.find(
-			{ src: { $in: src.map(v => Secret.cast(v) ) } },
-
-		)
-
-		return Promise.allSettled(
-			doc.map(
-				v => v.safe_delete(),
-
-			),
-
-		)
-
-	},
-
-
-)
-
-
-export default drive.model('Media', schema) as Tm['Model']
+export default drive.model('Media', default_schema)

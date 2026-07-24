@@ -1,5 +1,5 @@
 import express from 'express'
-import { Types } from 'mongoose'
+import mongoose from 'mongoose'
 
 import * as reply from '../lib/reply.js'
 import * as surmise from '../lib/surmise.js'
@@ -44,7 +44,7 @@ router.post(
 	async function create (req, res)
 	{
 		type Suspect = {
-			value: stamp_model.Tm['HydratedDocument']
+			value: stamp_model.Default.Document
 
 		}
 
@@ -57,10 +57,7 @@ router.post(
 		)
 
 
-		let doc = await user_model.default
-			.findById(user)
-			.select('+scope')
-
+		let doc = await user_model.default.findById(user)
 
 		reply.NotFound.asserts(doc, 'user is not found')
 
@@ -113,12 +110,12 @@ router.get(
 	async function retrieves (req, res)
 	{
 		type Suspect = {
-			'$or'?: surmise.Keyword<user_model.TRawDocKeyword>
+			'$or'?: surmise.Keyword<user_model.Default.Keywords>
 
 			'color'?: string
 
 
-			'weapp' : Types.ObjectId
+			'weapp' : mongoose.Types.ObjectId
 			'active': true
 
 			'scope'     : { $ne: null }
@@ -162,13 +159,16 @@ router.get(
 
 		let doc = await user_model.default
 			.find(fritter.find)
-			.select('+phone')
 			.sort(fritter.sort)
 			.skip(fritter.skip)
 			.limit(fritter.limit)
 
+		let doc_ = doc.map(
+			v => ({ ...v.toJSON(), phone: v.phone.value }),
 
-		res.json(doc)
+		)
+
+		res.json(doc_)
 
 	},
 

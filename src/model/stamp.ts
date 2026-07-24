@@ -7,76 +7,46 @@ import moment from 'moment'
 import { Schema } from 'mongoose'
 
 
-import * as axios from 'axios'
-
-import * as oss from '../store/oss.js'
-import * as database from '../store/database.js'
-
-
 import * as reply from '../lib/reply.js'
 import * as secret from '../lib/secret.js'
 import * as detective from '../lib/detective.js'
 
+import * as database from '../store/database.js'
+
+
+import * as stamp from '../schema/stamp.js'
 
 
 
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Default
+{
+	export type Define = stamp.Default
 
-export type Tm = database.Tm<
-	{
-		value : string
-		symbol: `/${string}#${Lowercase<axios.Method>}`
+	export type Methods = {
+		touch(pathname: stamp.Pathname, method: Lowercase<stamp.Method>): boolean
 
-		expire: Date
-
-		context: Buffer
-
-		amber: unknown
-
-	},
-
-	{
-		lave  : number
-		href  : string
-		method: '*' | Uppercase<axios.Method>
-
-	},
-
-	{
-		touch(pathname: oss.TossFile['pathname'], method: Lowercase<axios.Method>,): boolean
-
-		eternal(): Promise<Tm['HydratedDocument']>
-
-	},
-
-	{
-		from(value: string): Promise<Tm['HydratedDocument']>
+		eternal(): Promise<Default.Document>
 
 	}
 
+	export type Statics = {
+		from(value: string): Promise<Default.Document>
 
->
+	}
+
+	export type Schema = database.Schema<Default.Define, Default.Methods, Default.Statics>
+
+	export type Keywords = database.Probe<Default.Define>
+
+	export type Document = database.Document<Default.Schema>
 
 
-
-const salt = config.get<string>('salt')
-
-const aes = new secret.AES_256_CBC(salt)
-
-
-const drive = await database.Mongodb.default()
-
-export const schema: Tm['TSchema'] = new Schema
-<
-	Tm['DocType'],
-	Tm['TModel'],
-	Tm['TInstanceMethods'],
-	Tm['TQueryHelpers'],
-	Tm['TVirtuals'],
-	Tm['TStaticMethods']
+}
 
 // eslint-disable-next-line @stylistic/function-call-spacing
->
+export const default_schema: Default.Schema = new Schema
 (
 	{
 		// 令牌
@@ -119,90 +89,80 @@ export const schema: Tm['TSchema'] = new Schema
 
 	},
 
-)
-
-
-schema.virtual('lave').get(
-	function (): Tm['TVirtuals']['lave']
 	{
-		return 0 - moment().diff(this.expire, 'seconds')
+		virtuals: {
+			lave: {
+				get ()
+				{
+					return 0 - moment().diff(this.expire, 'seconds')
 
-	},
+				},
 
-)
+			},
 
-schema.virtual('href').get(
-	function (): Tm['TVirtuals']['href']
-	{
-		return `data:image/png;base64,${this.context.toString('base64')}`
+			href: {
+				get ()
+				{
+					return `data:image/png;base64,${Buffer.from(this.context).toString('base64')}`
 
-	},
+				},
 
-)
+			},
 
-schema.virtual('method').get(
-	function (): Tm['TVirtuals']['method']
-	{
-		let [, v] = split(this.symbol ?? '')
+			method: {
+				get ()
+				{
+					let [, v] = split(this.symbol ?? '')
 
-		if (detective.is_string(v) )
-		{
-			return v.toUpperCase() as Uppercase<axios.Method>
+					if (detective.is_string(v) )
+					{
+						return v.toUpperCase() as stamp.Method
 
-		}
+					}
 
-		return '*'
+					return '*'
 
+				},
 
-	},
+			},
 
-)
+		},
 
+		methods: {
+			touch (pathname, method)
+			{
+				return this.symbol === sign(pathname, method)
 
-schema.method(
-	'touch',
+			},
 
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['touch']>
-	function (pathname, method)
-	{
-		return this.symbol === sign(pathname, method)
+			eternal ()
+			{
+				this.expire = new Date(2077, 0, 1)
 
-	},
+				return this.save()
 
-
-)
-
-schema.method(
-	'eternal',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['eternal']>
-	function ()
-	{
-		this.expire = new Date(2077, 0, 1)
-
-		return this.save()
-
-	},
+			},
 
 
-)
+		},
+
+		statics: {
+			async from (value)
+			{
+				let doc = await this.findOne(
+					{ value, expire: { $gte: new Date() } },
+
+				)
+
+				reply.NotFound.asserts(doc, 'stamp is not found')
+
+				return doc
 
 
-schema.static<'from'>(
-	'from',
+			},
 
-	async function (value)
-	{
-		let doc = await this.findOne(
-			{ value, expire: { $gte: new Date() } },
 
-		)
-
-		reply.NotFound.asserts(doc, 'stamp is not found')
-
-		return doc
+		},
 
 
 	},
@@ -211,10 +171,20 @@ schema.static<'from'>(
 )
 
 
-export default drive.model('Stamp', schema) as Tm['Model']
+const salt = config.get<string>('salt')
+
+const aes = new secret.AES_256_CBC(salt)
+
+const drive = await database.Mongodb.default()
+
+export default drive.model('Stamp', default_schema)
+
+
+export type { Method, Pathname, Symbol } from '../schema/stamp.js'
+
 
 export type Mailer<T = null> = {
-	symbol: Tm['DocType']['symbol']
+	symbol: stamp.Symbol
 
 	expire: Date
 
@@ -243,17 +213,17 @@ export function is_mailer (v: unknown): v is Mailer
 
 
 export function sign
-(pathname: oss.TossFile['pathname'], method: Lowercase<axios.Method>): Tm['DocType']['symbol']
+(pathname: stamp.Pathname, method: Lowercase<stamp.Method>): stamp.Symbol
 {
-	return `${pathname}#${method}`
+	return `${pathname}#${method.toLowerCase()}` as stamp.Symbol
 
 }
 
 
 export function split
-(symbol: string): [oss.TossFile['pathname'], Lowercase<axios.Method>]
+(symbol: stamp.Symbol): [stamp.Pathname, stamp.Method]
 {
-	return symbol.split('#') as [oss.TossFile['pathname'], Lowercase<axios.Method>]
+	return symbol.split('#') as [stamp.Pathname, stamp.Method]
 
 }
 
@@ -263,7 +233,7 @@ export function split
  */
 export function encrypt
 (
-	symbol: Tm['DocType']['symbol'],
+	symbol: stamp.Symbol,
 
 	expire: Date,
 

@@ -5,91 +5,58 @@ import { Schema } from 'mongoose'
 
 
 import * as reply from '../lib/reply.js'
-import * as weapp from '../lib/weapp.js'
-import * as wepay from '../lib/wepay.js'
+import * as wxpay from '../lib/wxpay.js'
+import * as wxopen from '../lib/wxopen.js'
 import * as detective from '../lib/detective.js'
 
 import * as oss from '../store/oss.js'
 import * as database from '../store/database.js'
 
+import * as weapp from '../schema/weapp.js'
 
 
 
-export type Tm = database.Tm<
-	{
-		appid : string
-		bucket: string
 
-		secret?  : string
-		mchid?   : string
-		v3key?   : string
-		sign?    : string
-		evidence?: string
-		verify?  : string
-		token?   : string
-		refresh? : string
-		expired? : Date
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Default
+{
+	export type Define = weapp.Default
 
-		closed: Date
-
-	},
-
-	object,
-
-	{
-		get_access_token(force?: true): Promise<string>
-
-		to_wx_session(code: string): Promise<weapp.WxSession>
-
-		to_phone_number(code: string): Promise<string>
-
-		to_unlimited
-		(path: string, scene: string): Promise<weapp.Unlimited>
-
+	export type Methods = {
 		to_oss(): oss.OSS
 
-		to_api_v3_option()
-		: Promise<
-			database.TDocTypeOverwrite<
-				Tm['HydratedDocument'],
+		to_transactions_api_v3(): wxpay.Transactions
 
-				'mchid' | 'v3key' | 'sign' | 'evidence' | 'verify'
+		to_refund_api_v3(): wxpay.Refund
 
-			>
+		to_weapp_session(code: string): Promise<wxopen.WeappSession>
 
+		to_weapp_phone_number(code: string): Promise<string>
 
-		>
+		to_weapp_unlimited
+		(path: string, scene: string): Promise<wxopen.WeappUnlimited>
 
-		to_transactions_api_v3(): Promise<wepay.Transactions>
-
-		to_refund_api_v3(): Promise<wepay.Refund>
-
-		send_subscribe_message
+		send_weapp_subscribe_message
 		(wxopenid: string, template: string, page: string, data: Record<string, string>): Promise<void>
 
+		get_weapp_access_token(force?: true): Promise<string>
 
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+	export type Statics = {}
 
->
+	export type Schema = database.Schema<Default.Define, Default.Methods, Default.Statics>
+
+	export type Keywords = database.Probe<Default.Define>
+
+	export type Document = database.Document<Default.Schema>
 
 
-
-
-
-const drive = await database.Mongodb.default()
-
-export const schema: Tm['TSchema'] = new Schema
-<
-	Tm['DocType'],
-	Tm['TModel'],
-	Tm['TInstanceMethods'],
-	Tm['TQueryHelpers'],
-	Tm['TVirtuals'],
-	Tm['TStaticMethods']
+}
 
 // eslint-disable-next-line @stylistic/function-call-spacing
->
+export const default_schema: Default.Schema = new Schema
 (
 	{
 		// 微信小程序APPID
@@ -112,83 +79,34 @@ export const schema: Tm['TSchema'] = new Schema
 
 		// 微信小程序SECRET
 		secret: {
-			type    : String,
-			select  : false,
+			type    : database.Sensitive,
 			required: true,
-			trim    : true,
 
 		},
 
 		// 微信支付MCHID
-		mchid: {
-			type   : String,
-			select : false,
-			trim   : true,
-			default: '',
-
-		},
+		mchid: database.Sensitive,
 
 		// API v3密钥
-		v3key: {
-			type   : String,
-			select : false,
-			trim   : true,
-			default: '',
-
-		},
+		v3key: database.Sensitive,
 
 		// 微信支付商户私钥
-		sign: {
-			type   : String,
-			select : false,
-			trim   : true,
-			default: '',
-
-		},
+		sign: database.Sensitive,
 
 		// 微信支付商户证书
-		evidence: {
-			type   : String,
-			select : false,
-			trim   : true,
-			default: '',
-
-		},
+		evidence: database.Sensitive,
 
 		// 微信支付平台证书
-		verify: {
-			type   : String,
-			select : false,
-			trim   : true,
-			default: '',
-
-		},
+		verify: database.Sensitive,
 
 		// 微信接口调用令牌 
-		token: {
-			type   : String,
-			select : false,
-			trim   : true,
-			default: '',
-
-		},
+		token: database.Sensitive,
 
 		// 微信接口调用令牌刷新令牌
-		refresh: {
-			type   : String,
-			select : false,
-			trim   : true,
-			default: '',
-
-		},
+		refresh: database.Sensitive,
 
 		// 微信接口调用令牌过期时间
-		expired: {
-			type   : Date,
-			select : false,
-			default: null,
-
-		},
+		expired: database.Sensitive,
 
 		// 关停日期
 		closed: {
@@ -199,235 +117,202 @@ export const schema: Tm['TSchema'] = new Schema
 
 	},
 
+	{
+		virtuals: {
+			api_v3_option: {
+				get ()
+				{
+					if (detective.is_empty(this.mchid.value)
+						|| detective.is_empty(this.v3key.value)
+						|| detective.is_empty(this.sign.value)
+						|| detective.is_empty(this.evidence.value)
+						|| detective.is_empty(this.verify.value)
+
+					)
+					{
+						throw new reply.NotFound('options is missing')
+
+					}
+
+					return new database.Sensitive(
+						{
+							mchid   : this.mchid.value,
+							v3key   : this.v3key.value,
+							sign    : this.sign.value,
+							evidence: this.evidence.value,
+							verify  : this.verify.value,
+
+						},
+
+					)
+
+				},
+
+			},
+
+		},
+
+		methods: {
+			to_oss ()
+			{
+				return oss.OSS.new(this.bucket)
+
+			},
+
+			to_transactions_api_v3 ()
+			{
+				let trans = new wxpay.Transactions(this.appid, this.api_v3_option.value)
+
+				trans.on(
+					'update',
+
+					async (name, ctx) =>
+					{
+						if (detective.is_string(ctx) )
+						{
+							ctx = Buffer.from(ctx)
+
+						}
+
+						await this.updateOne(
+							{ [name]: ctx },
+
+						)
+
+					},
+				)
+
+				return trans
+
+			},
+
+			to_refund_api_v3 ()
+			{
+				return new wxpay.Refund(this.appid, this.api_v3_option.value)
+
+			},
+
+			async to_weapp_session (code)
+			{
+				if (detective.is_empty(this.secret) )
+				{
+					throw new reply.NotFound('secret is empty')
+
+				}
+
+				return wxopen.get_weapp_session(this.appid, this.secret.value, code)
+
+
+			},
+
+			async to_weapp_unlimited (path, scene)
+			{
+				let token = await this.get_weapp_access_token()
+
+				try
+				{
+					return await wxopen.get_weapp_unlimited(token, path, scene)
+
+				}
+
+				catch
+				{
+					token = await this.get_weapp_access_token(true)
+
+
+				}
+
+				return wxopen.get_weapp_unlimited(token, path, scene)
+
+			},
+
+			async to_weapp_phone_number (code)
+			{
+				let token = await this.get_weapp_access_token()
+
+				try
+				{
+					return await wxopen.get_weapp_phone_number(token, code)
+
+				}
+
+				catch
+				{
+					token = await this.get_weapp_access_token(true)
+
+				}
+
+				return wxopen.get_weapp_phone_number(token, code)
+
+			},
+
+			async send_weapp_subscribe_message (wxopenid, template, page, data)
+			{
+				let token = await this.get_weapp_access_token()
+
+				await wxopen.send_weapp_subscribe_message(
+					token,
+					wxopenid,
+					template,
+					page,
+
+					Object.keys(data)
+						.reduce(
+							// eslint-disable-next-line no-return-assign
+							(a, b) => (a[b] = { value: data[b] }, a),
+
+							{} as Record<string, { value: string }>,
+
+						),
+
+				)
+
+			},
+
+			async get_weapp_access_token (force)
+			{
+				if (force !== true
+					&& detective.is_required_string(this.token.value)
+					&& detective.is_date(this.expired.value)
+					&& this.expired.value > new Date()
+
+				)
+				{
+					return this.token.value
+
+				}
+
+				if (detective.is_empty(this.secret) )
+				{
+					throw new reply.NotFound('secret is empty')
+
+				}
+
+
+				let result = await wxopen.get_weapp_access_token(this.appid, this.secret.value, force)
+
+				await this.updateOne(result)
+
+				return result.token
+
+			},
+
+
+		},
+
+
+	},
+
+
 )
 
 
-schema.index(
+default_schema.index(
 	{ closed: 1, created: -1 },
 
 )
 
 
-schema.method(
-	'get_access_token',
+const drive = await database.Mongodb.default()
 
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['get_access_token']>
-	async function (force)
-	{
-		let doc = await this.select_sensitive_fields('+secret', '+token', '+refresh', '+expired')
-
-		if (force !== true && doc.token && doc.expired > new Date() )
-		{
-			return doc.token
-
-		}
-
-		if (detective.is_empty(doc.secret) )
-		{
-			throw new reply.NotFound('secret is empty')
-
-		}
-
-
-		let result = await weapp.get_access_token(doc.appid, doc.secret, force)
-
-		await doc.updateOne(result)
-
-		return result.token
-
-
-	},
-
-
-)
-
-schema.method(
-	'to_wx_session',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_wx_session']>
-	async function (code)
-	{
-		let doc = await this.select_sensitive_fields('+secret')
-
-		return weapp.get_wx_session(doc.appid, doc.secret, code)
-
-
-	},
-
-
-)
-
-schema.method(
-	'to_unlimited',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_unlimited']>
-	async function (path, scene)
-	{
-		let token = await this.get_access_token()
-
-		try
-		{
-			return await weapp.get_unlimited(token, path, scene)
-
-		}
-
-		catch
-		{
-			token = await this.get_access_token(true)
-
-
-		}
-
-		return weapp.get_unlimited(token, path, scene)
-
-	},
-
-
-)
-
-schema.method(
-	'to_phone_number',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_phone_number']>
-	async function (code)
-	{
-		let token = await this.get_access_token()
-
-		try
-		{
-			return await weapp.get_phone_number(token, code)
-
-		}
-
-		catch
-		{
-			token = await this.get_access_token(true)
-
-		}
-
-		return weapp.get_phone_number(token, code)
-
-	},
-
-
-
-)
-
-schema.method(
-	'to_oss',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_oss']>
-	function ()
-	{
-		return oss.OSS.new(this.bucket)
-
-	},
-
-
-)
-
-schema.method(
-	'to_api_v3_option',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_api_v3_option']>
-	function ()
-	{
-		return this.select_sensitive_fields('+mchid', '+v3key', '+sign', '+evidence', '+verify')
-
-	},
-
-
-)
-
-schema.method(
-	'to_transactions_api_v3',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_transactions_api_v3']>
-	async function ()
-	{
-		let option = await this.to_api_v3_option()
-
-		let trans = new wepay.Transactions(this.appid, option)
-
-		trans.on(
-			'update',
-
-			async (name, ctx) =>
-			{
-				if (detective.is_string(ctx) )
-				{
-					ctx = Buffer.from(ctx)
-
-				}
-
-				await this.updateOne(
-					{ [name]: ctx },
-
-				)
-
-			},
-		)
-
-		return trans
-
-	},
-
-
-)
-
-schema.method(
-	'to_refund_api_v3',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['to_refund_api_v3']>
-	async function ()
-	{
-		let option = await this.to_api_v3_option()
-
-		return new wepay.Refund(this.appid, option)
-
-	},
-
-
-)
-
-schema.method(
-	'send_subscribe_message',
-
-	// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-	<Tm['TInstanceMethods']['send_subscribe_message']>
-	async function (wxopenid, template, page, data)
-	{
-		let token = await this.get_access_token()
-
-		await weapp.send_subscribe_message(
-			token,
-			wxopenid,
-			template,
-			page,
-
-			Object.keys(data)
-				.reduce(
-					// eslint-disable-next-line no-return-assign
-					(a, b) => (a[b] = { value: data[b] }, a),
-
-					{} as Record<string, { value: string }>,
-
-				),
-
-		)
-
-	},
-
-
-)
-
-
-export default drive.model('Weapp', schema) as Tm['Model']
+export default drive.model('Weapp', default_schema)

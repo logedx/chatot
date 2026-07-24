@@ -2,14 +2,12 @@ import * as consumers from 'node:stream/consumers'
 
 import express from 'express'
 
-import * as axios from 'axios'
 
 import * as secret from '../lib/secret.js'
 import * as surmise from '../lib/surmise.js'
 
 import * as stamp_model from '../model/stamp.js'
 
-import * as oss from '../store/oss.js'
 
 import * as retrieve_router from './retrieve.js'
 
@@ -20,11 +18,11 @@ export const cypher_decrypt_clue = surmise.Text.required.to(stamp_model.decrypt)
 
 export function symbol_clue
 (
-	pathname: oss.TossFile['pathname'],
-	method: Lowercase<axios.Method>,
+	pathname: stamp_model.Pathname,
+	method: Lowercase<stamp_model.Method>,
 
 )
-: surmise.Clue<stamp_model.Tm['HydratedDocument']>
+: surmise.Clue<stamp_model.Default.Document>
 {
 	return surmise.Text.required
 		.to(
@@ -43,12 +41,12 @@ export function symbol_clue
 
 export function symbol_encrypt
 (
-	pathname: oss.TossFile['pathname'],
-	method: Lowercase<axios.Method>,
+	pathname: stamp_model.Pathname,
+	method: Lowercase<stamp_model.Method>,
 
 	option?: {
 		expire?: number
-		amber? : stamp_model.Tm['DocType']['amber']
+		amber? : stamp_model.Default.Document['amber']
 
 	},
 
@@ -99,8 +97,7 @@ router.post(
 
 		}
 
-		let weapp = await req.deposit_token!
-			.to_weapp()
+		let weapp = await req.deposit_token!.to_weapp()
 
 		let suspect = surmise.capture<Suspect>(req.body)
 
@@ -121,7 +118,7 @@ router.post(
 
 
 
-		let unlimited = await weapp.to_unlimited(
+		let unlimited = await weapp.to_weapp_unlimited(
 			suspect.get('path'), suspect.get('value'),
 
 		)
@@ -129,7 +126,7 @@ router.post(
 		let doc = await stamp_model.default
 			.create(
 				{
-					context: await consumers.buffer(unlimited.body),
+					context: await consumers.buffer(unlimited.body) as unknown as ArrayBuffer,
 
 					value: suspect.get('value'),
 
