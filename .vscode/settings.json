@@ -15,5 +15,6 @@
 	},
 	"eslint.useFlatConfig": true,
 	"files.eol": "\n",
-	"GitCommitPlugin.MaxSubjectCharacters": 60
+	"GitCommitPlugin.MaxSubjectCharacters": 60,
+	"js/ts.experimental.useTsgo": true
 }

@@ -17,7 +17,6 @@ import * as weapp_model from './weapp.js'
 
 
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Default
 {
 	export type Define = keyword.Default

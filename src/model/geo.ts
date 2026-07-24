@@ -9,7 +9,6 @@ import * as geo from '../schema/geo.js'
 
 
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Point
 {
 	export type Define = geo.Point

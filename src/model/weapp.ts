@@ -17,7 +17,6 @@ import * as weapp from '../schema/weapp.js'
 
 
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Default
 {
 	export type Define = weapp.Default
@@ -54,6 +53,7 @@ export namespace Default
 
 
 }
+
 
 // eslint-disable-next-line @stylistic/function-call-spacing
 export const default_schema: Default.Schema = new Schema
