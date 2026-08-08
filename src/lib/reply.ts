@@ -164,7 +164,7 @@ export class Exception<L extends i18n.Language = 'en'> extends Error implements 
 		}
 		else
 		{
-			super(message.local('en' as L) )
+			super(message.local('en') )
 
 			this.#speech = message
 

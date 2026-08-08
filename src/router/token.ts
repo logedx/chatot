@@ -21,7 +21,7 @@ export function checkpoint (...point: number[]): express.RequestHandler[]
 
 		async function (req, res, next)
 		{
-			let method = req.method
+			let method = req.method.toUpperCase() as checkpoint_model.Method
 			let original = req.originalUrl
 
 			let data = req.survive_token!.toObject()
@@ -72,12 +72,17 @@ router.post(
 	{
 		let doc = await token_model.default
 			.create(
-				{ weapp: req.xapp },
+				{ weapp: req.xapp! },
 
 			)
 
 		res.json(
-			structure.pick(doc, 'value', 'refresh', 'expire'),
+			{
+				value  : doc.value.value,
+				refresh: doc.refresh.value,
+				expire : doc.expire.value,
+
+			},
 
 		)
 
@@ -95,7 +100,7 @@ router.get(
 		let doc = req.survive_token!
 
 		res.json(
-			structure.pick(doc, 'expire', 'scope', 'is_super', 'mode'),
+			structure.pick(doc, 'scope', 'mode', 'is_super'),
 
 		)
 
@@ -127,7 +132,13 @@ router.put(
 		await doc.replenish(suspect.get('refresh') )
 
 		res.json(
-			structure.pick(doc, 'value', 'refresh', 'expire'),
+			{
+				value  : doc.value.value,
+				refresh: doc.refresh.value,
+				expire : doc.expire.value,
+
+			},
+
 
 		)
 

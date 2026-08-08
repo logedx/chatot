@@ -1,6 +1,7 @@
 import axios from 'axios'
 import crypto from 'crypto'
-import { HydratedDocument, Types } from 'mongoose'
+
+import { HydratedDocument } from 'mongoose'
 
 
 import * as reply from './reply.js'
@@ -168,7 +169,7 @@ export type RpcClientRawDocType = {
 	refresh: string
 	expired: null | Date
 
-	machine: Types.DocumentArray<
+	machine: Array<
 		{
 			code: string
 			sign: string

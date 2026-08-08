@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import express from 'express'
-
-import { Types } from 'mongoose'
+import mongoose from 'mongoose'
 
 
 import * as reply from '../lib/reply.js'
 
-import * as oss from '../store/oss.js'
+import * as oss_store from '../store/oss.js'
+import * as database_store from '../store/database.js'
 
 import * as user_model from '../model/user.js'
 import * as scope_model from '../model/scope.js'
@@ -28,24 +28,24 @@ declare global
 		// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 		interface Request
 		{
-			xapp? : null | Types.ObjectId
-			weapp?: weapp_model.Tm['HydratedDocument']
+			xapp? : null | mongoose.Types.ObjectId
+			weapp?: weapp_model.Default.Document
 
-			user?      : user_model.Tm['HydratedDocument']
-			user_scope?: scope_model.Tm['HydratedDocument']
+			user?      : user_model.Default.Document
+			user_scope?: scope_model.Default.Document
 
-			keyword?: keyword_model.Tm['HydratedDocument']
+			keyword?: keyword_model.Default.Document
 
-			stamp?     : stamp_model.Tm['HydratedDocument']
-			checkpoint?: checkpoint_model.Tm['HydratedDocument']
+			stamp?     : stamp_model.Default.Document
+			checkpoint?: checkpoint_model.Default.Document
 
 
-			token?        : token_model.Tm['HydratedDocument']
-			usable_token? : token_model.TmUsable['HydratedDocument']
-			deposit_token?: token_model.TmDeposit['HydratedDocument']
-			survive_token?: token_model.TmSurvive['HydratedDocument']
+			token?        : token_model.Default.Document
+			usable_token? : token_model.Default.Document
+			deposit_token?: token_model.Deposit.Document
+			survive_token?: token_model.Survive.Document
 
-			oss?: oss.OSS
+			oss?: oss_store.OSS
 
 		}
 
@@ -125,25 +125,11 @@ export const user_scope: express.RequestHandler = async function user_scope (req
 			{ _id, weapp, 'scope.lock': false },
 
 		)
-		.select
-		<
-			Required<
-				Pick<user_model.Tm['HydratedDocument'], 'scope'>
-
-			>
-
-		// eslint-disable-next-line @stylistic/function-call-spacing
-		>
-		(
-			['+scope'],
-
-		)
-
 
 	reply.NotFound.asserts(doc, 'user is not found')
 	reply.NotFound.asserts(doc.scope, 'scope is not found')
 
-	req.user_scope = doc.scope
+	req.user_scope = doc.scope.value as unknown as scope_model.Default.Document
 
 	next()
 
@@ -200,7 +186,7 @@ export const token: express.RequestHandler = async function token (req, res, nex
 
 	let doc = await token_model.default
 		.findOne(
-			{ value },
+			{ value: new database_store.Sensitive(value) },
 
 		)
 
@@ -223,14 +209,18 @@ export const usable_token: express.RequestHandler = async function usable_token 
 
 	let doc = await token_model.default
 		.findOne(
-			{ value },
+			{ value: new database_store.Sensitive(value) },
 
 		)
 
+	if (doc?.is_usable !== true)
+	{
+		throw new reply.NotFound('authentication failed')
 
-	reply.NotFound.asserts(doc, 'token is not found')
+	}
 
-	req.usable_token = doc.to_usable()
+
+	req.usable_token = doc
 
 	next()
 
@@ -245,21 +235,19 @@ export const deposit_token: express.RequestHandler = async function deposit_toke
 
 
 	let doc = await token_model.default
-		.findOne(
-			{ value },
+		.findOne<token_model.Deposit.Document>(
+			{ value: new database_store.Sensitive(value) },
 
 		)
 
+	if (doc?.is_deposit !== true)
+	{
+		throw new reply.NotFound('authentication failed')
 
-	reply.NotFound.asserts(doc, 'token is not found')
+	}
 
-	req.deposit_token = doc.to_deposit()
+	req.deposit_token = doc
 
-	req.oss = await req.deposit_token.to_weapp()
-		.then(
-			weapp => weapp.to_oss(),
-
-		)
 
 	next()
 
@@ -274,21 +262,32 @@ export const survive_token: express.RequestHandler = async function survive_toke
 
 
 	let doc = await token_model.default
-		.findOne(
-			{ value },
+		.findOne<token_model.Survive.Document>(
+			{ value: value as unknown as database_store.Sensitive<string> },
 
 		)
 
+	if (doc?.is_survive !== true)
+	{
+		throw new reply.NotFound('authentication failed')
 
-	reply.NotFound.asserts(doc, 'token is not found')
+	}
 
-	req.survive_token = doc.to_survive()
 
-	req.oss = await req.survive_token.to_weapp()
-		.then(
-			weapp => weapp.to_oss(),
+	req.deposit_token = doc
+	req.survive_token = doc
 
-		)
+
+	next()
+
+}
+
+
+export const oss: express.RequestHandler = async function oss (req, res, next)
+{
+	let doc = await req.deposit_token!.to_weapp()
+
+	req.oss = doc.to_oss()
 
 	next()
 

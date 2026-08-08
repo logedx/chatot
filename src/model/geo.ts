@@ -4,37 +4,37 @@ import { Schema } from 'mongoose'
 import * as database from '../store/database.js'
 
 
+import * as geo from '../schema/geo.js'
 
 
-export type TmPoint = database.Tm<
-	{
-		type       : string
-		coordinates: [number, number]
 
-	},
 
-	{
-		longitude: number
-		latitude : number
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Point
+{
+	export type Define = geo.Point
 
-	}
+	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+	export type Methods = {}
 
->
+	// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+	export type Statics = {}
+
+	export type Schema = database.Schema<Point.Define, Point.Methods, Point.Statics>
+
+	export type Keywords = database.Probe<Point.Define>
+
+	export type Document = database.Document<Point.Schema>
+
+
+}
 
 
 // Don't do `{ location: { type: String } }`
 // 'location.type' must be 'Point'
-export const point: TmPoint['TSchema'] = new Schema
-<
-	TmPoint['DocType'],
-	TmPoint['TModel'],
-	TmPoint['TInstanceMethods'],
-	TmPoint['TQueryHelpers'],
-	TmPoint['TVirtuals'],
-	TmPoint['TStaticMethods']
-
-
->(
+// eslint-disable-next-line @stylistic/function-call-spacing
+export const point_schema: Point.Schema = new Schema
+(
 	{
 		type: {
 			type    : String,
@@ -53,27 +53,37 @@ export const point: TmPoint['TSchema'] = new Schema
 
 	},
 
-)
-
-point.virtual('longitude').get(
-	function (): TmPoint['TVirtuals']['longitude']
 	{
-		let [v] = this.coordinates
+		virtuals: {
+			longitude: {
+				get ()
+				{
+					let [v] = this.coordinates
 
-		return v
+					return v ?? 0
+
+				},
+
+
+			},
+
+			latitude: {
+				get ()
+				{
+					let [, v] = this.coordinates
+
+					return v ?? 0
+
+				},
+
+
+			},
+
+
+		},
 
 
 	},
 
-)
-
-point.virtual('latitude').get(
-	function (): TmPoint['TVirtuals']['latitude']
-	{
-		let [, v] = this.coordinates
-
-		return v
-
-	},
 
 )
