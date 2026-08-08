@@ -20,8 +20,6 @@ import * as weapp_model from './weapp.js'
 
 
 
-
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Default
 {
 	export type Define = token.Default
@@ -44,7 +42,6 @@ export namespace Default
 }
 
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Deposit
 {
 	export type Define = token.Deposit
@@ -68,7 +65,6 @@ export namespace Deposit
 }
 
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Survive
 {
 	export type Define = token.Survive

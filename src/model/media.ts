@@ -18,7 +18,6 @@ import * as media from '../schema/media.js'
 
 
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Default
 {
 	export type Define = media.Default

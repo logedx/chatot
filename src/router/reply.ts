@@ -27,7 +27,6 @@ type Expose<T extends string> = T extends KebabCase<T>
 
 declare global
 {
-	// eslint-disable-next-line @typescript-eslint/no-namespace
 	namespace Express
 	{
 		// eslint-disable-next-line @typescript-eslint/consistent-type-definitions

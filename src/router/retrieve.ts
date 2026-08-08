@@ -22,7 +22,6 @@ import * as checkpoint_model from '../model/checkpoint.js'
 
 declare global
 {
-	// eslint-disable-next-line @typescript-eslint/no-namespace
 	namespace Express
 	{
 		// eslint-disable-next-line @typescript-eslint/consistent-type-definitions

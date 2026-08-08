@@ -19,7 +19,6 @@ import * as stamp from '../schema/stamp.js'
 
 
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Default
 {
 	export type Define = stamp.Default
@@ -44,6 +43,7 @@ export namespace Default
 
 
 }
+
 
 // eslint-disable-next-line @stylistic/function-call-spacing
 export const default_schema: Default.Schema = new Schema

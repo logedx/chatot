@@ -15,7 +15,6 @@ export type Symbol
 <S extends string, T> = { __type__: T, __symbol__: S }
 
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 export declare namespace Types
 {
 	export type Id = Symbol<'_id', string>

@@ -369,6 +369,7 @@ export default eslint_config.defineConfig(
 			"@typescript-eslint/no-import-type-side-effects": "error",
 			"@typescript-eslint/no-inferrable-types": "error",
 			"@typescript-eslint/no-misused-promises": "off",
+			"@typescript-eslint/no-namespace": "off",
 			"@typescript-eslint/no-non-null-assertion": "off",
 			"@typescript-eslint/no-require-imports": "error",
 			"@typescript-eslint/no-shadow": "error",
