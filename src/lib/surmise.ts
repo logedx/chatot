@@ -474,6 +474,40 @@ export class Clue
 
 	}
 
+
+	#catch (e: unknown): never
+	{
+		let x = new i18n.Speech('verify fail')
+
+		if (detective.is_string(this.#message) )
+		{
+			x = new i18n.Speech(this.#message)
+
+		}
+
+		else if (this.#message instanceof i18n.Speech)
+		{
+			x = this.#message
+
+		}
+
+
+		if (detective.is_exist(this.#signed) )
+		{
+			x.with(this.#signed)
+
+		}
+
+		if (e instanceof reply.Exception)
+		{
+			throw new reply.BadRequest(x, e.data)
+
+		}
+
+		throw new reply.BadRequest(x)
+
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	#buckle <R> (message: string | i18n.Speech, reagent: InferReagent<any, any>): Clue<R, K>
 	{
@@ -486,9 +520,6 @@ export class Clue
 
 	async verify (value: unknown): Promise<T>
 	{
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		let x: reply.Exception<any> = new reply.BadRequest(this.#message)
-
 		try
 		{
 			if (detective.is_exist(this.#linker) )
@@ -505,23 +536,11 @@ export class Clue
 
 		catch (e)
 		{
-			if (detective.is_error(e) )
-			{
-				x = new reply.BadRequest(e.message)
-
-			}
-
-			if (e instanceof reply.Exception)
-			{
-				x = e
-
-			}
+			this.#catch(e)
 
 		}
 
-		x.push('symbol', String(this.#signed) )
-
-		throw x
+		throw new reply.BadRequest('verify fail')
 
 
 	}
@@ -536,14 +555,14 @@ export class Clue
 
 	}
 
-	and <R = T> (message: string, fn: InferReagent<T, boolean>): Clue<R, K>
+	and <R = T> (message: string | i18n.Speech, fn: InferReagent<T, boolean>): Clue<R, K>
 	{
 		return this.#buckle<R>(
 			message,
 
 			async (v: T): Promise<T> =>
 			{
-				await Clue.test(v, message, fn)
+				await Clue.test(v, fn)
 
 				return v
 
@@ -562,8 +581,6 @@ export class Clue
 	static async test
 	(
 		value: unknown,
-		message: string | i18n.Speech,
-
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		fn: InferReagent<any, boolean>,
 
@@ -578,7 +595,7 @@ export class Clue
 
 		}
 
-		throw new reply.BadRequest(message)
+		throw new reply.BadRequest('test fail')
 
 
 	}
@@ -591,7 +608,7 @@ export class Clue
 
 			async (v: T): Promise<T> =>
 			{
-				await Clue.test(v, message, fn)
+				await Clue.test(v, fn)
 
 				return v
 
@@ -820,7 +837,7 @@ export class Text
 		if (detective.is_string(regex) )
 		{
 			return Clue.infer<T>(
-				`string does not match ${regex}`,
+				`is does not match ${regex}`,
 
 				v => detective.is_string(v) && v === regex,
 
@@ -830,7 +847,7 @@ export class Text
 		}
 
 		return Clue.infer<T>(
-			`string does not match ${regex}`,
+			`is does not match ${regex}`,
 
 			v => detective.is_string(v) && regex.test(v),
 
@@ -843,7 +860,7 @@ export class Text
 	static include<T extends string>(value: string[]): Clue<T>
 	{
 		return Clue.infer<T>(
-			`string does not include ${value.toString()}`,
+			`is does not include ${value.toString()}`,
 
 			v => detective.is_required_string(v) && value.includes(v),
 
@@ -1120,7 +1137,7 @@ export class Every
 	: Clue<T[]>
 	{
 		return Clue.infer<T[]>(
-			`one of the elements is not a ${type}`,
+			`not every \${0} is a ${type}`,
 
 			v => detective.is_array_every(v, fn),
 

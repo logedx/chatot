@@ -155,7 +155,7 @@ export class Exception<L extends i18n.Language = 'en'> extends Error implements 
 
 	}
 
-	constructor (message: string | i18n.Speech<L> = '')
+	constructor (message: string | i18n.Speech<L> = '', data: Array<[string, unknown]> = [])
 	{
 		if (detective.is_string(message) )
 		{
@@ -169,6 +169,8 @@ export class Exception<L extends i18n.Language = 'en'> extends Error implements 
 			this.#speech = message
 
 		}
+
+		this.#data = data
 
 		Error.captureStackTrace(this, this.constructor)
 

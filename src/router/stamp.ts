@@ -30,7 +30,7 @@ export function symbol_clue
 
 		)
 		.and(
-			'invalid symbol',
+			'is invalid symbol',
 
 			v => v.touch(pathname, method),
 

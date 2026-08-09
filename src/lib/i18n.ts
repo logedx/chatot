@@ -12,6 +12,10 @@ export class Speech<L extends Language = 'en'>
 
 	#local: Record<string, string> = {}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	#ctx: any[] = []
+
+
 	constructor (text: string)
 	{
 		this.#default = text
@@ -24,11 +28,19 @@ export class Speech<L extends Language = 'en'>
 
 	}
 
+	with (...ctx: any[]): this
+	{
+		this.#ctx = ctx
+
+		return this
+
+	}
+
 	local (lang: 'en' | L): string
 	{
 		if (lang === 'en')
 		{
-			return this.#default
+			return this.#replace(this.#default)
 
 		}
 
@@ -36,22 +48,42 @@ export class Speech<L extends Language = 'en'>
 		{
 			if (v === 'en')
 			{
-				return this.#default
+				return this.#replace(this.#default)
 
 			}
 
 			if (detective.is_required_string(this.#local[v]) )
 			{
-				return this.#local[v]
+				return this.#replace(this.#local[v])
 
 			}
 
 		}
 
-		return this.#default
+		return this.#replace(this.#default)
 
 	}
 
+	#replace (text: string): string
+	{
+		let regex = /\$\{(\d+)\}/g
+
+		if (regex.test(text) === false)
+		{
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			return [...this.#ctx, text].join(' ')
+
+		}
+
+		return text.replace(
+			regex,
+
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+			(match, index) => this.#ctx[Number(index)] ?? match,
+
+		)
+
+	}
 
 }
 
@@ -80,38 +112,16 @@ export class Helper
 
 	#translate (text: string, ...ctx: any[]): Speech<L>
 	{
-		let message = new Speech<L>(
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-			this.#replace(text, ...ctx),
-
-		)
+		let message = new Speech<L>(text)
 
 		for (let [k, v] of Object.entries(this.#lang) )
 		{
-			message.map(
-				k as L,
-
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-				this.#replace(v[text] ?? '', ...ctx),
-
-			)
+			message.map(k as L, v[text] ?? '')
 
 		}
 
-		return message
-
-	}
-
-
-	#replace (text: string, ...ctx: any[]): string
-	{
-		return text.replace(
-			/\$\{([^}]+)\}/g,
-
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-			(match, index) => ctx[Number(index)] ?? match,
-
-		)
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+		return message.with(...ctx)
 
 	}
 
